@@ -17,9 +17,8 @@ body {
 
 table {
 	width: 25%;
-	/* max-height: 50%; */
 	float: left;
-	border: 1px solid #f94; /* white; */
+	border: 1px solid #f94;
 }
 
 caption {
@@ -28,7 +27,7 @@ caption {
 
 thead {
 	font-family: orbitron, sans-serif;
-	color: #f94; /* #ff8c0d; */
+	color: #f94;
 }
 
 tbody {
@@ -66,13 +65,13 @@ tbody {
 }
 
 .old {
-	color: #aaa; /* !important; */
+	color: #aaa;
 }
 
 .new {
-	color: #a00; /* !important; */
+	color: #a00;
 }
 
 .longjump {
-	font-weight: bold; /* !important; */
+	font-weight: bold;
 }

@@ -1,0 +1,1 @@
+https://eddn-realtime.space/

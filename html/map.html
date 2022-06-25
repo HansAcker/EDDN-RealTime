@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<title>map</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+	body, html { width: 100%; height: 100%; margin: 0;  }
+
+	body {
+		font-size: 100%;
+		font-family: sans-serif;
+		background-color: #000;
+		color: #fff;
+	}
+</style>
+<script type="module">
+"use strict";
+import * as GalMap from "/js/galmap.js";
+import { ReconnectingWebSocket } from "/js/reconnecting-websocket.min.js";
+
+const ws = new ReconnectingWebSocket("wss://eddn-realtime.space/.ws/eddn");
+
+ws.onmessage = (event) => {
+	let data = {};
+
+	try {
+		data = JSON.parse(event.data);
+	} catch(error) {
+		console.log("JSON parse error:", error);
+		return;
+	}
+
+	const message = data["message"];
+
+	if (message) {
+		try {
+			const diff = new Date() - new Date(message.timestamp);
+			if (diff > 3600 * 1000) { // timestamp older than 1h
+				message.isOld = true;
+			}
+		} catch(error) {
+			//console.log("Invalid date:", error);
+		}
+
+		if (message.event) {
+			if (message.StarPos && !message.isOld) {
+				// plot on map
+				GalMap.PingMap(message.StarPos, message.StarSystem, message.event);
+			}
+
+			if (message.event === "NavRoute" && !message.isOld) {
+				const route = message.Route;
+
+				if (route.length > 1) {
+					// plot on map
+					GalMap.NavRoute(route);
+				}
+			}
+		}
+	} else {
+		//console.log("No message: ", data);
+	}
+}
+</script>
+</html>

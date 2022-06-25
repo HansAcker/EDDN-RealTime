@@ -1,0 +1,78 @@
+@font-face {
+	/* https://www.theleagueofmoveabletype.com/orbitron */
+	font-family: 'orbitron';
+	src: url('/fonts/orbitron-light-webfont.woff') format('woff'), url('/fonts/orbitron-light-webfont.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+body, html { width: 100%; height: 100%; margin: 0; }
+
+body {
+	font-size: 100%;
+	font-family: sans-serif;
+	background-color: #000;
+	color: #fff;
+}
+
+table {
+	width: 25%;
+	/* max-height: 50%; */
+	float: left;
+	border: 1px solid #f94; /* white; */
+}
+
+caption {
+	display: none;
+}
+
+thead {
+	font-family: orbitron, sans-serif;
+	color: #f94; /* #ff8c0d; */
+}
+
+tbody {
+	font-size: 80%;
+	text-align: right;
+}
+
+#jumpstable {
+	width: 15%;
+}
+
+#routestable {
+	width: 35%;
+}
+
+#newplanetstable, #visitstable {
+	width: 50%;
+}
+
+.Odyssey {
+	background-color: #05b;
+}
+
+.Horizons {
+	background-color: #b50;
+}
+
+.Base {
+	background-color: #555;
+}
+
+.taxi {
+	color: yellow;
+	font-weight: bold;
+}
+
+.old {
+	color: #aaa; /* !important; */
+}
+
+.new {
+	color: #a00; /* !important; */
+}
+
+.longjump {
+	font-weight: bold; /* !important; */
+}

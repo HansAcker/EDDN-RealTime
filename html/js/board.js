@@ -223,19 +223,15 @@ ws.onmessage = (event) => {
 
 				addRow(cjumps, tr);
 			}
-/*
-			else if (message.event === "SAASignalsFound") {
-			}
-			else if (message.event === "CodexEntry") {
-			}
-*/
+
+			// TODO: FSSBodySignals, FSSSignalDiscovered, SAASignalsFound, CodexEntry
+
 			else {
 				gameStats["Ignored"]++;
 			}
 		}
 		else {
 			// commodities, modules, ships
-			gameStats["Ignored"]++;
 
 			tr.appendChild(makeTd(message.commodities ? "Market" : message.ships ? "Shipyard" : message.modules ? "Outfitting" : ""));
 			tr.appendChild(makeTd(message.stationName ? message.stationName : ""));

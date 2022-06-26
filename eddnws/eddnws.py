@@ -66,10 +66,6 @@ async def relay_messages():
 				zmq_reconnect()
 			continue
 
-		if zmq_msg == False:
-			print("\runhandled zmq_msg")
-			continue
-
 		event = {}
 		message = {}
 

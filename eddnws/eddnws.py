@@ -1,4 +1,5 @@
 import asyncio
+import sys
 import zlib
 import simplejson
 import websockets
@@ -61,8 +62,9 @@ async def relay_messages():
 			# TODO: wait for clients. runs into EAGAIN when !zmq_connected
 			zmq_msg = await zmq_sub.recv()
 		except Exception as e:
-			print("\rreceive error:\x1b[K", e)
 			if zmq_connected:
+				print("\r\x1b[K")
+				print("receive error:", e, file=sys.stderr)
 				zmq_reconnect()
 			continue
 
@@ -72,7 +74,8 @@ async def relay_messages():
 		try:
 			event = simplejson.loads(zlib.decompress(zmq_msg))
 		except Exception as e:
-			print("\rdecode error:\x1b[K", e)
+			print("\r\x1b[K")
+			print("decode error:", e, file=sys.stderr)
 			continue
 
 		if not event:
@@ -82,7 +85,8 @@ async def relay_messages():
 		try:
 			websockets.broadcast(wsconns, simplejson.dumps(event))
 		except Exception as e:
-			print("\rrelay error:\x1b[K", e)
+			print("\r\x1b[K")
+			print("relay error:", e, file=sys.stderr)
 
 		try:
 			message = event["message"]

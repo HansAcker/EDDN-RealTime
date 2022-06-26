@@ -1,4 +1,5 @@
 import asyncio
+import signal
 import sys
 import zlib
 import simplejson
@@ -14,7 +15,7 @@ srv_path = "/run/eddn/eddnws.sock"
 wsconns = set()
 
 zmq_ctx = Context.instance()
-zmq_connected = False
+zmq_task = None
 
 zmq_sub = zmq_ctx.socket(zmq.SUB)
 zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
@@ -23,49 +24,25 @@ zmq_sub.setsockopt(zmq.RCVTIMEO, 600 * 1000)
 
 
 def zmq_connect():
-	global zmq_connected
 	zmq_sub.connect(eddn_url)
-	zmq_connected = True
 
 def zmq_disconnect():
-	global zmq_connected
 	zmq_sub.disconnect(eddn_url)
-	zmq_connected = False
 
 def zmq_reconnect():
 	zmq_sub.disconnect(eddn_url)
 	zmq_sub.connect(eddn_url)
 
 
-async def ws_handler(websocket, path):
-	wsconns.add(websocket)
-	print("\rconnect\x1b[K", len(wsconns))
-
-	if not zmq_connected:
-		print("connecting ZMQ")
-		zmq_connect()
-
-	try:
-		await websocket.wait_closed()
-	finally:
-		wsconns.remove(websocket)
-		print("\rdisconnect\x1b[K", len(wsconns))
-
-	if not wsconns and zmq_connected:
-		print("disconnecting ZMQ")
-		zmq_disconnect()
-
-
 async def relay_messages():
 	while True:
 		try:
-			# TODO: wait for clients. runs into EAGAIN when !zmq_connected
 			zmq_msg = await zmq_sub.recv()
 		except Exception as e:
-			if zmq_connected:
-				print("\r\x1b[K")
-				print("receive error:", e, file=sys.stderr)
-				zmq_reconnect()
+			print("\r\x1b[K", end="")
+			print("receive error:", e, file=sys.stderr)
+			# TODO: is that the right thing to do?
+			#zmq_reconnect()
 			continue
 
 		event = {}
@@ -74,7 +51,7 @@ async def relay_messages():
 		try:
 			event = simplejson.loads(zlib.decompress(zmq_msg))
 		except Exception as e:
-			print("\r\x1b[K")
+			print("\r\x1b[K", end="")
 			print("decode error:", e, file=sys.stderr)
 			continue
 
@@ -85,7 +62,7 @@ async def relay_messages():
 		try:
 			websockets.broadcast(wsconns, simplejson.dumps(event))
 		except Exception as e:
-			print("\r\x1b[K")
+			print("\r\x1b[K", end="")
 			print("relay error:", e, file=sys.stderr)
 
 		try:
@@ -100,9 +77,43 @@ async def relay_messages():
 				print(f"\r{message['event']}\x1b[K", end="")
 
 
-async def main():
+async def ws_handler(websocket):
+	global zmq_task
+
+	wsconns.add(websocket)
+	print("\rconnect\x1b[K", len(wsconns))
+
+	if zmq_task is None:
+		print("connecting ZMQ")
+		zmq_connect()
+		zmq_task = asyncio.create_task(relay_messages())
+
+	try:
+		await websocket.wait_closed()
+	finally:
+		wsconns.remove(websocket)
+		print("\rdisconnect\x1b[K", len(wsconns))
+
+	if not wsconns and zmq_task:
+		print("disconnecting ZMQ")
+		zmq_task.cancel()
+		zmq_task = None
+		zmq_disconnect()
+
+
+async def server():
+	print("starting websocket server", file=sys.stderr)
+
+	# Set the stop condition when receiving SIGTERM.
+	loop = asyncio.get_running_loop()
+	stop = loop.create_future()
+	loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
+	#loop.add_signal_handler(signal.SIGINT, stop.set_result, None)
+
 	async with websockets.unix_serve(ws_handler, srv_path):
-		await relay_messages()
+		await stop
+		print("\r\x1b[K", end="")
+		print("stopping websocket server", file=sys.stderr)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+	asyncio.run(server())

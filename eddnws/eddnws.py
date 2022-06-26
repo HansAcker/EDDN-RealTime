@@ -5,104 +5,104 @@ import websockets
 import zmq.asyncio
 from zmq.asyncio import Context
 
-class ZMQReceiver:
-	def __init__(self, wsconns, url="tcp://eddn.edcd.io:9500"):
-		self.wsconns = wsconns
-		self.url = url
-		self.ctx = Context.instance()
-		self.stopNow = False
-		self.sub = None
 
-	def start(self):
-		asyncio.ensure_future(self.relay_msgs())
+eddn_url = "tcp://eddn.edcd.io:9500"
+srv_path = "/run/eddn/eddnws.sock"
 
-	def stop(self):
-		self.stopNow = True
 
-	def connect(self):
-		self.sub = self.ctx.socket(zmq.SUB)
-		self.sub.setsockopt(zmq.SUBSCRIBE, b"")
-		self.sub.setsockopt(zmq.RECONNECT_IVL_MAX, 60 * 1000)
-		self.sub.setsockopt(zmq.RCVTIMEO, 600 * 1000)
-		self.sub.connect(self.url)
+wsconns = set()
 
-	def disconnect(self):
-		self.sub.disconnect(self.url)
+zmq_ctx = Context.instance()
+zmq_connected = False
 
-	def reconnect(self):
-		self.sub.disconnect(self.url)
-		self.sub.connect(self.url)
+zmq_sub = zmq_ctx.socket(zmq.SUB)
+zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
+zmq_sub.setsockopt(zmq.RECONNECT_IVL_MAX, 60 * 1000)
+zmq_sub.setsockopt(zmq.RCVTIMEO, 600 * 1000)
 
-	async def relay_msgs(self):
-		self.connect()
 
-		while not self.stopNow:
-			msg = await self.sub.recv()
+def zmq_connect():
+	global zmq_connected
+	zmq_sub.connect(eddn_url)
+	zmq_connected = True
 
-			if msg == False:
-				print("\r0mq timeout\x1b[K")
-				self.reconnect()
-				continue
+def zmq_disconnect():
+	global zmq_connected
+	zmq_sub.disconnect(eddn_url)
+	zmq_connected = False
 
-			event = {}
-			message = {}
+def zmq_reconnect():
+	zmq_sub.disconnect(eddn_url)
+	zmq_sub.connect(eddn_url)
 
-			try:
-				event = simplejson.loads(zlib.decompress(msg))
-			except Exception as e:
-				print("\rdecode error:\x1b[K", e)
-				continue
 
-			if not event:
-				print("\rno event")
-				continue
+async def ws_handler(websocket, path):
+	wsconns.add(websocket)
+	print("\rconnect\x1b[K", len(wsconns))
 
-			try:
-				websockets.broadcast(self.wsconns, simplejson.dumps(event))
-			except Exception as e:
-				print("\rrelay error:\x1b[K", e)
+	if not zmq_connected:
+		print("connecting ZMQ")
+		zmq_connect()
 
-			try:
-				message = event["message"]
-				print(f"\r{message['event']}: {message['StarSystem']}\x1b[K", end="")
-			except Exception as e:
-				if not "event" in message:
-					#print(simplejson.dumps(event))
-					pass
-				else:
-					#print(simplejson.dumps(event))
-					print(f"\r{message['event']}\x1b[K", end="")
+	try:
+		await websocket.wait_closed()
+	finally:
+		wsconns.remove(websocket)
+		print("\rdisconnect\x1b[K", len(wsconns))
 
-		self.disconnect()
+	if not wsconns and zmq_connected:
+		print("disconnecting ZMQ")
+		zmq_disconnect()
 
-class WSServer:
-	def __init__(self, path):
-		self.wsconns = set()
-		self.receiver = None
-		self.path = path
 
-	def start(self):
-		# TODO: umask?
-		asyncio.ensure_future(websockets.unix_serve(self.handler, self.path))
+async def relay_messages():
+	while True:
+		try:
+			# TODO: wait for clients. runs into EAGAIN when !zmq_connected
+			zmq_msg = await zmq_sub.recv()
+		except Exception as e:
+			print("\rreceive error:\x1b[K", e)
+			if zmq_connected:
+				zmq_reconnect()
+			continue
 
-	async def handler(self, websocket, path):
-		self.wsconns.add(websocket)
-		print("\rconnect\x1b[K", len(self.wsconns))
+		if zmq_msg == False:
+			print("\runhandled zmq_msg")
+			continue
 
-		if self.receiver is None:
-			self.receiver = ZMQReceiver(self.wsconns)
-			self.receiver.start()
+		event = {}
+		message = {}
 
 		try:
-			await websocket.wait_closed()
-		finally:
-			self.wsconns.remove(websocket)
-			print("\rdisconnect\x1b[K", len(self.wsconns))
-			if not self.wsconns and self.receiver is not None:
-				print("closing receiver")
-				self.receiver.stop()
-				self.receiver = None
+			event = simplejson.loads(zlib.decompress(zmq_msg))
+		except Exception as e:
+			print("\rdecode error:\x1b[K", e)
+			continue
+
+		if not event:
+			print("\rno event")
+			continue
+
+		try:
+			websockets.broadcast(wsconns, simplejson.dumps(event))
+		except Exception as e:
+			print("\rrelay error:\x1b[K", e)
+
+		try:
+			message = event["message"]
+			print(f"\r{message['event']}: {message['StarSystem']}\x1b[K", end="")
+		except Exception as e:
+			if not "event" in message:
+				#print(simplejson.dumps(event))
+				pass
+			else:
+				#print(simplejson.dumps(event))
+				print(f"\r{message['event']}\x1b[K", end="")
+
+
+async def main():
+	async with websockets.unix_serve(ws_handler, srv_path):
+		await relay_messages()
 
 if __name__ == "__main__":
-	WSServer("/run/eddn/eddnws.sock").start()
-	asyncio.get_event_loop().run_forever()
+    asyncio.run(main())

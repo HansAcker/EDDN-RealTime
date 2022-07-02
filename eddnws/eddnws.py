@@ -76,6 +76,8 @@ async def relay_messages():
 				#print(simplejson.dumps(event))
 				print(f"\r{message['event']}\x1b[K", end="")
 
+		# don't block the loop during message bursts
+		await asyncio.sleep(0)
 
 
 async def ws_handler(websocket, path):

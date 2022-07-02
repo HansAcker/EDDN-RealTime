@@ -109,7 +109,7 @@ async def server():
 	loop = asyncio.get_running_loop()
 	stop = loop.create_future()
 	loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
-	#loop.add_signal_handler(signal.SIGINT, stop.set_result, None)
+	loop.add_signal_handler(signal.SIGINT, stop.set_result, None)
 
 	async with websockets.unix_serve(ws_handler, srv_path):
 		await stop

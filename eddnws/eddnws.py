@@ -8,7 +8,7 @@ import zmq.asyncio
 from zmq.asyncio import Context
 
 
-eddn_url = "tcp://eddn.edcd.io:9500"
+zmq_url = "tcp://eddn.edcd.io:9500"
 srv_path = "/run/eddn/eddnws.sock"
 
 
@@ -24,14 +24,14 @@ zmq_sub.setsockopt(zmq.RCVTIMEO, 600 * 1000)
 
 
 def zmq_connect():
-	zmq_sub.connect(eddn_url)
+	zmq_sub.connect(zmq_url)
 
 def zmq_disconnect():
-	zmq_sub.disconnect(eddn_url)
+	zmq_sub.disconnect(zmq_url)
 
 def zmq_reconnect():
-	zmq_sub.disconnect(eddn_url)
-	zmq_sub.connect(eddn_url)
+	zmq_sub.disconnect(zmq_url)
+	zmq_sub.connect(zmq_url)
 
 
 async def relay_messages():

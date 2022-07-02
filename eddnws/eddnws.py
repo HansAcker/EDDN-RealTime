@@ -77,7 +77,8 @@ async def relay_messages():
 				print(f"\r{message['event']}\x1b[K", end="")
 
 
-async def ws_handler(websocket):
+
+async def ws_handler(websocket, path):
 	global zmq_task
 
 	wsconns.add(websocket)

@@ -56,7 +56,7 @@ async def relay_messages():
 			continue
 
 		if not event:
-			print("\rno event")
+			print("\rno event\x1b[K")
 			continue
 
 		try:

@@ -1,11 +1,21 @@
 "use strict";
-import { Vector3 } from "/js/three.module.min.js";
-import { ReconnectingWebSocket } from "/js/reconnecting-websocket.min.js";
+
+/* https://github.com/HansAcker/EDDN-RealTime */
 
 const socketUrl = "wss://eddn-realtime.space/.ws/eddn";
 const listLength = 20;
 
-let maxrange = 0;
+
+import { ReconnectingWebSocket } from "/js/reconnecting-websocket.min.js";
+
+// substract vectors, return length
+function distance3(v0, v1) {
+	const xd = v0[0] - v1[0];
+	const yd = v0[1] - v1[1];
+	const zd = v0[2] - v1[2];
+
+	return Math.sqrt((xd * xd) + (yd * yd) + (zd * zd));
+}
 
 const gamestats = document.getElementById("stats");
 let statsbody = gamestats.querySelector("tbody");
@@ -27,7 +37,10 @@ const gameStats = {
 const whatGame = (msg) => msg.odyssey ? "Odyssey" : msg.horizons ? "Horizons" : msg.horizons === false ? "Base" : "Unknown";
 const makeTd = (textContent) => { const td = document.createElement("td"); td.textContent = textContent; return td; };
 
+let maxrange = 0;
+
 let lastEvent = Date.now();
+
 
 const ws = new ReconnectingWebSocket(socketUrl);
 
@@ -169,17 +182,15 @@ ws.onmessage = (event) => {
 					try {
 						let dist = 0;
 						let longest = 0;
-						let cur = new Vector3().fromArray(route[0].StarPos);
+						let cur = route.shift().StarPos;
 
 						// distance to destination system
-						tr.appendChild(makeTd(`${cur.distanceTo(new Vector3().fromArray(route[route.length-1].StarPos)).toFixed(2)}ly`));
-
-						route.shift();
+						tr.appendChild(makeTd(`${distance3(cur, route[route.length-1].StarPos).toFixed(2)}ly`));
 
 						// sum jump distances
 						for (const wp of route) {
-							const hop = new Vector3().fromArray(wp.StarPos);
-							const range = cur.distanceTo(hop);
+							const hop = wp.StarPos;
+							const range = distance3(cur, hop);
 
 							if (maxrange < range) {
 								maxrange = range;

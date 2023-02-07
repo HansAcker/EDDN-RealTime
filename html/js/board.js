@@ -8,13 +8,13 @@ const listLength = 20;
 
 import { ReconnectingWebSocket } from "/js/reconnecting-websocket.min.js";
 
-// substract vectors, return length
+// subtract vectors, return length
 function distance3(v0, v1) {
-	const xd = v0[0] - v1[0];
-	const yd = v0[1] - v1[1];
-	const zd = v0[2] - v1[2];
+	const dx = v0[0] - v1[0];
+	const dy = v0[1] - v1[1];
+	const dz = v0[2] - v1[2];
 
-	return Math.sqrt((xd * xd) + (yd * yd) + (zd * zd));
+	return Math.sqrt((dx * dx) + (dy * dy) + (dz * dz));
 }
 
 const gamestats = document.getElementById("stats");

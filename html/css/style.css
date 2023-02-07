@@ -13,6 +13,7 @@ body {
 	font-family: sans-serif;
 	background-color: #000;
 	color: #fff;
+	overflow-anchor: none;
 }
 
 table {

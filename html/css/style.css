@@ -36,15 +36,15 @@ tbody {
 	text-align: right;
 }
 
-#jumpstable {
+#newstarstable, #jumpstable {
 	width: 15%;
 }
 
-#routestable {
+#newplanetstable, #routestable {
 	width: 35%;
 }
 
-#newplanetstable, #visitstable {
+#codextable, #visitstable {
 	width: 50%;
 }
 

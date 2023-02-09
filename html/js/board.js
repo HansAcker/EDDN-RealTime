@@ -36,23 +36,24 @@ const gameStats = {
 
 const whatGame = (msg) => msg.odyssey ? "Odyssey" : msg.horizons ? "Horizons" : msg.horizons === false ? "Base" : "Unknown";
 const makeTd = (textContent) => { const td = document.createElement("td"); td.textContent = textContent; return td; };
+const trimPrefix = (str, prefix) => (str.startsWith(prefix) ? str.slice(prefix.length) : str).trim();
 
 let maxrange = 0;
 
 let lastEvent = Date.now();
 
 
+function addRow(tbody, tr) {
+	while (tbody.children.length >= listLength) {
+		tbody.removeChild(tbody.lastChild);
+	}
+
+	tbody.insertBefore(tr, tbody.firstChild);
+}
+
 const ws = new ReconnectingWebSocket(socketUrl);
 
 ws.onmessage = (event) => {
-	function addRow(tbody, tr) {
-		while (tbody.children.length >= listLength) {
-			tbody.removeChild(tbody.lastChild);
-		}
-
-		tbody.insertBefore(tr, tbody.firstChild);
-	}
-
 	let data = {};
 
 	try {
@@ -152,8 +153,8 @@ ws.onmessage = (event) => {
 					tr.appendChild(makeTd(message.SystemAllegiance));
 
 					const faction = message.SystemFaction || {};
-					tr.appendChild(makeTd(`${faction.Name ? faction.Name : ""}`));
-					tr.appendChild(makeTd(`${faction.FactionState ? faction.FactionState : ""}`));
+					tr.appendChild(makeTd(`${faction.Name || ""}`));
+					tr.appendChild(makeTd(`${faction.FactionState || ""}`));
 
 					addRow(visits, tr);
 				}
@@ -166,7 +167,7 @@ ws.onmessage = (event) => {
 				addRow(honks, tr);
 			}
 			else if (message.event === "Docked" || message.event === "Location") {
-				tr.appendChild(makeTd(`${message.StationName ? message.StationName : ""}`));
+				tr.appendChild(makeTd(`${message.StationName || ""}`));
 				tr.appendChild(makeTd(message.StarSystem));
 
 				addRow(docks, tr);
@@ -228,11 +229,22 @@ ws.onmessage = (event) => {
 
 				addRow(asett, tr);
 			}
+/*
 			else if (message.event === "CarrierJump") {
 				tr.appendChild(makeTd(message.Body));
 				tr.appendChild(makeTd(message.StationName));
 
 				addRow(cjumps, tr);
+			}
+*/
+
+			else if (message.event === "CodexEntry") {
+				tr.appendChild(makeTd(message.System));
+				tr.appendChild(makeTd(trimPrefix(message.BodyName || "", message.System)));
+				tr.appendChild(makeTd(message.SubCategory));
+				tr.appendChild(makeTd(message.Name));
+
+				addRow(codex, tr);
 			}
 
 			// TODO: FSSBodySignals, FSSSignalDiscovered, SAASignalsFound, CodexEntry
@@ -245,8 +257,8 @@ ws.onmessage = (event) => {
 			// commodities, modules, ships
 
 			tr.appendChild(makeTd(message.commodities ? "Market" : message.ships ? "Shipyard" : message.modules ? "Outfitting" : ""));
-			tr.appendChild(makeTd(message.stationName ? message.stationName : ""));
-			tr.appendChild(makeTd(message.systemName ? message.systemName : ""));
+			tr.appendChild(makeTd(message.stationName || ""));
+			tr.appendChild(makeTd(message.systemName || ""));
 
 			addRow(updates, tr);
 		}

@@ -2,7 +2,7 @@
 
 /* https://github.com/HansAcker/EDDN-RealTime */
 
-const socketUrl = "wss://eddn-realtime.space/.ws/eddn";
+const socketUrl = "wss://ws.eddn-realtime.space/";
 const listLength = 20;
 
 

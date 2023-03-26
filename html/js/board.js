@@ -10,11 +10,7 @@ import { ReconnectingWebSocket } from "/js/reconnecting-websocket.min.js";
 
 // subtract vectors, return length
 function distance3(v0, v1) {
-	const dx = v0[0] - v1[0];
-	const dy = v0[1] - v1[1];
-	const dz = v0[2] - v1[2];
-
-	return Math.sqrt((dx * dx) + (dy * dy) + (dz * dz));
+	return Math.hypot(v0[0] - v1[0], v0[1] - v1[1], v0[2] - v1[2]);
 }
 
 const gamestats = document.getElementById("stats");

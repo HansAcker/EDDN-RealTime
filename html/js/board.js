@@ -50,7 +50,7 @@ const icons = {
 };
 
 let timer = null;
-let lastState = "";
+let lastState = "off";
 
 const idle = () => { lastState = "idle"; icon.href = icons["idle"]; timer = null; }
 
@@ -73,11 +73,11 @@ function setActivity(state, timeout = 0) {
 
 const ws = new ReconnectingWebSocket(socketUrl);
 
-ws.onopen = () => setActivity("idle");
-ws.onclose = () => setActivity("off");
+ws.onopen = setActivity.bind(null, "idle");
+ws.onclose = setActivity.bind(null, "off");
 
 ws.onmessage = (event) => {
-	setActivity("ok", 1200);
+	setActivity("ok", 1600);
 
 	let data = {};
 

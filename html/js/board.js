@@ -43,10 +43,10 @@ let lastEvent = Date.now();
 
 
 const icons = {
-	"ok": "img/led-circle-green.png",
-	"off": "img/led-circle-red.png",
-	"idle": "img/led-circle-grey.png",
-	"error": "img/led-circle-yellow.png"
+	"ok": "img/led-circle-green.svg",
+	"off": "img/led-circle-red.svg",
+	"idle": "img/led-circle-grey.svg",
+	"error": "img/led-circle-yellow.svg"
 };
 
 let timer = null;

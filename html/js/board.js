@@ -73,8 +73,8 @@ function setActivity(state, timeout = 0) {
 
 const ws = new ReconnectingWebSocket(socketUrl);
 
-ws.onopen = setActivity.bind(null, "idle");
-ws.onclose = setActivity.bind(null, "off");
+ws.onopen = setActivity.bind(null, "idle", 0);
+ws.onclose = setActivity.bind(null, "off", 0);
 
 ws.onmessage = (event) => {
 	setActivity("ok", 1600);

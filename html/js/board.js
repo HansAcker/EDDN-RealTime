@@ -36,14 +36,12 @@ const gameStats = {
 	"Max jump range": ""
 };
 
-const statstable = document.getElementById("stats");
 let statsbody = statstable.querySelector("tbody");
 
 let maxrange = 0;
 let lastEvent = Date.now();
 
 
-const icon = document.getElementById("icon");
 const icons = {
 	"ok": "img/led-circle-green.png",
 	"off": "img/led-circle-red.png",

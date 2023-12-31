@@ -1,4 +1,5 @@
 "use strict";
+import { ReconnectingWebSocket } from "/js/reconnecting-websocket.min.js";
 
 /* https://github.com/HansAcker/EDDN-RealTime */
 
@@ -6,15 +7,20 @@ const socketUrl = "wss://ws.eddn-realtime.space/eddn";
 const listLength = 20;
 
 
-import { ReconnectingWebSocket } from "/js/reconnecting-websocket.min.js";
+// const distanceN = (v0, v1) => Math.hypot.apply(null, v0.map((v, i) => v - v1[i]));
+const distance3 = (v0, v1) => Math.hypot(v0[0] - v1[0], v0[1] - v1[1], v0[2] - v1[2]); // subtract vectors, return length
+const trimPrefix = (str, prefix) => (str.startsWith(prefix) ? str.slice(prefix.length) : str).trim();
+const whatGame = (msg) => msg.odyssey ? "Odyssey" : msg.horizons ? "Horizons" : msg.horizons === false ? "Base" : "Unknown";
+const makeTd = (textContent) => { const td = document.createElement("td"); td.textContent = textContent; return td; };
 
-// subtract vectors, return length
-function distance3(v0, v1) {
-	return Math.hypot(v0[0] - v1[0], v0[1] - v1[1], v0[2] - v1[2]);
+function addRow(tbody, tr) {
+	while (tbody.children.length >= listLength) {
+		tbody.removeChild(tbody.lastChild);
+	}
+
+	tbody.insertBefore(tr, tbody.firstChild);
 }
 
-const gamestats = document.getElementById("stats");
-let statsbody = gamestats.querySelector("tbody");
 
 const gameStats = {
 	"Total": 0,
@@ -30,32 +36,58 @@ const gameStats = {
 	"Max jump range": ""
 };
 
-const whatGame = (msg) => msg.odyssey ? "Odyssey" : msg.horizons ? "Horizons" : msg.horizons === false ? "Base" : "Unknown";
-const makeTd = (textContent) => { const td = document.createElement("td"); td.textContent = textContent; return td; };
-const trimPrefix = (str, prefix) => (str.startsWith(prefix) ? str.slice(prefix.length) : str).trim();
+const statstable = document.getElementById("stats");
+let statsbody = statstable.querySelector("tbody");
 
 let maxrange = 0;
-
 let lastEvent = Date.now();
 
 
-function addRow(tbody, tr) {
-	while (tbody.children.length >= listLength) {
-		tbody.removeChild(tbody.lastChild);
+const icon = document.getElementById("icon");
+const icons = {
+	"ok": "img/led-circle-green.png",
+	"off": "img/led-circle-red.png",
+	"idle": "img/led-circle-grey.png",
+	"error": "img/led-circle-yellow.png"
+};
+
+let timer = null;
+let lastState = "";
+
+const idle = () => { lastState = "idle"; icon.href = icons["idle"]; timer = null; }
+
+function setActivity(state, timeout = 0) {
+	if (timer) {
+		clearTimeout(timer);
+		timer = null;
 	}
 
-	tbody.insertBefore(tr, tbody.firstChild);
+	if (lastState != state) {
+		icon.href = icons[state];
+		lastState = state;
+	}
+
+	if (timeout) {
+		timer = setTimeout(idle, timeout);
+	}
 }
+
 
 const ws = new ReconnectingWebSocket(socketUrl);
 
+ws.onopen = () => setActivity("idle");
+ws.onclose = () => setActivity("off");
+
 ws.onmessage = (event) => {
+	setActivity("ok", 1200);
+
 	let data = {};
 
 	try {
 		data = JSON.parse(event.data);
 	} catch(error) {
 		console.log("JSON parse error:", error);
+		setActivity("error");
 		return;
 	}
 
@@ -243,7 +275,7 @@ ws.onmessage = (event) => {
 				addRow(codex, tr);
 			}
 
-			// TODO: FSSBodySignals, FSSSignalDiscovered, SAASignalsFound, CodexEntry
+			// TODO: FSSBodySignals, FSSSignalDiscovered, SAASignalsFound
 
 			else {
 				gameStats["Ignored"]++;
@@ -269,15 +301,16 @@ ws.onmessage = (event) => {
 			newBody.appendChild(tr);
 		}
 
-		gamestats.replaceChild(newBody, statsbody);
+		statstable.replaceChild(newBody, statsbody);
 		statsbody = newBody;
 	} else {
 		//console.log("No message: ", data);
 	}
 }
 
+
 (function watchdog() {
-	if (ws.readyState === 1 && Date.now() - lastEvent > 300000) {
+	if (ws.readyState === WebSocket.OPEN && Date.now() - lastEvent > 300000) {
 		console.log("Receive timeout. Resetting connection.");
 		ws.refresh();
 	}

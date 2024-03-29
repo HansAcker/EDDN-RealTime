@@ -1,7 +1,7 @@
 @font-face {
 	/* https://www.theleagueofmoveabletype.com/orbitron */
 	font-family: 'orbitron';
-	src: url('/fonts/orbitron-light-webfont.woff') format('woff'), url('/fonts/orbitron-light-webfont.ttf') format('truetype');
+	src: url('/fonts/orbitron/orbitron-light-webfont.woff') format('woff'), url('/fonts/orbitron/orbitron-light-webfont.ttf') format('truetype');
 	font-weight: normal;
 	font-style: normal;
 }

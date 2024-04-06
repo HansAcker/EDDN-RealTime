@@ -61,6 +61,7 @@ function setActivity(state, timeout = 0) {
 	}
 
 	if (lastState != state) {
+		//console.log(`${lastState} => ${state}`);
 		icon.href = icons[state];
 		lastState = state;
 	}
@@ -289,18 +290,20 @@ ws.onmessage = (event) => {
 			addRow(updates, tr);
 		}
 
-		const newBody = document.createElement("tbody");
-		for (const gameStat in gameStats) {
-			const tr = document.createElement("tr");
+		if (!document.hidden) {
+			const newBody = document.createElement("tbody");
+			for (const gameStat in gameStats) {
+				const tr = document.createElement("tr");
 
-			tr.appendChild(makeTd(gameStat));
-			tr.appendChild(makeTd(gameStats[gameStat]));
+				tr.appendChild(makeTd(gameStat));
+				tr.appendChild(makeTd(gameStats[gameStat]));
 
-			newBody.appendChild(tr);
+				newBody.appendChild(tr);
+			}
+
+			statstable.replaceChild(newBody, statsbody);
+			statsbody = newBody;
 		}
-
-		statstable.replaceChild(newBody, statsbody);
-		statsbody = newBody;
 	} else {
 		//console.log("No message: ", data);
 	}

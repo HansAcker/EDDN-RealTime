@@ -61,7 +61,7 @@ function setActivity(state, timeout = 0) {
 	}
 
 	if (lastState != state) {
-		//console.log(`${lastState} => ${state}`);
+		console.log(`${lastState} => ${state}`);
 		icon.href = icons[state];
 		lastState = state;
 	}

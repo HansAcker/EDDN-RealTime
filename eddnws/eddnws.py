@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 import signal
 import sys
@@ -8,11 +9,29 @@ import zmq.asyncio
 from zmq.asyncio import Context
 
 
-zmq_url = "tcp://eddn.edcd.io:9500"
-srv_path = "/run/eddn/eddnws.sock"
+verbose = False
+
+# https://github.com/EDCD/EDDN#eddn-endpoints
+eddn_url = "tcp://eddn.edcd.io:9500"
+
+listen_addr = "127.0.0.1"
+listen_port = 8081
+listen_path = None # listen on socket path instead of TCP, e.g. "/run/eddn/eddnws.sock"
 
 
-wsconns = set()
+# TODO: professional logging
+
+EL = "\x1b[K" # ANSI EL - clear from cursor to the end of the line
+
+# prints on the same line to stdout (CR, sep, *objects, EL)
+def print_same(*objects, sep=" ", end=EL, flush=True):
+	print("\r", *objects, sep=sep, end=end, flush=flush)
+
+# prints on stderr, clears line on stdout
+def print_stderr(*objects, sep=" ", end=None, flush=True):
+	if verbose: print_same()
+	print(*objects, sep=sep, end=end, file=sys.stderr, flush=flush)
+
 
 zmq_ctx = Context.instance()
 zmq_task = None
@@ -22,59 +41,63 @@ zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
 zmq_sub.setsockopt(zmq.RECONNECT_IVL_MAX, 60 * 1000)
 zmq_sub.setsockopt(zmq.RCVTIMEO, 600 * 1000)
 
-
 def zmq_connect():
-	zmq_sub.connect(zmq_url)
+	zmq_sub.connect(eddn_url)
 
 def zmq_disconnect():
-	zmq_sub.disconnect(zmq_url)
+	zmq_sub.disconnect(eddn_url)
 
 def zmq_reconnect():
-	zmq_sub.disconnect(zmq_url)
-	zmq_sub.connect(zmq_url)
+	zmq_disconnect()
+	zmq_connect()
 
 
+# active websocket connections
+ws_conns = set()
+
+
+# relay messages from ZMQ to Websockets until ws_handler cancels the Task
 async def relay_messages():
 	while True:
 		try:
 			zmq_msg = await zmq_sub.recv()
 		except Exception as e:
-			print("\r\x1b[K", end="")
-			print("receive error:", e, file=sys.stderr)
+			print_stderr("receive error:", e)
 			# TODO: is that the right thing to do?
 			#zmq_reconnect()
 			continue
 
-		event = {}
-		message = {}
+		eddn_msg = {}
 
 		try:
-			event = simplejson.loads(zlib.decompress(zmq_msg))
+			# EDDN messages are zlib-compressed JSON
+			eddn_msg = simplejson.loads(zlib.decompress(zmq_msg))
 		except Exception as e:
-			print("\r\x1b[K", end="")
-			print("decode error:", e, file=sys.stderr)
+			print_stderr("decode error:", e)
 			continue
 
-		if not event:
-			print("\rno event\x1b[K")
+		if not eddn_msg:
+			if verbose: print_same("empty message", end=EL + "\n")
 			continue
 
 		try:
-			websockets.broadcast(wsconns, simplejson.dumps(event))
+			websockets.broadcast(ws_conns, simplejson.dumps(eddn_msg))
 		except Exception as e:
-			print("\r\x1b[K", end="")
-			print("relay error:", e, file=sys.stderr)
+			print_stderr("relay error:", e)
 
-		try:
-			message = event["message"]
-			print(f"\r{message['event']}: {message['StarSystem']}\x1b[K", end="")
-		except Exception as e:
-			if not "event" in message:
-				#print(simplejson.dumps(event))
-				pass
-			else:
-				#print(simplejson.dumps(event))
-				print(f"\r{message['event']}\x1b[K", end="")
+		if verbose:
+			message = {}
+			try:
+				message = eddn_msg["message"]
+
+				if not "event" in message:
+					print_same(f"({eddn_msg['$schemaRef']})")
+				elif "StarSystem" in message:
+					print_same(f"{message['event']}: {message['StarSystem']}")
+				else:
+					print_same(message['event'])
+			except Exception as e:
+				print_same("unrecognized message:", e)
 
 		# don't block the loop during message bursts
 		await asyncio.sleep(0)
@@ -83,40 +106,65 @@ async def relay_messages():
 async def ws_handler(websocket, path):
 	global zmq_task
 
-	wsconns.add(websocket)
-	print("\rconnect\x1b[K", len(wsconns))
+	ws_conns.add(websocket)
+	if verbose: print_same("connect", len(ws_conns), end=EL + "\n")
 
+	# first websocket connection starts the relay
 	if zmq_task is None:
-		print("connecting ZMQ")
+		print_stderr("connecting ZMQ")
 		zmq_connect()
 		zmq_task = asyncio.create_task(relay_messages())
 
 	try:
 		await websocket.wait_closed()
 	finally:
-		wsconns.remove(websocket)
-		print("\rdisconnect\x1b[K", len(wsconns))
+		ws_conns.remove(websocket)
+		if verbose: print_same("disconnect", len(ws_conns), end=EL + "\n")
 
-	if not wsconns and zmq_task:
-		print("disconnecting ZMQ")
+	# last websocket stops the relay
+	if not ws_conns and zmq_task:
+		print_stderr("disconnecting ZMQ")
 		zmq_task.cancel()
 		zmq_task = None
 		zmq_disconnect()
 
 
 async def server():
-	print("starting websocket server", file=sys.stderr)
+	print_stderr("starting websocket server")
 
-	# Set the stop condition when receiving SIGTERM.
+	# set stop condition on signal
 	loop = asyncio.get_running_loop()
 	stop = loop.create_future()
 	loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
 	loop.add_signal_handler(signal.SIGINT, stop.set_result, None)
 
-	async with websockets.unix_serve(ws_handler, srv_path):
+	if listen_path:
+		print_stderr(f"socket path: {listen_path}")
+		# TODO: set umask
+		server = websockets.unix_serve(ws_handler, listen_path)
+	else:
+		print_stderr(f"TCP address: {listen_addr}:{listen_port}")
+		server = websockets.serve(ws_handler, listen_addr, listen_port)
+
+	async with server:
 		await stop
-		print("\r\x1b[K", end="")
-		print("stopping websocket server", file=sys.stderr)
+		print_stderr("stopping websocket server")
+
 
 if __name__ == "__main__":
+	parser = argparse.ArgumentParser()
+	parser.add_argument("-v", "--verbose", default=verbose, action="store_true", help=f"log events to stdout, default: {verbose}")
+	parser.add_argument("-u", "--url", default=eddn_url, help=f"EDDN URL, default: {eddn_url}")
+	parser.add_argument("-s", "--socket", metavar="PATH", default=listen_path, help=f"listen on Unix socket if set, default: {listen_path}")
+	parser.add_argument("-a", "--addr", default=listen_addr, help=f"listen on TCP address, default: {listen_addr}")
+	parser.add_argument("-p", "--port", default=listen_port, type=int, help=f"listen on TCP port, default: {listen_port}")
+
+	args = parser.parse_args()
+
+	verbose = args.verbose
+	eddn_url = args.url
+	listen_addr = args.addr
+	listen_port = args.port
+	listen_path = args.socket
+
 	asyncio.run(server())

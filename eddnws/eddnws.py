@@ -86,7 +86,6 @@ async def relay_messages():
 			print_stderr("relay error:", e)
 
 		if verbose:
-			message = {}
 			try:
 				message = eddn_msg["message"]
 

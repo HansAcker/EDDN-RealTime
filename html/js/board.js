@@ -138,6 +138,7 @@ ws.onmessage = (event) => {
 
 				if (message.StarType) {
 					const tr = document.createElement("tr");
+					tr.classList.add(gameType);
 					tr.appendChild(makeTd(message.BodyName));
 					tr.appendChild(makeTd(`${message.StarType} ${message.Subclass}`));
 
@@ -145,6 +146,7 @@ ws.onmessage = (event) => {
 				}
 				else if (message.PlanetClass) {
 					const tr = document.createElement("tr");
+					tr.classList.add(gameType);
 					tr.appendChild(makeTd(message.BodyName));
 					tr.appendChild(makeTd(message.PlanetClass));
 					tr.appendChild(makeTd(`${message.AtmosphereType && message.AtmosphereType !== "None" ? message.AtmosphereType : ""}`));
@@ -166,6 +168,7 @@ ws.onmessage = (event) => {
 
 				if (message.Population > 0 || message.SystemAllegiance) {
 					const tr = document.createElement("tr");
+					tr.classList.add(gameType);
 
 					tr.appendChild(makeTd(message.StarSystem));
 					tr.appendChild(makeTd(`${message.Population >= 1000000000 ? (message.Population / 1000000000).toFixed(2) + "G" :

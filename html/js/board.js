@@ -3,9 +3,6 @@ import { ReconnectingWebSocket } from "./reconnecting-websocket.min.js";
 
 /* https://github.com/HansAcker/EDDN-RealTime */
 
-const socketUrl = "wss://ws.eddn-realtime.space/eddn";
-const listLength = 20;
-
 
 // const distanceN = (v0, v1) => Math.hypot.apply(null, v0.map((v, i) => v - v1[i]));
 const distance3 = (v0, v1) => Math.hypot(v0[0] - v1[0], v0[1] - v1[1], v0[2] - v1[2]); // subtract vectors, return length

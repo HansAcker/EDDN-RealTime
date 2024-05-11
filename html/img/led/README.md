@@ -1,4 +1,5 @@
-### LED icons by Jean-Victor Balin, 2009
+## LED icons
+by Jean-Victor Balin, 2009
 
  * https://openclipart.org/detail/26903/led-circle-grey
  * https://openclipart.org/detail/26902/led-circle-green

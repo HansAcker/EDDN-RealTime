@@ -134,8 +134,8 @@ async def server():
 	# set stop condition on signal
 	loop = asyncio.get_running_loop()
 	stop = loop.create_future()
-	loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
-	loop.add_signal_handler(signal.SIGINT, stop.set_result, None)
+	loop.add_signal_handler(signal.SIGTERM, stop.set_result, "SIGTERM")
+	loop.add_signal_handler(signal.SIGINT, stop.set_result, "SIGINT")
 
 	if listen_path:
 		print_stderr(f"socket path: {listen_path}")
@@ -146,8 +146,7 @@ async def server():
 		server = websockets.serve(ws_handler, listen_addr, listen_port)
 
 	async with server:
-		await stop
-		print_stderr("stopping websocket server")
+		print_stderr(f"received {await stop}, stopping websocket server")
 
 
 if __name__ == "__main__":

@@ -106,7 +106,7 @@ async def ws_handler(websocket, path):
 	global zmq_task
 
 	ws_conns.add(websocket)
-	if verbose: print_same("connect", len(ws_conns), end=EL + "\n")
+	print_stderr(f"client connected: {websocket.id} {websocket.remote_address} ({len(ws_conns)} active)")
 
 	# first websocket connection starts the relay
 	if zmq_task is None:
@@ -118,7 +118,7 @@ async def ws_handler(websocket, path):
 		await websocket.wait_closed()
 	finally:
 		ws_conns.remove(websocket)
-		if verbose: print_same("disconnect", len(ws_conns), end=EL + "\n")
+		print_stderr(f"client disconnected: {websocket.id} {websocket.remote_address} ({len(ws_conns)} active)")
 
 	# last websocket stops the relay
 	if not ws_conns and zmq_task:

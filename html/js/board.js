@@ -256,14 +256,6 @@ ws.onmessage = (event) => {
 
 				addRow(asett, tr);
 			}
-/*
-			else if (message.event === "CarrierJump") {
-				tr.appendChild(makeTd(message.Body));
-				tr.appendChild(makeTd(message.StationName));
-
-				addRow(cjumps, tr);
-			}
-*/
 
 			else if (message.event === "CodexEntry") {
 				tr.appendChild(makeTd(message.System));

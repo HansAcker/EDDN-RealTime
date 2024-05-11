@@ -166,4 +166,7 @@ if __name__ == "__main__":
 	listen_port = args.port
 	listen_path = args.socket
 
+	args = None
+	parser = None
+
 	asyncio.run(server())

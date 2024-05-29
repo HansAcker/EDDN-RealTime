@@ -160,8 +160,6 @@ async def server():
 
 if __name__ == "__main__":
 	def parse_args():
-		global options
-
 		parser = argparse.ArgumentParser()
 
 		# TODO: add options for ws keepalive, zmq timeouts. use groups

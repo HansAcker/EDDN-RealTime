@@ -101,18 +101,29 @@ async def relay_messages():
 		# don't block the loop during message bursts
 		await asyncio.sleep(0)
 
-
-async def ws_handler(websocket, path):
+def start_relay():
 	global zmq_task
 
+	print_stderr("connecting ZMQ")
+	zmq_connect()
+	zmq_task = asyncio.create_task(relay_messages())
+
+def stop_relay():
+	global zmq_task
+
+	print_stderr("disconnecting ZMQ")
+	zmq_task.cancel()
+	zmq_task = None
+	zmq_disconnect()
+
+
+async def ws_handler(websocket, path):
 	ws_conns.add(websocket)
 	print_stderr(f"client connected: {websocket.id} {websocket.remote_address} ({len(ws_conns)} active)")
 
 	# first websocket connection starts the relay
 	if zmq_task is None:
-		print_stderr("connecting ZMQ")
-		zmq_connect()
-		zmq_task = asyncio.create_task(relay_messages())
+		start_relay()
 
 	try:
 		await websocket.wait_closed()
@@ -122,10 +133,7 @@ async def ws_handler(websocket, path):
 
 	# last websocket stops the relay
 	if not ws_conns and zmq_task:
-		print_stderr("disconnecting ZMQ")
-		zmq_task.cancel()
-		zmq_task = None
-		zmq_disconnect()
+		stop_relay()
 
 
 async def server():

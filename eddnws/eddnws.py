@@ -163,7 +163,7 @@ async def server():
 
 if __name__ == "__main__":
 	def parse_args():
-		parser = argparse.ArgumentParser()
+		parser = argparse.ArgumentParser(description="Relay EDDN messages to websocket clients")
 
 		# TODO: add options for ws keepalive, zmq timeouts. use groups
 

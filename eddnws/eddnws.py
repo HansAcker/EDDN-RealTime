@@ -9,14 +9,13 @@ import zmq.asyncio
 from zmq.asyncio import Context
 
 
-verbose = False
-
-# https://github.com/EDCD/EDDN#eddn-endpoints
-eddn_url = "tcp://eddn.edcd.io:9500"
-
-listen_addr = "127.0.0.1"
-listen_port = 8081
-listen_path = None # listen on socket path instead of TCP, e.g. "/run/eddn/eddnws.sock"
+options = argparse.Namespace(
+	verbose = False,
+	eddn_url = "tcp://eddn.edcd.io:9500", # https://github.com/EDCD/EDDN#eddn-endpoints
+	listen_addr = "127.0.0.1",
+	listen_port = 8081,
+	listen_path = None # listen on socket path instead of TCP, e.g. "/run/eddn/eddnws.sock"
+)
 
 
 # TODO: professional logging
@@ -29,7 +28,7 @@ def print_same(*objects, sep=" ", end=EL, flush=True):
 
 # prints on stderr, clears line on stdout
 def print_stderr(*objects, sep=" ", end=None, flush=True):
-	if verbose: print_same()
+	if options.verbose: print_same()
 	print(*objects, sep=sep, end=end, file=sys.stderr, flush=flush)
 
 
@@ -42,10 +41,10 @@ zmq_sub.setsockopt(zmq.RECONNECT_IVL_MAX, 60 * 1000)
 zmq_sub.setsockopt(zmq.RCVTIMEO, 600 * 1000)
 
 def zmq_connect():
-	zmq_sub.connect(eddn_url)
+	zmq_sub.connect(options.eddn_url)
 
 def zmq_disconnect():
-	zmq_sub.disconnect(eddn_url)
+	zmq_sub.disconnect(options.eddn_url)
 
 def zmq_reconnect():
 	zmq_disconnect()
@@ -77,7 +76,7 @@ async def relay_messages():
 			continue
 
 		if not eddn_msg:
-			if verbose: print_same("empty message", end=EL + "\n")
+			if options.verbose: print_same("empty message", end=EL + "\n")
 			continue
 
 		try:
@@ -85,7 +84,7 @@ async def relay_messages():
 		except Exception as e:
 			print_stderr("relay error:", e)
 
-		if verbose:
+		if options.verbose:
 			try:
 				message = eddn_msg["message"]
 
@@ -145,35 +144,35 @@ async def server():
 	loop.add_signal_handler(signal.SIGTERM, stop.set_result, "SIGTERM")
 	loop.add_signal_handler(signal.SIGINT, stop.set_result, "SIGINT")
 
-	if listen_path:
-		print_stderr(f"socket path: {listen_path}")
+	# TODO: queue size/length. server processes only incoming pongs
+
+	if options.listen_path:
+		print_stderr(f"socket path: {options.listen_path}")
 		# TODO: set umask
-		server = websockets.unix_serve(ws_handler, listen_path)
+		server = websockets.unix_serve(ws_handler, options.listen_path)
 	else:
-		print_stderr(f"TCP address: {listen_addr}:{listen_port}")
-		server = websockets.serve(ws_handler, listen_addr, listen_port)
+		print_stderr(f"TCP address: {options.listen_addr}:{options.listen_port}")
+		server = websockets.serve(ws_handler, options.listen_addr, options.listen_port)
 
 	async with server:
 		print_stderr(f"received {await stop}, stopping websocket server")
 
 
 if __name__ == "__main__":
-	parser = argparse.ArgumentParser()
-	parser.add_argument("-v", "--verbose", default=verbose, action="store_true", help=f"log events to stdout, default: {verbose}")
-	parser.add_argument("-u", "--url", default=eddn_url, help=f"EDDN URL, default: {eddn_url}")
-	parser.add_argument("-s", "--socket", metavar="PATH", default=listen_path, help=f"listen on Unix socket if set, default: {listen_path}")
-	parser.add_argument("-a", "--addr", default=listen_addr, help=f"listen on TCP address, default: {listen_addr}")
-	parser.add_argument("-p", "--port", default=listen_port, type=int, help=f"listen on TCP port, default: {listen_port}")
+	def parse_args():
+		global options
 
-	args = parser.parse_args()
+		parser = argparse.ArgumentParser()
 
-	verbose = args.verbose
-	eddn_url = args.url
-	listen_addr = args.addr
-	listen_port = args.port
-	listen_path = args.socket
+		# TODO: add options for ws keepalive, zmq timeouts. use groups
 
-	args = None
-	parser = None
+		parser.add_argument("-v", "--verbose", action="store_true", help=f"log events to stdout, default: {options.verbose}")
+		parser.add_argument("-u", "--url", dest="eddn_url", help=f"EDDN ZMQ URL, default: {options.eddn_url}")
+		parser.add_argument("-s", "--socket", metavar="PATH", dest="listen_path", help=f"listen on Unix socket if set, default: {options.listen_path}")
+		parser.add_argument("-a", "--addr", dest="listen_addr", help=f"listen on TCP address, default: {options.listen_addr}")
+		parser.add_argument("-p", "--port", dest="listen_port", type=int, help=f"listen on TCP port, default: {options.listen_port}")
 
+		parser.parse_args(namespace=options)
+
+	parse_args()
 	asyncio.run(server())

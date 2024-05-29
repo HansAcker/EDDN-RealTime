@@ -126,11 +126,14 @@ async def ws_handler(websocket, path):
 
 	try:
 		await websocket.wait_closed()
-	finally:
-		ws_conns.remove(websocket)
-		print_stderr(f"client disconnected: {websocket.id} {websocket.remote_address} ({len(ws_conns)} active)")
+	except Exception as e:
+		print_stderr("websocket error:", e)
+
+	ws_conns.remove(websocket)
+	print_stderr(f"client disconnected: {websocket.id} {websocket.remote_address} ({len(ws_conns)} active)")
 
 	# last websocket stops the relay
+	# TODO: add delay
 	if not ws_conns and zmq_task:
 		stop_relay()
 

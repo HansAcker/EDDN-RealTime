@@ -180,8 +180,8 @@ ws.onmessage = (event) => {
 					tr.appendChild(makeTd(message.SystemAllegiance));
 
 					const faction = message.SystemFaction || {};
-					tr.appendChild(faction.Name);
-					tr.appendChild(faction.FactionState);
+					tr.appendChild(makeTd(faction.Name));
+					tr.appendChild(makeTd(faction.FactionState));
 
 					addRow(visits, tr);
 				}

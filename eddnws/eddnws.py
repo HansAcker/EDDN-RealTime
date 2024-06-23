@@ -6,18 +6,19 @@ import zlib
 import simplejson
 import websockets
 import zmq.asyncio
-from zmq.asyncio import Context
 
 
 options = argparse.Namespace(
 	verbose = False,
-	eddn_url = "tcp://eddn.edcd.io:9500", # https://github.com/EDCD/EDDN#eddn-endpoints
 	listen_addr = "127.0.0.1",
 	listen_port = 8081,
 	listen_path = None, # listen on socket path instead of TCP, e.g. "/run/eddn/eddnws.sock"
+	zmq_url = "tcp://eddn.edcd.io:9500", # https://github.com/EDCD/EDDN#eddn-endpoints
 	zmq_close_delay = 1.2,
-	zmq_reconnect_ivl_max = 60,
-	zmq_rcvtimeo = 600
+	zmq_HEARTBEAT_IVL = 180,
+	zmq_HEARTBEAT_TIMEOUT = 20,
+	zmq_RECONNECT_IVL_MAX = 60,
+	# zmq_RCVTIMEO = 600,
 )
 
 
@@ -35,74 +36,79 @@ def print_stderr(*objects, sep=" ", end=None, flush=True):
 	print(*objects, sep=sep, end=end, file=sys.stderr, flush=flush)
 
 
-zmq_ctx = Context.instance()
+# active websocket connections
+ws_conns = set()
+
+# asyncio Tasks
 zmq_task = None
 zmq_close_handler = None
 
-zmq_sub = zmq_ctx.socket(zmq.SUB)
-zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
-zmq_sub.setsockopt(zmq.RECONNECT_IVL_MAX, options.zmq_reconnect_ivl_max * 1000)
-zmq_sub.setsockopt(zmq.RCVTIMEO, options.zmq_rcvtimeo * 1000)
+# ZMQ SUB socket
+zmq_sub = zmq.asyncio.Context.instance().socket(zmq.SUB)
+
+
+def zmq_init():
+	zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
+
+	zmq_sub.setsockopt(zmq.HEARTBEAT_IVL, int(options.zmq_HEARTBEAT_IVL * 1000))
+	zmq_sub.setsockopt(zmq.HEARTBEAT_TIMEOUT, int(options.zmq_HEARTBEAT_TIMEOUT * 1000))
+	zmq_sub.setsockopt(zmq.IPV6, True)
+	zmq_sub.setsockopt(zmq.RECONNECT_IVL_MAX, int(options.zmq_RECONNECT_IVL_MAX * 1000))
+	# zmq_sub.setsockopt(zmq.RCVTIMEO, int(options.zmq_RCVTIMEO * 1000))
 
 def zmq_connect():
-	zmq_sub.connect(options.eddn_url)
+	zmq_sub.connect(options.zmq_url)
 
 def zmq_disconnect():
-	zmq_sub.disconnect(options.eddn_url)
+	zmq_sub.disconnect(options.zmq_url)
 
 def zmq_reconnect():
 	zmq_disconnect()
 	zmq_connect()
 
 
-# active websocket connections
-ws_conns = set()
-
-
 # relay messages from ZMQ to Websockets until ws_handler cancels the Task
 async def relay_messages():
 	while True:
+		# don't block the loop during message bursts
+		await asyncio.sleep(0)
+
 		try:
 			zmq_msg = await zmq_sub.recv()
 		except Exception as e:
 			print_stderr("receive error:", e)
-			# TODO: is that the right thing to do?
-			#zmq_reconnect()
 			continue
 
-		eddn_msg = {}
+		data = {}
 
 		try:
 			# EDDN messages are zlib-compressed JSON
-			eddn_msg = simplejson.loads(zlib.decompress(zmq_msg))
+			data = simplejson.loads(zlib.decompress(zmq_msg))
 		except Exception as e:
 			print_stderr("decode error:", e)
 			continue
 
-		if not eddn_msg:
+		if not data:
 			if options.verbose: print_same("empty message", end=EL + "\n")
 			continue
 
 		try:
-			websockets.broadcast(ws_conns, simplejson.dumps(eddn_msg))
+			websockets.broadcast(ws_conns, simplejson.dumps(data))
 		except Exception as e:
 			print_stderr("relay error:", e)
 
 		if options.verbose:
 			try:
-				message = eddn_msg["message"]
+				message = data["message"]
 
 				if not "event" in message:
-					print_same(f"({eddn_msg['$schemaRef']})")
+					print_same(f"({data['$schemaRef']})")
 				elif "StarSystem" in message:
 					print_same(f"{message['event']}: {message['StarSystem']}")
 				else:
 					print_same(message['event'])
 			except Exception as e:
 				print_same("unrecognized message:", e)
-
-		# don't block the loop during message bursts
-		await asyncio.sleep(0)
 
 def relay_start():
 	global zmq_task
@@ -175,23 +181,36 @@ async def server():
 		print_stderr(f"TCP address: {options.listen_addr}:{options.listen_port}")
 		server = websockets.serve(ws_handler, options.listen_addr, options.listen_port)
 
+	# run the server until stop condition
 	async with server:
 		print_stderr(f"received {await stop}, stopping websocket server")
 
 
 if __name__ == "__main__":
-	def parse_args():
-		parser = argparse.ArgumentParser(description="Relay EDDN messages to websocket clients")
+	def parse_args(namespace):
+		parser = argparse.ArgumentParser(
+					description="Relay EDDN messages to websocket clients",
+					epilog="https://github.com/HansAcker/EDDN-RealTime")
 
 		# TODO: add options for ws keepalive, zmq timeouts. use groups
 
-		parser.add_argument("-v", "--verbose", action="store_true", help=f"log events to stdout, default: {options.verbose}")
-		parser.add_argument("-u", "--url", dest="eddn_url", help=f"EDDN ZMQ URL, default: {options.eddn_url}")
-		parser.add_argument("-s", "--socket", metavar="PATH", dest="listen_path", help=f"listen on Unix socket if set, default: {options.listen_path}")
-		parser.add_argument("-a", "--addr", dest="listen_addr", help=f"listen on TCP address, default: {options.listen_addr}")
-		parser.add_argument("-p", "--port", dest="listen_port", type=int, help=f"listen on TCP port, default: {options.listen_port}")
+		parser.add_argument("-v", "--verbose", action="store_true", help=f"log events to stdout (default: {namespace.verbose})")
 
-		parser.parse_args(namespace=options)
+		group = parser.add_argument_group("ZMQ options")
+		group.add_argument("-u", "--url", metavar="URL", dest="zmq_url", help=f"EDDN ZMQ URL (default: {namespace.zmq_url})")
+		group.add_argument("-d", "--zmq_close_delay", metavar="SECONDS", dest="zmq_close_delay", type=float, help=f"delay closing ZMQ connection after the last websocket client leaves (default: {namespace.zmq_close_delay})")
+		group.add_argument("--zmq_HEARTBEAT_IVL", metavar="SECONDS", dest="zmq_HEARTBEAT_IVL", type=float, help=f"set ZMQ ping interval, 0 to disable (default: {namespace.zmq_HEARTBEAT_IVL})")
+		group.add_argument("--zmq_HEARTBEAT_TIMEOUT", metavar="SECONDS", dest="zmq_HEARTBEAT_TIMEOUT", type=float, help=f"set ZMQ ping timeout (default: {namespace.zmq_HEARTBEAT_TIMEOUT})")
+		group.add_argument("--zmq_RECONNECT_IVL_MAX", metavar="SECONDS", dest="zmq_RECONNECT_IVL_MAX", type=float, help=f"set maximum reconnection interval (default: {namespace.zmq_RECONNECT_IVL_MAX})")
+		# group.add_argument("--zmq_RCVTIMEO", metavar="SECONDS", dest="zmq_RCVTIMEO", type=float, help=f"set ZMQ receive timeout (default: {namespace.zmq_RCVTIMEO})")
 
-	parse_args()
+		group = parser.add_argument_group("Websocket options")
+		group.add_argument("-s", "--socket", metavar="PATH", dest="listen_path", help=f"listen on Unix socket if set (default: {namespace.listen_path})")
+		group.add_argument("-a", "--addr", dest="listen_addr", help=f"listen on TCP address (default: {namespace.listen_addr})")
+		group.add_argument("-p", "--port", dest="listen_port", type=int, help=f"listen on TCP port (default: {namespace.listen_port})")
+
+		parser.parse_args(namespace=namespace)
+
+	parse_args(namespace=options)
+	zmq_init()
 	asyncio.run(server())

@@ -14,7 +14,7 @@ options = argparse.Namespace(
 	listen_port = 8081,
 	listen_path = None, # listen on socket path instead of TCP, e.g. "/run/eddn/eddnws.sock"
 	zmq_url = "tcp://eddn.edcd.io:9500", # https://github.com/EDCD/EDDN#eddn-endpoints
-	zmq_close_delay = 1.2,
+	zmq_close_delay = 3.3,
 	zmq_HEARTBEAT_IVL = 180,
 	zmq_HEARTBEAT_TIMEOUT = 20,
 	zmq_RECONNECT_IVL_MAX = 60,
@@ -149,6 +149,8 @@ async def ws_handler(websocket, path):
 	if zmq_task is None:
 		relay_start()
 
+	# wait until client disconnects
+	# TODO: handle/discard incoming messages
 	try:
 		await websocket.wait_closed()
 	except Exception as e:

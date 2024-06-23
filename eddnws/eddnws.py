@@ -15,6 +15,7 @@ options = argparse.Namespace(
 	listen_addr = "127.0.0.1",
 	listen_port = 8081,
 	listen_path = None, # listen on socket path instead of TCP, e.g. "/run/eddn/eddnws.sock"
+	zmq_close_delay = 1.2,
 	zmq_reconnect_ivl_max = 60,
 	zmq_rcvtimeo = 600
 )
@@ -36,6 +37,7 @@ def print_stderr(*objects, sep=" ", end=None, flush=True):
 
 zmq_ctx = Context.instance()
 zmq_task = None
+zmq_close_handler = None
 
 zmq_sub = zmq_ctx.socket(zmq.SUB)
 zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
@@ -102,14 +104,14 @@ async def relay_messages():
 		# don't block the loop during message bursts
 		await asyncio.sleep(0)
 
-def start_relay():
+def relay_start():
 	global zmq_task
 
 	print_stderr("connecting ZMQ")
 	zmq_connect()
 	zmq_task = asyncio.create_task(relay_messages())
 
-def stop_relay():
+def relay_stop():
 	global zmq_task
 
 	print_stderr("disconnecting ZMQ")
@@ -117,14 +119,29 @@ def stop_relay():
 	zmq_task = None
 	zmq_disconnect()
 
+def relay_close():
+	global zmq_close_handler
+
+	zmq_close_handler = asyncio.get_running_loop().call_later(options.zmq_close_delay, relay_stop)
+
+def relay_cancel_close():
+	global zmq_close_handler
+
+	zmq_close_handler.cancel()
+	zmq_close_handler = None
+
 
 async def ws_handler(websocket, path):
 	ws_conns.add(websocket)
 	print_stderr(f"client connected: {websocket.id} {websocket.remote_address} ({len(ws_conns)} active)")
 
+	# cancel the timer
+	if zmq_close_handler is not None:
+		relay_cancel_close()
+
 	# first websocket connection starts the relay
 	if zmq_task is None:
-		start_relay()
+		relay_start()
 
 	try:
 		await websocket.wait_closed()
@@ -135,9 +152,8 @@ async def ws_handler(websocket, path):
 	print_stderr(f"client disconnected: {websocket.id} {websocket.remote_address} ({len(ws_conns)} active)")
 
 	# last websocket stops the relay
-	# TODO: add delay
 	if not ws_conns and zmq_task:
-		stop_relay()
+		relay_close()
 
 
 async def server():

@@ -1,0 +1,14 @@
+[Unit]
+Description=EDDN Websocket Server
+Wants=network-online.target
+After=syslog.target network.target nss-lookup.target network-online.target
+
+[Service]
+ExecStart=/home/eddn/eddnws/venv/bin/python3 /home/eddn/eddnws/eddnws.py
+Restart=on-failure
+SyslogIdentifier=eddnws
+User=eddn
+Group=eddn
+
+[Install]
+WantedBy=multi-user.target

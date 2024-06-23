@@ -14,7 +14,9 @@ options = argparse.Namespace(
 	eddn_url = "tcp://eddn.edcd.io:9500", # https://github.com/EDCD/EDDN#eddn-endpoints
 	listen_addr = "127.0.0.1",
 	listen_port = 8081,
-	listen_path = None # listen on socket path instead of TCP, e.g. "/run/eddn/eddnws.sock"
+	listen_path = None, # listen on socket path instead of TCP, e.g. "/run/eddn/eddnws.sock"
+	zmq_reconnect_ivl_max = 60,
+	zmq_rcvtimeo = 600
 )
 
 
@@ -37,8 +39,8 @@ zmq_task = None
 
 zmq_sub = zmq_ctx.socket(zmq.SUB)
 zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
-zmq_sub.setsockopt(zmq.RECONNECT_IVL_MAX, 60 * 1000)
-zmq_sub.setsockopt(zmq.RCVTIMEO, 600 * 1000)
+zmq_sub.setsockopt(zmq.RECONNECT_IVL_MAX, options.zmq_reconnect_ivl_max * 1000)
+zmq_sub.setsockopt(zmq.RCVTIMEO, options.zmq_rcvtimeo * 1000)
 
 def zmq_connect():
 	zmq_sub.connect(options.eddn_url)

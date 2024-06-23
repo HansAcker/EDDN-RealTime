@@ -180,8 +180,8 @@ ws.onmessage = (event) => {
 					tr.appendChild(makeTd(message.SystemAllegiance));
 
 					const faction = message.SystemFaction || {};
-					tr.appendChild(makeTd(`${faction.Name || ""}`));
-					tr.appendChild(makeTd(`${faction.FactionState || ""}`));
+					tr.appendChild(faction.Name);
+					tr.appendChild(faction.FactionState);
 
 					addRow(visits, tr);
 				}
@@ -194,7 +194,8 @@ ws.onmessage = (event) => {
 				addRow(honks, tr);
 			}
 			else if (message.event === "Docked" || message.event === "Location") {
-				tr.appendChild(makeTd(`${message.StationName || ""}`));
+				tr.appendChild(makeTd(message.StationName));
+				tr.appendChild(makeTd(message.StationType));
 				tr.appendChild(makeTd(message.StarSystem));
 
 				addRow(docks, tr);
@@ -276,8 +277,8 @@ ws.onmessage = (event) => {
 			// commodities, modules, ships
 
 			tr.appendChild(makeTd(message.commodities ? "Market" : message.ships ? "Shipyard" : message.modules ? "Outfitting" : ""));
-			tr.appendChild(makeTd(message.stationName || ""));
-			tr.appendChild(makeTd(message.systemName || ""));
+			tr.appendChild(makeTd(message.stationName));
+			tr.appendChild(makeTd(message.systemName));
 
 			addRow(updates, tr);
 		}

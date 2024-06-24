@@ -92,8 +92,10 @@ async def relay_messages():
 			if options.verbose: print_same("empty message", end=EL + "\n")
 			continue
 
+		# normalize outgoing JSON intstead of forwarding the decompressed text as is
+		# sort_keys can improve stream compression. EDDN dicts usually already are ordered
 		try:
-			websockets.broadcast(ws_conns, simplejson.dumps(data))
+			websockets.broadcast(ws_conns, simplejson.dumps(data, sort_keys=True))
 		except Exception as e:
 			print_stderr("relay error:", e)
 
@@ -194,8 +196,6 @@ if __name__ == "__main__":
 					description="Relay EDDN messages to websocket clients",
 					epilog="https://github.com/HansAcker/EDDN-RealTime")
 
-		# TODO: add options for ws keepalive, zmq timeouts. use groups
-
 		parser.add_argument("-v", "--verbose", action="store_true", help=f"log events to stdout (default: {namespace.verbose})")
 
 		group = parser.add_argument_group("ZMQ options")
@@ -210,6 +210,8 @@ if __name__ == "__main__":
 		group.add_argument("-s", "--socket", metavar="PATH", dest="listen_path", help=f"listen on Unix socket if set (default: {namespace.listen_path})")
 		group.add_argument("-a", "--addr", dest="listen_addr", help=f"listen on TCP address (default: {namespace.listen_addr})")
 		group.add_argument("-p", "--port", dest="listen_port", type=int, help=f"listen on TCP port (default: {namespace.listen_port})")
+
+		# TODO: add ws keepalive, timeouts, queue size/length
 
 		parser.parse_args(namespace=namespace)
 

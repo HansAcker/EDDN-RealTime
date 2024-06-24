@@ -79,8 +79,6 @@ async def relay_messages():
 			print_stderr("receive error:", e)
 			continue
 
-		data = {}
-
 		try:
 			# EDDN messages are zlib-compressed JSON
 			data = simplejson.loads(zlib.decompress(zmq_msg))
@@ -88,8 +86,8 @@ async def relay_messages():
 			print_stderr("decode error:", e)
 			continue
 
-		if not data:
-			if options.verbose: print_same("empty message", end=EL + "\n")
+		if not data or type(data) is not dict or not "$schemaRef" in data:
+			print_stderr("invalid message:", data)
 			continue
 
 		# normalize outgoing JSON intstead of forwarding the decompressed text as is

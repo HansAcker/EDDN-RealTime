@@ -1,4 +1,3 @@
-"use strict";
 import { ReconnectingWebSocket } from "./reconnecting-websocket.min.js";
 
 /* https://github.com/HansAcker/EDDN-RealTime */

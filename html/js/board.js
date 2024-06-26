@@ -114,7 +114,6 @@ ws.onmessage = (event) => {
 			if (diff > 3600 * 1000) { // timestamp older than 1h
 				tr.classList.add("old");
 				gameStats["Old"]++;
-				message.isOld = true;
 			}
 			else if (diff < -180 * 1000) { // timestamp more than 3m ahead
 				tr.classList.add("new");

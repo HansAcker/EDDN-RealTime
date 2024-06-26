@@ -38,6 +38,8 @@ let maxrange = 0;
 let lastEvent = Date.now();
 
 
+// can't use CSS to style the page icon href
+// TODO: move to configuration block
 const icons = {
 	"ok": "img/led/led-circle-green.svg",
 	"off": "img/led/led-circle-red.svg",
@@ -48,7 +50,7 @@ const icons = {
 let timer = null;
 let lastState = "off";
 
-const idle = () => { lastState = "idle"; icon.href = icons["idle"]; timer = null; }
+const idle = () => { lastState = "idle"; icon.href = icons[lastState]; timer = null; }
 
 function setActivity(state, timeout = 0) {
 	if (timer) {

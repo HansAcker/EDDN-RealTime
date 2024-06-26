@@ -201,7 +201,7 @@ ws.onmessage = (event) => {
 				addRow(docks, tr);
 			}
 			else if (message.event === "NavRoute") {
-				const route = message.Route;
+				const route = message.Route || [];
 
 				if (route.length > 1) {
 					tr.appendChild(makeTd(route[0].StarSystem));

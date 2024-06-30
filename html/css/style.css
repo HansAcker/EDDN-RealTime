@@ -17,24 +17,23 @@ body {
 }
 
 table {
-	width: 25%;
+	/* TODO: set tabs per row from aspect-ratio */
+	--baseWidth: calc(100% / 4);
+	width: var(--baseWidth);
+	float: left;
+	border: 1px solid #f94;
 }
 
 table.narrow {
-	width: 15%;
+	width: calc(var(--baseWidth) * 0.6);
 }
 
 table.wide {
-	width: 35%;
+	width: calc(var(--baseWidth) * 1.4);
 }
 
 table.wider {
-	width: 50%;
-}
-
-table {
-	float: left;
-	border: 1px solid #f94;
+	width: calc(var(--baseWidth) * 2);
 }
 
 td, th {

@@ -119,6 +119,17 @@
 <script>
 const socketUrl = "wss://ws.eddn-realtime.space/eddn";
 const listLength = 20;
+
+// TODO: use style?
+for (const tb of document.querySelectorAll("tbody")) {
+	for (let i = 0; i < listLength; i++) {
+		const tr = document.createElement("tr");
+		const td = document.createElement("td");
+		td.innerHTML = "&nbsp;";
+		tr.appendChild(td);
+		tb.appendChild(tr);
+	}
+}
 </script>
 
 <script type="module" src="js/board.min.js"></script>

@@ -18,6 +18,21 @@ body {
 
 table {
 	width: 25%;
+}
+
+table.narrow {
+	width: 15%;
+}
+
+table.wide {
+	width: 35%;
+}
+
+table.wider {
+	width: 50%;
+}
+
+table {
 	float: left;
 	border: 1px solid #f94;
 }
@@ -41,18 +56,6 @@ thead {
 tbody {
 	font-size: 80%;
 	text-align: right;
-}
-
-#newstarstable, #jumpstable {
-	width: 15%;
-}
-
-#newplanetstable, #routestable {
-	width: 35%;
-}
-
-#codextable, #visitstable {
-	width: 50%;
 }
 
 .Odyssey {

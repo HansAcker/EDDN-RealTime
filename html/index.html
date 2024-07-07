@@ -120,14 +120,18 @@
 const socketUrl = "wss://ws.eddn-realtime.space/eddn";
 const listLength = 20;
 
+// fill tables with listLength * empty rows
 // TODO: use style?
-for (const tb of document.querySelectorAll("tbody")) {
-	for (let i = 0; i < listLength; i++) {
-		const tr = document.createElement("tr");
-		const td = document.createElement("td");
-		td.innerHTML = "&nbsp;";
-		tr.appendChild(td);
-		tb.appendChild(tr);
+{
+	const tr = document.createElement("tr");
+	const td = document.createElement("td");
+	td.innerHTML = "&nbsp;";
+	tr.appendChild(td);
+
+	for (const tb of document.querySelectorAll("tbody")) {
+		for (let i = 0; i < listLength; i++) {
+			tb.appendChild(tr.cloneNode(true));
+		}
 	}
 }
 </script>

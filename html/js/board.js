@@ -7,7 +7,7 @@ import { ReconnectingWebSocket } from "./reconnecting-websocket.min.js";
 const distance3 = (v0, v1) => Math.hypot(v0[0] - v1[0], v0[1] - v1[1], v0[2] - v1[2]); // subtract vectors, return length
 const trimPrefix = (str, prefix) => (str.startsWith(prefix) ? str.slice(prefix.length) : str).trim();
 const whatGame = (msg) => msg.odyssey ? "Odyssey" : msg.horizons ? "Horizons" : msg.horizons === false ? "Base" : "Unknown";
-const makeTd = (textContent) => { const td = document.createElement("td"); td.textContent = textContent; return td; };
+const makeTd = (textContent) => { const td = document.createElement("td"); td.textContent = td.title = textContent; return td; };
 
 function addRow(tbody, tr) {
 	while (tbody.children.length >= listLength) {

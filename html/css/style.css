@@ -69,6 +69,10 @@ tbody {
 	background-color: #555;
 }
 
+.Legacy {
+	background-color: #333;
+}
+
 .taxi {
 	color: yellow;
 	font-weight: bold;

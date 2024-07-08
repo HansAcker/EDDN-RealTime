@@ -7,6 +7,8 @@ import simplejson
 import websockets
 import zmq.asyncio
 
+from typing import Any, Awaitable, Dict, Set, Tuple, Optional
+
 
 options = argparse.Namespace(
 	verbose = False,
@@ -27,27 +29,27 @@ options = argparse.Namespace(
 EL = "\x1b[K" # ANSI EL - clear from cursor to the end of the line
 
 # prints on the same line to stdout (CR, sep, *objects, EL)
-def print_same(*objects, sep=" ", end=EL, flush=True):
+def print_same(*objects : Any, sep : Optional[str] = " ", end : Optional[str] = EL, flush : bool = True) -> None:
 	print("\r", *objects, sep=sep, end=end, flush=flush)
 
 # prints on stderr, clears line on stdout
-def print_stderr(*objects, sep=" ", end=None, flush=True):
+def print_stderr(*objects : Any, sep : Optional[str] = " ", end : Optional[str] = None, flush : bool = True) -> None:
 	if options.verbose: print_same()
 	print(*objects, sep=sep, end=end, file=sys.stderr, flush=flush)
 
 
 # active websocket connections
-ws_conns = set()
+ws_conns : Set[websockets.WebSocketServerProtocol] = set()
 
 # asyncio Tasks
-zmq_task = None
-zmq_close_handler = None
+zmq_task : Optional[asyncio.Task] = None
+zmq_close_handler : Optional[asyncio.TimerHandle] = None
 
 # ZMQ SUB socket
 zmq_sub = zmq.asyncio.Context.instance().socket(zmq.SUB)
 
 
-def zmq_init():
+def zmq_init() -> None:
 	zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
 
 	zmq_sub.setsockopt(zmq.HEARTBEAT_IVL, int(options.zmq_HEARTBEAT_IVL * 1000))
@@ -56,19 +58,19 @@ def zmq_init():
 	zmq_sub.setsockopt(zmq.RECONNECT_IVL_MAX, int(options.zmq_RECONNECT_IVL_MAX * 1000))
 	# zmq_sub.setsockopt(zmq.RCVTIMEO, int(options.zmq_RCVTIMEO * 1000))
 
-def zmq_connect():
+def zmq_connect() -> None:
 	zmq_sub.connect(options.zmq_url)
 
-def zmq_disconnect():
+def zmq_disconnect() -> None:
 	zmq_sub.disconnect(options.zmq_url)
 
-def zmq_reconnect():
+def zmq_reconnect() -> None:
 	zmq_disconnect()
 	zmq_connect()
 
 
 # relay messages from ZMQ to Websockets until ws_handler cancels the Task
-async def relay_messages():
+async def relay_messages() -> None:
 	while True:
 		# don't block the loop during message bursts
 		await asyncio.sleep(0)
@@ -110,40 +112,42 @@ async def relay_messages():
 			except Exception as e:
 				print_same("unrecognized message:", e)
 
-def relay_start():
+def relay_start() -> None:
 	global zmq_task
 
 	print_stderr("connecting ZMQ")
 	zmq_connect()
 	zmq_task = asyncio.create_task(relay_messages())
 
-def relay_stop():
+def relay_stop() -> None:
 	global zmq_task
 
+	if zmq_task is not None:
+		zmq_task.cancel()
+		zmq_task = None
+
 	print_stderr("disconnecting ZMQ")
-	zmq_task.cancel()
-	zmq_task = None
 	zmq_disconnect()
 
-def relay_close():
+def relay_close() -> None:
 	global zmq_close_handler
 
 	zmq_close_handler = asyncio.get_running_loop().call_later(options.zmq_close_delay, relay_stop)
 
-def relay_cancel_close():
+def relay_cancel_close() -> None:
 	global zmq_close_handler
 
-	zmq_close_handler.cancel()
-	zmq_close_handler = None
+	if zmq_close_handler is not None:
+		zmq_close_handler.cancel()
+		zmq_close_handler = None
 
 
-async def ws_handler(websocket, path):
+async def ws_handler(websocket: websockets.WebSocketServerProtocol, path: Optional[str]) -> None:
 	ws_conns.add(websocket)
 	print_stderr(f"client connected: {websocket.id} {websocket.remote_address} ({len(ws_conns)} active)")
 
 	# cancel the timer
-	if zmq_close_handler is not None:
-		relay_cancel_close()
+	relay_cancel_close()
 
 	# first websocket connection starts the relay
 	if zmq_task is None:
@@ -164,7 +168,14 @@ async def ws_handler(websocket, path):
 		relay_close()
 
 
-async def server():
+async def process_request(path: str, request_headers: websockets.Headers) -> Optional[Tuple[int, websockets.HeadersLike, bytes]]:
+	if path == "/ping":
+		return (200, [], b"OK\n")
+
+	return None
+
+
+async def server() -> None:
 	print_stderr("starting websocket server")
 
 	# set stop condition on signal
@@ -189,7 +200,7 @@ async def server():
 
 
 if __name__ == "__main__":
-	def parse_args(namespace):
+	def parse_args(namespace : argparse.Namespace) -> None:
 		parser = argparse.ArgumentParser(
 					description="Relay EDDN messages to websocket clients",
 					epilog="https://github.com/HansAcker/EDDN-RealTime")

@@ -120,7 +120,7 @@ ws.onmessage = (event) => {
 				gameStats["New"]++;
 			}
 		} catch(error) {
-			//console.log("Invalid date:", error);
+			console.log("Invalid date:", error);
 		}
 
 		if (message.event) {
@@ -242,13 +242,13 @@ ws.onmessage = (event) => {
 						}
 						tr.appendChild(td);
 					} catch(error) {
-						//console.log("Error in route:", error);
+						console.log("Error in route:", error);
 					}
 
 					addRow(routes, tr);
 				}
 				else {
-					//console.log("Short NavRoute:", data);
+					console.log("Short NavRoute:", data);
 				}
 			}
 			else if (message.event === "ApproachSettlement") {
@@ -298,7 +298,7 @@ ws.onmessage = (event) => {
 			statsbody = newBody;
 		}
 	} else {
-		//console.log("No message: ", data);
+		console.log("No message: ", data);
 	}
 }
 

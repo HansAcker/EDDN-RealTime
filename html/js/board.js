@@ -6,7 +6,6 @@ import { ReconnectingWebSocket } from "./reconnecting-websocket.min.js";
 // const distanceN = (v0, v1) => Math.hypot.apply(null, v0.map((v, i) => v - v1[i]));
 const distance3 = (v0, v1) => Math.hypot(v0[0] - v1[0], v0[1] - v1[1], v0[2] - v1[2]); // subtract vectors, return length
 const trimPrefix = (str, prefix) => (str.startsWith(prefix) ? str.slice(prefix.length) : str).trim();
-const whatGame = (msg) => msg.odyssey ? "Odyssey" : msg.horizons ? "Horizons" : msg.horizons === false ? "Base" : "Unknown";
 const makeTd = (textContent) => { const td = document.createElement("td"); td.textContent = td.title = textContent; return td; };
 
 function addRow(tbody, tr) {
@@ -15,6 +14,21 @@ function addRow(tbody, tr) {
 	}
 
 	tbody.insertBefore(tr, tbody.firstChild);
+}
+
+function whatGame(data) {
+	try {
+		const gameversion = data.header.gameversion;
+		if (gameversion && (gameversion.startsWith("CAPI-Legacy-") || parseInt(gameversion) < 4)) {
+			return "Legacy";
+		}
+
+		const msg = data.message;
+		return msg.odyssey ? "Odyssey" : msg.horizons ? "Horizons" : msg.horizons === false ? "Base" : "Unknown";
+	} catch(error) {
+		console.log("gameversion error:", error);
+		return "Unknown";
+	}
 }
 
 
@@ -27,6 +41,7 @@ const gameStats = {
 	"Base": 0,
 	"Horizons": 0,
 	"Odyssey": 0,
+	"Legacy": 0,
 	"Unknown": 0,
 	"TS": "",
 	"Max jump range": ""
@@ -94,7 +109,7 @@ ws.onmessage = (event) => {
 	const message = data["message"];
 
 	if (message) {
-		const gameType = whatGame(message);
+		const gameType = whatGame(data);
 		gameStats[gameType]++;
 
 		const tr = document.createElement("tr");

@@ -56,6 +56,8 @@ let maxrange = 0;
 let lastEvent = Date.now();
 
 
+// activity status icon
+
 // can't use CSS to style the page icon href
 // TODO: move to configuration block
 const icons = {
@@ -65,15 +67,15 @@ const icons = {
 	"error": "img/led/led-circle-yellow.svg"
 };
 
-let timer = null;
+let idleTimer = null;
 let lastState = "off";
 
-const idle = () => { lastState = "idle"; icon.href = icons[lastState]; timer = null; }
+const idleActivity = setActivity.bind(null, "idle", 0);
 
 function setActivity(state, timeout = 0) {
-	if (timer) {
-		clearTimeout(timer);
-		timer = null;
+	if (idleTimer) {
+		clearTimeout(idleTimer);
+		idleTimer = null;
 	}
 
 	if (lastState != state) {
@@ -83,7 +85,7 @@ function setActivity(state, timeout = 0) {
 	}
 
 	if (timeout) {
-		timer = setTimeout(idle, timeout);
+		idleTimer = setTimeout(idleActivity, timeout);
 	}
 }
 

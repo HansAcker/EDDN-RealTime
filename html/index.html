@@ -123,15 +123,9 @@ const listLength = 20;
 // fill tables with listLength * empty rows
 // TODO: use style?
 {
-	const tr = document.createElement("tr");
-	const td = document.createElement("td");
-	td.innerHTML = "&nbsp;";
-	tr.appendChild(td);
-
+	const tbHTML = "<tr><td>&nbsp;</td></tr>".repeat(listLength);
 	for (const tb of document.querySelectorAll("tbody")) {
-		for (let i = 0; i < listLength; i++) {
-			tb.appendChild(tr.cloneNode(true));
-		}
+		tb.innerHTML = tbHTML;
 	}
 }
 </script>

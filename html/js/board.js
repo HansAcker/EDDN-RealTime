@@ -9,11 +9,11 @@ const trimPrefix = (str, prefix) => (str.startsWith(prefix) ? str.slice(prefix.l
 const makeTd = (textContent) => { const td = document.createElement("td"); td.textContent = td.title = textContent; return td; };
 
 function addRow(tbody, tr) {
-	while (tbody.children.length >= listLength) {
-		tbody.removeChild(tbody.lastChild);
+	while (tbody.childElementCount >= listLength) {
+		tbody.lastElementChild.remove();
 	}
 
-	tbody.insertBefore(tr, tbody.firstChild);
+	tbody.prepend(tr);
 }
 
 function whatGame(data) {
@@ -96,8 +96,6 @@ ws.onopen = setActivity.bind(null, "idle", 0);
 ws.onclose = setActivity.bind(null, "off", 0);
 
 ws.onmessage = (event) => {
-	setActivity("ok", idleTimeout);
-
 	let data = {};
 
 	try {
@@ -108,217 +106,208 @@ ws.onmessage = (event) => {
 		return;
 	}
 
-	gameStats["Total"]++;
+	const message = data.message;
+
+	if (!message) {
+		console.log("No message: ", data);
+		setActivity("error");
+		return;
+	}
+
+	setActivity("ok", idleTimeout);
 	lastEvent = Date.now();
 
-	const message = data["message"];
+	gameStats["Total"]++;
 
-	if (message) {
-		const gameType = whatGame(data);
-		gameStats[gameType]++;
+	const gameType = whatGame(data);
+	gameStats[gameType]++;
 
-		const tr = document.createElement("tr");
-		tr.classList.add(gameType);
+	const tr = document.createElement("tr");
+	tr.classList.add(gameType);
 
-		// tr.title = data.header.softwareName;
+	// tr.title = data.header.softwareName;
 
-		if (message.Taxi) {
-			gameStats["Taxi"]++;
-			tr.classList.add("taxi");
+	if (message.Taxi) {
+		gameStats["Taxi"]++;
+		tr.classList.add("taxi");
+	}
+
+	gameStats["TS"] = message.timestamp;
+
+	try {
+		const diff = new Date() - new Date(message.timestamp);
+		if (diff > 3600 * 1000) { // timestamp older than 1h
+			tr.classList.add("old");
+			gameStats["Old"]++;
+		}
+		else if (diff < -180 * 1000) { // timestamp more than 3m ahead
+			tr.classList.add("new");
+			gameStats["New"]++;
+		}
+	} catch(error) {
+		console.log("Invalid date:", error);
+	}
+
+	if (message.event) {
+		if (!(message.event in gameStats)) {
+			gameStats[message.event] = 0;
 		}
 
-		gameStats["TS"] = message.timestamp;
+		gameStats[message.event]++;
 
-		try {
-			const diff = new Date() - new Date(message.timestamp);
-			if (diff > 3600 * 1000) { // timestamp older than 1h
-				tr.classList.add("old");
-				gameStats["Old"]++;
-			}
-			else if (diff < -180 * 1000) { // timestamp more than 3m ahead
-				tr.classList.add("new");
-				gameStats["New"]++;
-			}
-		} catch(error) {
-			console.log("Invalid date:", error);
-		}
+		if (message.event === "Scan") {
+			tr.append(makeTd(message.BodyName), makeTd(message.ScanType));
 
-		if (message.event) {
-			if (!(message.event in gameStats)) {
-				gameStats[message.event] = 0;
-			}
-
-			gameStats[message.event]++;
-
-			if (message.event === "Scan" && message.ScanType !== "NavBeaconDetail" && message.WasDiscovered === false) {
-				tr.appendChild(makeTd(message.BodyName));
-				tr.appendChild(makeTd(message.ScanType));
-
+			if (message.WasDiscovered !== false || message.ScanType === "NavBeaconDetail") {
+				addRow(oldbods, tr);
+			} else {
 				addRow(newbods, tr);
 
 				if (message.StarType) {
 					const tr = document.createElement("tr");
 					tr.classList.add(gameType);
-					tr.appendChild(makeTd(message.BodyName));
-					tr.appendChild(makeTd(`${message.StarType} ${message.Subclass}`));
-
+					tr.append(makeTd(message.BodyName), makeTd(`${message.StarType} ${message.Subclass}`));
 					addRow(newstars, tr);
 				}
 				else if (message.PlanetClass) {
 					const tr = document.createElement("tr");
 					tr.classList.add(gameType);
-					tr.appendChild(makeTd(message.BodyName));
-					tr.appendChild(makeTd(message.PlanetClass));
-					tr.appendChild(makeTd(`${message.AtmosphereType && message.AtmosphereType !== "None" ? message.AtmosphereType : ""}`));
-					tr.appendChild(makeTd(`${message.Landable ? "Yes" : ""}`));
-
+					tr.append(makeTd(message.BodyName),
+						makeTd(message.PlanetClass),
+						makeTd(message.AtmosphereType && message.AtmosphereType !== "None" ? message.AtmosphereType : ""),
+						makeTd(message.Landable ? "Yes" : ""));
 					addRow(newplanets, tr);
 				}
 			}
-			else if (message.event === "Scan" && (message.ScanType === "NavBeaconDetail" || message.WasDiscovered !== false)) {
-				tr.appendChild(makeTd(message.BodyName));
-				tr.appendChild(makeTd(message.ScanType));
+		}
 
-				addRow(oldbods, tr);
-			}
-			else if (message.event === "FSDJump") {
-				tr.appendChild(makeTd(message.StarSystem));
+		else if (message.event === "FSDJump") {
+			tr.append(makeTd(message.StarSystem));
+			addRow(jumps, tr);
 
-				addRow(jumps, tr);
+			if (message.Population > 0 || message.SystemAllegiance) {
+				const tr = document.createElement("tr");
+				tr.classList.add(gameType);
 
-				if (message.Population > 0 || message.SystemAllegiance) {
-					const tr = document.createElement("tr");
-					tr.classList.add(gameType);
-
-					tr.appendChild(makeTd(message.StarSystem));
-					tr.appendChild(makeTd(`${message.Population >= 1000000000 ? (message.Population / 1000000000).toFixed(2) + "G" :
+				const faction = message.SystemFaction || {};
+				tr.append(makeTd(message.StarSystem),
+					makeTd(message.Population >= 1000000000 ? (message.Population / 1000000000).toFixed(2) + "G" :
 						message.Population >= 1000000 ? (message.Population / 1000000).toFixed(2) + "M" :
 						message.Population >= 1000 ? (message.Population / 1000).toFixed(2) + "k" :
 						message.Population > 0 ? (message.Population / 1).toFixed(2) :
 						""
-					}`));
-					tr.appendChild(makeTd(message.SystemAllegiance));
-
-					const faction = message.SystemFaction || {};
-					tr.appendChild(makeTd(faction.Name));
-					tr.appendChild(makeTd(faction.FactionState));
-
-					addRow(visits, tr);
-				}
+					),
+					makeTd(message.SystemAllegiance),
+					makeTd(faction.Name),
+					makeTd(faction.FactionState));
+				addRow(visits, tr);
 			}
-			else if (message.event === "FSSDiscoveryScan") {
-				tr.appendChild(makeTd(message.SystemName));
-				tr.appendChild(makeTd(message.BodyCount));
-				tr.appendChild(makeTd(message.NonBodyCount));
+		}
 
-				addRow(honks, tr);
-			}
-			else if (message.event === "Docked" || message.event === "Location") {
-				tr.appendChild(makeTd(message.StationName));
-				tr.appendChild(makeTd(message.StationType));
-				tr.appendChild(makeTd(message.StarSystem));
+		else if (message.event === "FSSDiscoveryScan") {
+			tr.append(makeTd(message.SystemName), makeTd(message.BodyCount), makeTd(message.NonBodyCount));
+			addRow(honks, tr);
+		}
 
-				addRow(docks, tr);
-			}
-			else if (message.event === "NavRoute") {
-				const route = message.Route || [];
+		else if (message.event === "NavRoute") {
+			const route = message.Route || [];
 
-				if (route.length > 1) {
-					tr.appendChild(makeTd(route[0].StarSystem));
-					tr.appendChild(makeTd(route[route.length-1].StarSystem));
-					tr.appendChild(makeTd(`${route.length-1}j`));
+			if (route.length > 1) {
+				tr.append(makeTd(route[0].StarSystem),
+					makeTd(route[route.length-1].StarSystem),
+					makeTd(`${route.length-1}j`));
 
-					try {
-						let dist = 0;
-						let longest = 0;
-						let cur = route.shift().StarPos;
+				try {
+					let dist = 0;
+					let longest = 0;
+					let cur = route.shift().StarPos;
 
-						// distance to destination system
-						tr.appendChild(makeTd(`${distance3(cur, route[route.length-1].StarPos).toFixed(2)}ly`));
+					// distance to destination system
+					tr.append(makeTd(`${distance3(cur, route[route.length-1].StarPos).toFixed(2)}ly`));
 
-						// sum jump distances
-						for (const wp of route) {
-							const hop = wp.StarPos;
-							const range = distance3(cur, hop);
+					// sum jump distances
+					for (const wp of route) {
+						const hop = wp.StarPos;
+						const range = distance3(cur, hop);
 
-							if (maxrange < range) {
-								maxrange = range;
-								gameStats["Max jump range"] = `${range.toFixed(2)}ly`;
-							}
-
-							if (longest < range) {
-								longest = range;
-							}
-
-							dist += range;
-							cur = hop;
+						if (maxrange < range) {
+							maxrange = range;
+							gameStats["Max jump range"] = `${range.toFixed(2)}ly`;
 						}
 
-						tr.appendChild(makeTd(`${route.length > 1 ? dist.toFixed(2) + "ly" : ""}`));
-
-						const td = makeTd(`${longest.toFixed(2)}ly`);
-						if (longest >= 200) {
-							td.classList.add("longjump");
+						if (longest < range) {
+							longest = range;
 						}
-						tr.appendChild(td);
-					} catch(error) {
-						console.log("Error in route:", error);
+
+						dist += range;
+						cur = hop;
 					}
 
-					addRow(routes, tr);
+					tr.append(makeTd(route.length > 1 ? `${dist.toFixed(2)}ly` : ""));
+
+					const td = makeTd(`${longest.toFixed(2)}ly`);
+					if (longest >= 200) {
+						td.classList.add("longjump");
+					}
+					tr.append(td);
+				} catch(error) {
+					console.log("Error in route:", error);
 				}
-				else {
-					console.log("Short NavRoute:", data);
-				}
+
+				addRow(routes, tr);
 			}
-			else if (message.event === "ApproachSettlement") {
-				tr.appendChild(makeTd(message.Name));
-				tr.appendChild(makeTd(message.StarSystem));
-
-				addRow(asett, tr);
-			}
-
-			else if (message.event === "CodexEntry") {
-				tr.appendChild(makeTd(message.System));
-				tr.appendChild(makeTd(trimPrefix(message.BodyName || "", message.System)));
-				tr.appendChild(makeTd(message.SubCategory));
-				tr.appendChild(makeTd(message.Name));
-
-				addRow(codex, tr);
-			}
-
-			// TODO: FSSBodySignals, FSSSignalDiscovered, SAASignalsFound
-
 			else {
-				gameStats["Ignored"]++;
+				console.log("Short NavRoute:", data);
 			}
 		}
+
+		else if (message.event === "Docked" || message.event === "Location") {
+			tr.append(makeTd(message.StationName), makeTd(message.StationType), makeTd(message.StarSystem));
+			addRow(docks, tr);
+		}
+
+		else if (message.event === "ApproachSettlement") {
+			tr.append(makeTd(message.Name), makeTd(message.StarSystem));
+			addRow(asett, tr);
+		}
+
+		else if (message.event === "CodexEntry") {
+			tr.append(makeTd(message.System),
+				makeTd(trimPrefix(message.BodyName || "", message.System)),
+				makeTd(message.SubCategory),
+				makeTd(message.Name));
+			addRow(codex, tr);
+		}
+
+		// TODO: FSSBodySignals, FSSSignalDiscovered, SAASignalsFound
+		// TODO: DockingGranted, DockingDenied
+
 		else {
-			// commodities, modules, ships
+			gameStats["Ignored"]++;
+		}
+	}
+	else {
+		// commodities, modules, ships
 
-			tr.appendChild(makeTd(message.commodities ? "Market" : message.ships ? "Shipyard" : message.modules ? "Outfitting" : ""));
-			tr.appendChild(makeTd(message.stationName));
-			tr.appendChild(makeTd(message.systemName));
+		tr.append(makeTd(message.commodities ? "Market" : message.ships ? "Shipyard" : message.modules ? "Outfitting" : ""),
+			makeTd(message.stationName),
+			makeTd(message.systemName));
+		addRow(updates, tr);
+	}
 
-			addRow(updates, tr);
+	// re-create stats table
+	// TODO: something more efficient? re-use rows?
+	if (!document.hidden) {
+		const newBody = document.createElement("tbody");
+
+		for (const gameStat in gameStats) {
+			const tr = document.createElement("tr");
+			tr.append(makeTd(gameStat), makeTd(gameStats[gameStat]));
+			newBody.append(tr);
 		}
 
-		if (!document.hidden) {
-			const newBody = document.createElement("tbody");
-			for (const gameStat in gameStats) {
-				const tr = document.createElement("tr");
-
-				tr.appendChild(makeTd(gameStat));
-				tr.appendChild(makeTd(gameStats[gameStat]));
-
-				newBody.appendChild(tr);
-			}
-
-			statstable.replaceChild(newBody, statsbody);
-			statsbody = newBody;
-		}
-	} else {
-		console.log("No message: ", data);
+		statsbody.replaceWith(newBody);
+		statsbody = newBody;
 	}
 }
 

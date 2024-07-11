@@ -35,27 +35,6 @@ function whatGame(data) {
 }
 
 
-const gameStats = {
-	"Total": 0,
-	"Old": 0,
-	"New": 0,
-	"Ignored": 0,
-	"Taxi": 0,
-	"Base": 0,
-	"Horizons": 0,
-	"Odyssey": 0,
-	"Legacy": 0,
-	"Unknown": 0,
-	"TS": "",
-	"Max jump range": ""
-};
-
-let statsbody = statstable.querySelector("tbody");
-
-let maxrange = 0;
-let lastEvent = Date.now();
-
-
 // activity status icon
 
 // can't use CSS to style the page icon href
@@ -89,6 +68,27 @@ function setActivity(state, timeout = 0) {
 	}
 }
 
+
+const gameStats = {
+	"Total": 0,
+	"Old": 0,
+	"New": 0,
+	"Ignored": 0,
+	"Taxi": 0,
+	"Base": 0,
+	"Horizons": 0,
+	"Odyssey": 0,
+	"Legacy": 0,
+	"Unknown": 0,
+	"TS": "",
+	"Max jump range": ""
+};
+
+let maxrange = 0;
+let statsbody = statstable.querySelector("tbody");
+
+
+let lastEvent = Date.now();
 
 const ws = new ReconnectingWebSocket(socketUrl);
 

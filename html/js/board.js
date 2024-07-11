@@ -329,7 +329,7 @@ ws.onmessage = (event) => {
 		ws.refresh();
 	}
 
-	const nextWake = ~~(60000 + Math.random() * 23000);
+	const nextWake = ~~(60000 + Math.random() * 42000);
 	//console.log(`Sleeping for ${nextWake}ms`);
 
 	setTimeout(watchdog, nextWake);

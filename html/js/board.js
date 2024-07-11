@@ -18,11 +18,14 @@ function addRow(tbody, tr) {
 
 function whatGame(data) {
 	try {
+		// no decision if gameversion is not set or set to CAPI-<endpoint>
+		// https://github.com/EDCD/EDDN/blob/live/docs/Developers.md#gameversions-and-gamebuild
 		const gameversion = data.header.gameversion;
 		if (gameversion && (gameversion.startsWith("CAPI-Legacy-") || parseInt(gameversion) < 4)) {
 			return "Legacy";
 		}
 
+		// https://github.com/EDCD/EDDN/blob/live/docs/Developers.md#horizons-and-odyssey-flags
 		const msg = data.message;
 		return msg.odyssey ? "Odyssey" : msg.horizons ? "Horizons" : msg.horizons === false ? "Base" : "Unknown";
 	} catch(error) {

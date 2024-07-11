@@ -91,7 +91,7 @@ ws.onopen = setActivity.bind(null, "idle", 0);
 ws.onclose = setActivity.bind(null, "off", 0);
 
 ws.onmessage = (event) => {
-	setActivity("ok", 1600);
+	setActivity("ok", idleTimeout);
 
 	let data = {};
 
@@ -319,7 +319,7 @@ ws.onmessage = (event) => {
 
 
 (function watchdog() {
-	if (ws.readyState === WebSocket.OPEN && Date.now() - lastEvent > 300000) {
+	if (ws.readyState === WebSocket.OPEN && Date.now() - lastEvent > resetTimeout) {
 		console.log("Receive timeout. Resetting connection.");
 		ws.refresh();
 	}

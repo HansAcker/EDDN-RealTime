@@ -22,6 +22,11 @@ table {
 	width: var(--baseWidth);
 	float: left;
 	border: 1px solid #f94;
+
+	/* experimental */
+	content-visibility: auto; /* the page is probably too short for this to have an effect */
+	contain-intrinsic-size: auto;
+	will-change: transform; /* quirk to force compositing, repaint tables individually */
 }
 
 table.narrow {

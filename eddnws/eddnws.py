@@ -21,6 +21,8 @@ options = argparse.Namespace(
 	zmq_HEARTBEAT_TIMEOUT = 20,
 	zmq_RECONNECT_IVL_MAX = 60,
 	# zmq_RCVTIMEO = 600,
+	ping_path = "/ping", # respond to health-checks if set
+	ping_response = b"OK\n",
 )
 
 
@@ -168,11 +170,11 @@ async def ws_handler(websocket: websockets.WebSocketServerProtocol, path: Option
 		relay_close()
 
 
-#async def process_request(path: str, request_headers: websockets.Headers) -> Optional[Tuple[int, websockets.HeadersLike, bytes]]:
-#	if path == "/ping":
-#		return (200, [], b"OK\n")
-#
-#	return None
+async def process_request(path: str, request_headers: websockets.Headers) -> Optional[Tuple[int, websockets.HeadersLike, bytes]]:
+	if path == options.ping_path:
+		return (200, [], options.ping_response)
+
+	return None
 
 
 async def server() -> None:
@@ -189,10 +191,10 @@ async def server() -> None:
 	if options.listen_path:
 		print_stderr(f"socket path: {options.listen_path}")
 		# TODO: set umask
-		server = websockets.unix_serve(ws_handler, options.listen_path)
+		server = websockets.unix_serve(ws_handler, options.listen_path, process_request=process_request if options.ping_path else None)
 	else:
 		print_stderr(f"TCP address: {options.listen_addr}:{options.listen_port}")
-		server = websockets.serve(ws_handler, options.listen_addr, options.listen_port)
+		server = websockets.serve(ws_handler, options.listen_addr, options.listen_port, process_request=process_request if options.ping_path else None)
 
 	# run the server until stop condition
 	async with server:

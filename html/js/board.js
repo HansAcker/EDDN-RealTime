@@ -158,12 +158,9 @@ ws.onmessage = (event) => {
 
 		if (message.event === "Scan") {
 			tr.append(makeTd(message.BodyName), makeTd(message.ScanType));
+			addRow(scanbods, tr);
 
-			if (message.WasDiscovered !== false || message.ScanType === "NavBeaconDetail") {
-				addRow(oldbods, tr);
-			} else {
-				addRow(newbods, tr);
-
+			if (message.WasDiscovered === false && message.ScanType !== "NavBeaconDetail") {
 				if (message.StarType) {
 					const tr = document.createElement("tr");
 					tr.classList.add(gameType);
@@ -205,10 +202,12 @@ ws.onmessage = (event) => {
 			}
 		}
 
+/*
 		else if (message.event === "FSSDiscoveryScan") {
 			tr.append(makeTd(message.SystemName), makeTd(message.BodyCount), makeTd(message.NonBodyCount));
 			addRow(honks, tr);
 		}
+*/
 
 		else if (message.event === "NavRoute") {
 			const route = message.Route || [];

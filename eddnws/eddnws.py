@@ -168,11 +168,11 @@ async def ws_handler(websocket: websockets.WebSocketServerProtocol, path: Option
 		relay_close()
 
 
-async def process_request(path: str, request_headers: websockets.Headers) -> Optional[Tuple[int, websockets.HeadersLike, bytes]]:
-	if path == "/ping":
-		return (200, [], b"OK\n")
-
-	return None
+#async def process_request(path: str, request_headers: websockets.Headers) -> Optional[Tuple[int, websockets.HeadersLike, bytes]]:
+#	if path == "/ping":
+#		return (200, [], b"OK\n")
+#
+#	return None
 
 
 async def server() -> None:

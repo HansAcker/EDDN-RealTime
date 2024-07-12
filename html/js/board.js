@@ -86,6 +86,7 @@ const gameStats = {
 
 let maxrange = 0;
 let statsbody = statstable.querySelector("tbody");
+let statspainter;
 
 
 let lastEvent = Date.now();
@@ -306,8 +307,11 @@ ws.onmessage = (event) => {
 			newBody.append(tr);
 		}
 
-		statsbody.replaceWith(newBody);
-		statsbody = newBody;
+		cancelAnimationFrame(statspainter);
+		statspainter = requestAnimationFrame(() => {
+			statsbody.replaceWith(newBody);
+			statsbody = newBody;
+		});
 	}
 }
 

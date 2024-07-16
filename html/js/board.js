@@ -74,7 +74,7 @@ function updateStats() {
 let lastEvent = Date.now();
 
 const ws = new ReconnectingWebSocket(socketUrl);
-const activity = new ActivityIcon(icon);
+const activity = new ActivityIcon(icon, idleTimeout);
 
 ws.onopen = activity.idle;
 ws.onclose = activity.off;
@@ -98,7 +98,7 @@ ws.onmessage = (event) => {
 		return;
 	}
 
-	activity.ok(idleTimeout);
+	activity.ok();
 	lastEvent = Date.now();
 
 	gameStats["Total"]++;

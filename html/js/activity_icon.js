@@ -18,11 +18,13 @@ class ActivityIcon {
 	};
 
 	#icon;
+	#idleTimeout;
 	#idleTimer = null;
 	#lastState = ActivityIcon.#states.off;
 
-	constructor(icon) {
+	constructor(icon, idleTimeout = 0) {
 		this.#icon = icon;
+		this.#idleTimeout = idleTimeout;
 	}
 
 	#set(state, timeout = 0) {
@@ -46,7 +48,7 @@ class ActivityIcon {
 	idle = this.#set.bind(this, ActivityIcon.#states.idle, 0);
 	error = this.#set.bind(this, ActivityIcon.#states.error, 0);
 
-	ok(timeout = 0) {
+	ok(timeout = this.#idleTimeout) {
 		this.#set(ActivityIcon.#states.ok, timeout);
 	}
 }

@@ -209,8 +209,8 @@ ws.onmessage = (event) => {
 						""
 					),
 					makeTd(message.SystemAllegiance),
-					makeTd(faction.Name),
-					makeTd(faction.FactionState));
+					makeTd(faction.Name || ""),
+					makeTd(faction.FactionState || ""));
 				addRow(visits, tr);
 			}
 		}
@@ -275,7 +275,7 @@ ws.onmessage = (event) => {
 		}
 
 		else if (message.event === "Docked" || message.event === "Location") {
-			tr.append(makeTd(message.StationName), makeTd(message.StationType), makeTd(message.StarSystem));
+			tr.append(makeTd(message.StationName || ""), makeTd(message.StationType || ""), makeTd(message.StarSystem));
 			addRow(docks, tr);
 		}
 

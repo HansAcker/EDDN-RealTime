@@ -1,5 +1,5 @@
 import { ReconnectingWebSocket } from "./reconnecting-websocket.min.js";
-import * as Activity from "./activity.min.js";
+import { ActivityIcon } from "./activity_icon.min.js";
 
 /* https://github.com/HansAcker/EDDN-RealTime */
 
@@ -74,9 +74,10 @@ function updateStats() {
 let lastEvent = Date.now();
 
 const ws = new ReconnectingWebSocket(socketUrl);
+const activity = new ActivityIcon(icon);
 
-ws.onopen = Activity.idle;
-ws.onclose = Activity.off;
+ws.onopen = activity.idle;
+ws.onclose = activity.off;
 
 ws.onmessage = (event) => {
 	let data = {};
@@ -85,7 +86,7 @@ ws.onmessage = (event) => {
 		data = JSON.parse(event.data);
 	} catch(error) {
 		console.log("JSON parse error:", error);
-		Activity.error();
+		activity.error();
 		return;
 	}
 
@@ -93,11 +94,11 @@ ws.onmessage = (event) => {
 
 	if (!message) {
 		console.log("No message: ", data);
-		Activity.error();
+		activity.error();
 		return;
 	}
 
-	Activity.ok(idleTimeout);
+	activity.ok(idleTimeout);
 	lastEvent = Date.now();
 
 	gameStats["Total"]++;

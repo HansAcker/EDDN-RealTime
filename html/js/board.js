@@ -93,7 +93,7 @@ function updateStats() {
 
 	for (const gameStat in gameStats) {
 		const tr = document.createElement("tr");
-		tr.append(makeTd(gameStat), makeTd(gameStats[gameStat]));
+		tr.append(makeTd(gameStat), makeTd(`${gameStats[gameStat]}`));
 		newBody.append(tr);
 	}
 

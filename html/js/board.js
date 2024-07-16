@@ -1,6 +1,9 @@
 import { ReconnectingWebSocket } from "./reconnecting-websocket.min.js";
+import * as Activity from "./activity.min.js";
 
 /* https://github.com/HansAcker/EDDN-RealTime */
+
+// TODO: modularize
 
 
 // const distanceN = (v0, v1) => Math.hypot.apply(null, v0.map((v, i) => v - v1[i]));
@@ -31,40 +34,6 @@ function whatGame(data) {
 	} catch(error) {
 		console.log("gameversion error:", error);
 		return "Unknown";
-	}
-}
-
-
-// activity status icon
-
-// can't use CSS to style the page icon href
-// TODO: move to configuration block
-const icons = {
-	"ok": "img/led/led-circle-green.svg",
-	"off": "img/led/led-circle-red.svg",
-	"idle": "img/led/led-circle-grey.svg",
-	"error": "img/led/led-circle-yellow.svg"
-};
-
-let idleTimer = null;
-let lastState = "off";
-
-const idleActivity = setActivity.bind(null, "idle", 0);
-
-function setActivity(state, timeout = 0) {
-	if (idleTimer) {
-		clearTimeout(idleTimer);
-		idleTimer = null;
-	}
-
-	if (lastState != state) {
-		console.log(`${lastState} => ${state}`);
-		icon.href = icons[state];
-		lastState = state;
-	}
-
-	if (timeout) {
-		idleTimer = setTimeout(idleActivity, timeout);
 	}
 }
 
@@ -106,8 +75,8 @@ let lastEvent = Date.now();
 
 const ws = new ReconnectingWebSocket(socketUrl);
 
-ws.onopen = setActivity.bind(null, "idle", 0);
-ws.onclose = setActivity.bind(null, "off", 0);
+ws.onopen = Activity.idle;
+ws.onclose = Activity.off;
 
 ws.onmessage = (event) => {
 	let data = {};
@@ -116,7 +85,7 @@ ws.onmessage = (event) => {
 		data = JSON.parse(event.data);
 	} catch(error) {
 		console.log("JSON parse error:", error);
-		setActivity("error");
+		Activity.error();
 		return;
 	}
 
@@ -124,11 +93,11 @@ ws.onmessage = (event) => {
 
 	if (!message) {
 		console.log("No message: ", data);
-		setActivity("error");
+		Activity.error();
 		return;
 	}
 
-	setActivity("ok", idleTimeout);
+	Activity.ok(idleTimeout);
 	lastEvent = Date.now();
 
 	gameStats["Total"]++;

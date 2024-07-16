@@ -88,6 +88,19 @@ let maxrange = 0;
 let statsbody = statstable.querySelector("tbody");
 let statspainter;
 
+function updateStats() {
+	const newBody = document.createElement("tbody");
+
+	for (const gameStat in gameStats) {
+		const tr = document.createElement("tr");
+		tr.append(makeTd(gameStat), makeTd(gameStats[gameStat]));
+		newBody.append(tr);
+	}
+
+	statsbody.replaceWith(newBody);
+	statsbody = newBody;
+}
+
 
 let lastEvent = Date.now();
 
@@ -298,19 +311,8 @@ ws.onmessage = (event) => {
 	// re-create stats table
 	// TODO: something more efficient? re-use rows?
 	if (!document.hidden) {
-		const newBody = document.createElement("tbody");
-
-		for (const gameStat in gameStats) {
-			const tr = document.createElement("tr");
-			tr.append(makeTd(gameStat), makeTd(gameStats[gameStat]));
-			newBody.append(tr);
-		}
-
 		cancelAnimationFrame(statspainter);
-		statspainter = requestAnimationFrame(() => {
-			statsbody.replaceWith(newBody);
-			statsbody = newBody;
-		});
+		statspainter = requestAnimationFrame(updateStats);
 	}
 }
 

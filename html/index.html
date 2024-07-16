@@ -12,6 +12,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 
+<div id="board">
 <table class="narrow">
 <caption>FSD Jumps</caption>
 <thead>
@@ -119,6 +120,7 @@
 </thead>
 <tbody></tbody>
 </table>
+</div>
 
 <script>
 const socketUrl = "wss://ws.eddn-realtime.space/eddn";
@@ -131,7 +133,7 @@ const resetTimeout = 300000;
 // TODO: use style?
 {
 	const tbHTML = "<tr><td>&nbsp;</td></tr>".repeat(listLength);
-	for (const tb of document.querySelectorAll("tbody")) {
+	for (const tb of board.querySelectorAll("tbody")) {
 		tb.innerHTML = tbHTML;
 	}
 }

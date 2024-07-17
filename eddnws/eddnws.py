@@ -7,7 +7,7 @@ import simplejson
 import websockets
 import zmq.asyncio
 
-from typing import Any, Awaitable, Dict, Set, Tuple, Optional
+from typing import Any, Dict, Set, Tuple, Optional
 
 
 options = argparse.Namespace(

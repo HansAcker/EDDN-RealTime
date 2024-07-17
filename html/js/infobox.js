@@ -29,7 +29,7 @@ class InfoBox {
 		const infoBox = this.#template.cloneNode(true);
 		infoBox.querySelector("pre").textContent = msgText;
 
-		infoBox.addEventListener("click", (ev) => {
+		infoBox.querySelector(".infobox-header").addEventListener("click", (ev) => {
 			ev.stopPropagation();
 
 			if (ev.target.classList.contains("button-copy-msg")) {
@@ -41,7 +41,7 @@ class InfoBox {
 			else if (ev.target.classList.contains("button-copy-uid")) {
 				navigator.clipboard.writeText(msg.header.uploaderID);
 			}
-			else if (ev.target.classList.contains("button-close")) {
+			else { /* if (ev.target.classList.contains("button-close")) { */
 				infoBox.remove();
 			}
 		});

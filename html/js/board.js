@@ -185,13 +185,6 @@ ws.onmessage = (event) => {
 			}
 		}
 
-/*
-		else if (message.event === "FSSDiscoveryScan") {
-			tr.append(makeTd(message.SystemName), makeTd(message.BodyCount), makeTd(message.NonBodyCount));
-			addRow(honks, tr);
-		}
-*/
-
 		else if (message.event === "NavRoute") {
 			const route = message.Route || [];
 

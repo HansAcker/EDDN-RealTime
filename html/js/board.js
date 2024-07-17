@@ -1,11 +1,14 @@
 import { ReconnectingWebSocket } from "./reconnecting-websocket.min.js";
 import { ActivityIcon } from "./activity_icon.min.js";
 import { StatsBox } from "./statsbox.min.js";
+import { InfoBox } from "./infobox.min.js";
 
 /* https://github.com/HansAcker/EDDN-RealTime */
 
 // TODO: modularize
 
+
+// TODO: move to inevitable utility module
 
 // const distanceN = (v0, v1) => Math.hypot.apply(null, v0.map((v, i) => v - v1[i]));
 const distance3 = (v0, v1) => Math.hypot(v0[0] - v1[0], v0[1] - v1[1], v0[2] - v1[2]); // subtract vectors, return length
@@ -61,6 +64,7 @@ let lastEvent = Date.now();
 
 const ws = new ReconnectingWebSocket(socketUrl);
 const activity = new ActivityIcon(icon, idleTimeout);
+const infobox = new InfoBox(document.body, infotemplate.content.children[0].cloneNode(true));
 
 ws.onopen = activity.idle;
 ws.onclose = activity.off;
@@ -94,6 +98,8 @@ ws.onmessage = (event) => {
 
 	const tr = document.createElement("tr");
 	tr.classList.add(gameType);
+
+	infobox.set(tr, data);
 
 	// tr.title = data.header.softwareName;
 
@@ -129,12 +135,14 @@ ws.onmessage = (event) => {
 				if (message.StarType) {
 					const tr = document.createElement("tr");
 					tr.classList.add(gameType);
+					infobox.set(tr, data);
 					tr.append(makeTd(message.BodyName), makeTd(`${message.StarType} ${message.Subclass}`));
 					addRow(newstars, tr);
 				}
 				else if (message.PlanetClass) {
 					const tr = document.createElement("tr");
 					tr.classList.add(gameType);
+					infobox.set(tr, data);
 					tr.append(makeTd(message.BodyName),
 						makeTd(message.PlanetClass),
 						makeTd(message.AtmosphereType && message.AtmosphereType !== "None" ? message.AtmosphereType : ""),
@@ -151,6 +159,7 @@ ws.onmessage = (event) => {
 			if (message.Population > 0 || message.SystemAllegiance) {
 				const tr = document.createElement("tr");
 				tr.classList.add(gameType);
+				infobox.set(tr, data);
 
 				const faction = message.SystemFaction || {};
 				tr.append(makeTd(message.StarSystem),
@@ -178,7 +187,7 @@ ws.onmessage = (event) => {
 				try {
 					let dist = 0;
 					let longest = 0;
-					let cur = route.shift().StarPos;
+					let cur = route.shift().StarPos; // TODO: this modifies the data object displayed by infobox
 
 					// distance to destination system
 					tr.append(makeTd(`${distance3(cur, route[route.length-1].StarPos).toFixed(2)}ly`));
@@ -253,6 +262,22 @@ ws.onmessage = (event) => {
 		addRow(updates, tr);
 	}
 }
+
+
+board.addEventListener("click", (ev) => {
+	let target;
+
+	if (ev.target.tagName === "TR") {
+		target = ev.target;
+	}
+	else if (ev.target.tagName === "TD") {
+		target = ev.target.parentNode;
+	}
+
+	if (target && infobox.has(target)) {
+		infobox.show(target);
+	}
+});
 
 
 (function watchdog() {

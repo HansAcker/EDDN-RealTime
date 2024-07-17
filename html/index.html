@@ -104,6 +104,21 @@
 </table>
 </div>
 
+<template id="infotemplate">
+<div class="infobox">
+	<div class="infobox-header">
+		<button class="button-copy-msg">Copy message</button>
+		<button class="button-copy-gts">Copy gateway timestamp</button>
+		<button class="button-copy-uid">Copy uploader ID</button>
+		<button class="button-close">Close window</button>
+	</div>
+	<div>
+		<!-- content -->
+		<pre></pre>
+	</div>
+</div>
+</template>
+
 <script>
 const socketUrl = "wss://ws.eddn-realtime.space/eddn";
 const listLength = 20;

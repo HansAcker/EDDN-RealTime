@@ -94,3 +94,26 @@ td, th {
 .longjump {
 	font-weight: bold;
 }
+
+
+tr:hover {
+	outline: 2px solid yellow;
+}
+
+.infobox {
+	position: fixed;
+	top: 20%;
+	left: 20%;
+	width: 60%;
+	height: 60%;
+	background-color: rgba(0, 85, 187, 0.9);
+	border: 1px solid blue;
+	overflow: auto;
+	scrollbar-width: auto;
+}
+
+.infobox .infobox-header {
+	width: 100%;
+	background-color: #aaa;
+	color: #000;
+}

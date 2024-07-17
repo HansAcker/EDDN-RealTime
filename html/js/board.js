@@ -1,5 +1,6 @@
 import { ReconnectingWebSocket } from "./reconnecting-websocket.min.js";
 import { ActivityIcon } from "./activity_icon.min.js";
+import { StatsBox } from "./statsbox.min.js";
 
 /* https://github.com/HansAcker/EDDN-RealTime */
 
@@ -38,7 +39,7 @@ function whatGame(data) {
 }
 
 
-const gameStats = {
+const gameStats = new StatsBox(statstable.querySelector("tbody"), {
 	"Total": 0,
 	"Old": 0,
 	"New": 0,
@@ -51,24 +52,9 @@ const gameStats = {
 	"Unknown": 0,
 	"TS": "",
 	"Max jump range": ""
-};
+});
 
 let maxrange = 0;
-let statsbody = statstable.querySelector("tbody");
-let statspainter;
-
-function updateStats() {
-	const newBody = document.createElement("tbody");
-
-	for (const gameStat in gameStats) {
-		const tr = document.createElement("tr");
-		tr.append(makeTd(gameStat), makeTd(`${gameStats[gameStat]}`));
-		newBody.append(tr);
-	}
-
-	statsbody.replaceWith(newBody);
-	statsbody = newBody;
-}
 
 
 let lastEvent = Date.now();
@@ -101,10 +87,10 @@ ws.onmessage = (event) => {
 	activity.ok();
 	lastEvent = Date.now();
 
-	gameStats["Total"]++;
+	gameStats.inc("Total");
 
 	const gameType = whatGame(data);
-	gameStats[gameType]++;
+	gameStats.inc(gameType);
 
 	const tr = document.createElement("tr");
 	tr.classList.add(gameType);
@@ -112,32 +98,28 @@ ws.onmessage = (event) => {
 	// tr.title = data.header.softwareName;
 
 	if (message.Taxi) {
-		gameStats["Taxi"]++;
+		gameStats.inc("Taxi");
 		tr.classList.add("taxi");
 	}
 
-	gameStats["TS"] = message.timestamp;
+	gameStats.set("TS", message.timestamp);
 
 	try {
 		const diff = new Date() - new Date(message.timestamp);
 		if (diff > 3600 * 1000) { // timestamp older than 1h
 			tr.classList.add("old");
-			gameStats["Old"]++;
+			gameStats.inc("Old");
 		}
 		else if (diff < -180 * 1000) { // timestamp more than 3m ahead
 			tr.classList.add("new");
-			gameStats["New"]++;
+			gameStats.inc("New");
 		}
 	} catch(error) {
 		console.log("Invalid date:", error);
 	}
 
 	if (message.event) {
-		if (!(message.event in gameStats)) {
-			gameStats[message.event] = 0;
-		}
-
-		gameStats[message.event]++;
+		gameStats.inc(message.event);
 
 		if (message.event === "Scan") {
 			tr.append(makeTd(message.BodyName), makeTd(message.ScanType));
@@ -208,7 +190,7 @@ ws.onmessage = (event) => {
 
 						if (maxrange < range) {
 							maxrange = range;
-							gameStats["Max jump range"] = `${range.toFixed(2)}ly`;
+							gameStats.set("Max jump range", `${range.toFixed(2)}ly`);
 						}
 
 						if (longest < range) {
@@ -259,7 +241,7 @@ ws.onmessage = (event) => {
 		// TODO: DockingGranted, DockingDenied
 
 		else {
-			gameStats["Ignored"]++;
+			gameStats.inc("Ignored");
 		}
 	}
 	else {
@@ -269,13 +251,6 @@ ws.onmessage = (event) => {
 			makeTd(message.stationName),
 			makeTd(message.systemName));
 		addRow(updates, tr);
-	}
-
-	// re-create stats table
-	// TODO: something more efficient? re-use rows?
-	if (!document.hidden) {
-		cancelAnimationFrame(statspainter);
-		statspainter = requestAnimationFrame(updateStats);
 	}
 }
 

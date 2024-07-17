@@ -100,9 +100,8 @@ ws.onmessage = (event) => {
 	tr.classList.add("data");
 	tr.classList.add(gameType);
 
+	// TODO: this needlessly adds data for ignored messages to be gc'd
 	infobox.set(tr, data);
-
-	// tr.title = data.header.softwareName;
 
 	if (message.Taxi) {
 		gameStats.inc("Taxi");

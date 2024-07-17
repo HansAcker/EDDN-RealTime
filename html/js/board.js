@@ -191,13 +191,18 @@ ws.onmessage = (event) => {
 				try {
 					let dist = 0;
 					let longest = 0;
-					let cur = route.shift().StarPos; // TODO: this modifies the data object displayed by infobox
-
-					// distance to destination system
-					tr.append(makeTd(`${distance3(cur, route[route.length-1].StarPos).toFixed(2)}ly`));
+					let cur;
 
 					// sum jump distances
 					for (const wp of route) {
+						if (!cur) {
+							// start system
+							cur = wp.StarPos;
+							// distance to destination system
+							tr.append(makeTd(`${distance3(cur, route[route.length-1].StarPos).toFixed(2)}ly`));
+							continue;
+						}
+
 						const hop = wp.StarPos;
 						const range = distance3(cur, hop);
 

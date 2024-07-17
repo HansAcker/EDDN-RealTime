@@ -96,7 +96,7 @@ td, th {
 }
 
 
-tr:hover {
+tr.data:hover {
 	outline: 2px solid yellow;
 }
 

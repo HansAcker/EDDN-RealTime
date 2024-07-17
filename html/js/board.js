@@ -97,6 +97,7 @@ ws.onmessage = (event) => {
 	gameStats.inc(gameType);
 
 	const tr = document.createElement("tr");
+	tr.classList.add("data");
 	tr.classList.add(gameType);
 
 	infobox.set(tr, data);
@@ -134,6 +135,7 @@ ws.onmessage = (event) => {
 			if (message.WasDiscovered === false && message.ScanType !== "NavBeaconDetail") {
 				if (message.StarType) {
 					const tr = document.createElement("tr");
+					tr.classList.add("data");
 					tr.classList.add(gameType);
 					infobox.set(tr, data);
 					tr.append(makeTd(message.BodyName), makeTd(`${message.StarType} ${message.Subclass}`));
@@ -141,6 +143,7 @@ ws.onmessage = (event) => {
 				}
 				else if (message.PlanetClass) {
 					const tr = document.createElement("tr");
+					tr.classList.add("data");
 					tr.classList.add(gameType);
 					infobox.set(tr, data);
 					tr.append(makeTd(message.BodyName),
@@ -158,6 +161,7 @@ ws.onmessage = (event) => {
 
 			if (message.Population > 0 || message.SystemAllegiance) {
 				const tr = document.createElement("tr");
+				tr.classList.add("data");
 				tr.classList.add(gameType);
 				infobox.set(tr, data);
 

@@ -1,3 +1,5 @@
+import { makeTd } from "./utils.min.js";
+
 class StatsBox {
 	#statsbody;
 	#stats;
@@ -37,13 +39,10 @@ class StatsBox {
 			this.#rows[stat].textContent = this.#stats[stat];
 		} else {
 			const row = document.createElement("tr");
-			row.append(StatsBox.#makeTd(stat), this.#rows[stat] = StatsBox.#makeTd(this.#stats[stat]));
+			row.append(makeTd(stat), this.#rows[stat] = makeTd(this.#stats[stat]));
 			this.#statsbody.append(row);
 		}
 	}
-
-	// TODO: move to inevitable utility module
-	static #makeTd = (textContent) => { const td = document.createElement("td"); td.textContent = textContent; return td; };
 }
 
 export { StatsBox };

@@ -100,7 +100,7 @@ ws.onmessage = (event) => {
 	tr.classList.add("data");
 	tr.classList.add(gameType);
 
-	// TODO: this needlessly adds data for ignored messages to be gc'd
+	// TODO: does this needlessly add data for ignored messages to be gc'd?
 	infobox.set(tr, data);
 
 	if (message.Taxi) {
@@ -218,7 +218,7 @@ ws.onmessage = (event) => {
 						cur = hop;
 					}
 
-					tr.append(makeTd(route.length > 1 ? `${dist.toFixed(2)}ly` : ""));
+					tr.append(makeTd(route.length > 2 ? `${dist.toFixed(2)}ly` : ""));
 
 					const td = makeTd(`${longest.toFixed(2)}ly`);
 					if (longest >= 200) {
@@ -269,7 +269,7 @@ ws.onmessage = (event) => {
 			makeTd(message.systemName));
 		addRow(updates, tr);
 	}
-}
+};
 
 
 board.addEventListener("click", (ev) => {

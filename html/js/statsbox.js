@@ -36,10 +36,11 @@ class StatsBox {
 
 	#update(stat) {
 		if (stat in this.#rows) {
+			// TODO: this leaves the initial title attribute unchanged
 			this.#rows[stat].textContent = this.#stats[stat];
 		} else {
 			const row = document.createElement("tr");
-			row.append(makeTd(stat), this.#rows[stat] = makeTd(this.#stats[stat]));
+			row.append(makeTd(stat), this.#rows[stat] = makeTd(`${this.#stats[stat]}`));
 			this.#statsbody.append(row);
 		}
 	}

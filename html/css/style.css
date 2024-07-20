@@ -16,7 +16,7 @@ html {
 
 body {
 	font-size: 100%;
-	font-family: sans-serif;
+	font-family: DejaVu Sans, Verdana, sans-serif;
 	background-color: #000;
 	color: #fff;
 	overflow-anchor: none;

@@ -124,8 +124,9 @@ tr.data:hover {
 	left: 20%;
 	width: 60%;
 	height: 60%;
-	background-color: rgba(0, 85, 187, 0.9);
-	border: 1px solid blue;
+	background-color: rgba(42, 42, 42, 0.9);
+	color: #fff;
+	border: 2px solid blue;
 	overflow: auto;
 	scrollbar-width: auto;
 }

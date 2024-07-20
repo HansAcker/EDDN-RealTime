@@ -34,7 +34,7 @@ class ActivityIcon {
 		}
 
 		if (this.#lastState != state) {
-			console.log(`${this.#lastState.toString()} => ${state.toString()}`);
+			// console.log(`${this.#lastState.toString()} => ${state.toString()}`);
 			this.#icon.href = ActivityIcon.#icons[state];
 			this.#lastState = state;
 		}

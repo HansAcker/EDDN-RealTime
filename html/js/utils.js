@@ -4,6 +4,7 @@ export const trimPrefix = (str, prefix) => (str.startsWith(prefix) ? str.slice(p
 export const makeTd = (textContent) => { const td = document.createElement("td"); td.textContent = td.title = textContent; return td; };
 
 export function addRow(tbody, tr) {
+	// TODO: remove/rework global config option listLength
 	while (tbody.childElementCount >= listLength) {
 		tbody.lastElementChild.remove();
 	}

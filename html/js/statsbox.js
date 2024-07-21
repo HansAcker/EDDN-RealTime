@@ -34,6 +34,7 @@ class StatsBox {
 		this.#update(key);
 	}
 
+	// TODO: batch updates?
 	#update(stat) {
 		if (stat in this.#rows) {
 			// TODO: this leaves the initial title attribute unchanged

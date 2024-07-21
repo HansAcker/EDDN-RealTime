@@ -1,6 +1,7 @@
 // activity status icon
 
 class ActivityIcon {
+	// TODO: does it make sense to use Symbol like this instead of just strings?
 	static #states = {
 		ok: Symbol("ok"),
 		off: Symbol("off"),

@@ -7,6 +7,7 @@ import { distance3, trimPrefix, makeTd, addRow, whatGame } from "./utils.min.js"
 /* https://github.com/HansAcker/EDDN-RealTime */
 
 // TODO: modularize
+// TODO: remove/rework global config options (socketUrl, listLength, idleTimeout, resetTimeout)
 
 
 const gameStats = new StatsBox(statstable.querySelector("tbody"), {
@@ -239,6 +240,7 @@ ws.onmessage = (event) => {
 };
 
 
+// TODO: move into infobox class?
 board.addEventListener("click", (ev) => {
 	let target;
 

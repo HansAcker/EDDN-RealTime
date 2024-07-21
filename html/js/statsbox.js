@@ -2,14 +2,12 @@ import { makeTd } from "./utils.min.js";
 
 class StatsBox {
 	#statsbody;
-	#stats;
-	#rows;
+	#stats = {};
+	#rows = {}; // TODO: use WeakMap?
 
 	constructor(tbody, values = {}) {
 		tbody.innerHTML = ""; // TODO: workaround. remove initial table content
 		this.#statsbody = tbody;
-		this.#stats = {};
-		this.#rows = {}; // TODO: use WeakMap?
 
 		for (const key in values) {
 			this.set(key, values[key]);

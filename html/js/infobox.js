@@ -1,12 +1,11 @@
 class InfoBox {
 	#container;
 	#template;
-	#infoMap;
+	#infoMap = new WeakMap();
 
 	constructor(container, template) {
 		this.#container = container;
 		this.#template = template;
-		this.#infoMap = new WeakMap();
 	}
 
 	set(element, data) {

@@ -8,9 +8,11 @@ import { distance3, trimPrefix, makeTd, addRow, whatGame } from "./utils.min.js"
 
 // TODO: modularize
 // TODO: remove/rework global config options (socketUrl, listLength, idleTimeout, resetTimeout)
+// TODO: extract tr creation/styling
+// TODO: table-like block elements instead of tables would simplify things and allow smooth scrolling + animations
 
 
-const gameStats = new StatsBox(statstable.querySelector("tbody"), {
+const gameStats = new StatsBox(window.statsbody, {
 	"Total": 0,
 	"Old": 0,
 	"New": 0,
@@ -31,8 +33,8 @@ let maxrange = 0;
 let lastEvent = Date.now();
 
 const ws = new ReconnectingWebSocket(socketUrl);
-const activity = new ActivityIcon(icon, idleTimeout);
-const infobox = new InfoBox(document.body, infotemplate.content.children[0].cloneNode(true));
+const activity = new ActivityIcon(window.icon, idleTimeout);
+const infobox = new InfoBox(document.body, window.infotemplate.content.children[0]);
 
 ws.onopen = activity.idle;
 ws.onclose = activity.off;
@@ -97,7 +99,7 @@ ws.onmessage = (event) => {
 
 		if (message.event === "Scan") {
 			tr.append(makeTd(message.BodyName), makeTd(message.ScanType));
-			addRow(scanbods, tr);
+			addRow(window.scanbods, tr);
 
 			if (message.WasDiscovered === false && message.ScanType !== "NavBeaconDetail") {
 				if (message.StarType) {
@@ -106,7 +108,7 @@ ws.onmessage = (event) => {
 					tr.classList.add(gameType);
 					infobox.set(tr, data);
 					tr.append(makeTd(message.BodyName), makeTd(`${message.StarType} ${message.Subclass}`));
-					addRow(newstars, tr);
+					addRow(window.newstars, tr);
 				}
 				else if (message.PlanetClass) {
 					const tr = document.createElement("tr");
@@ -117,14 +119,14 @@ ws.onmessage = (event) => {
 						makeTd(message.PlanetClass),
 						makeTd(message.AtmosphereType && message.AtmosphereType !== "None" ? message.AtmosphereType : ""),
 						makeTd(message.Landable ? "Yes" : ""));
-					addRow(newplanets, tr);
+					addRow(window.newplanets, tr);
 				}
 			}
 		}
 
 		else if (message.event === "FSDJump") {
 			tr.append(makeTd(message.StarSystem));
-			addRow(jumps, tr);
+			addRow(window.jumps, tr);
 
 			if (message.Population > 0 || message.SystemAllegiance) {
 				const tr = document.createElement("tr");
@@ -143,7 +145,7 @@ ws.onmessage = (event) => {
 					makeTd(message.SystemAllegiance),
 					makeTd(faction.Name || ""),
 					makeTd(faction.FactionState || ""));
-				addRow(visits, tr);
+				addRow(window.visits, tr);
 			}
 		}
 
@@ -197,7 +199,7 @@ ws.onmessage = (event) => {
 					console.log("Error in route:", error);
 				}
 
-				addRow(routes, tr);
+				addRow(window.routes, tr);
 			}
 			else {
 				console.log("Short NavRoute:", data);
@@ -206,12 +208,12 @@ ws.onmessage = (event) => {
 
 		else if (message.event === "Docked" || message.event === "Location") {
 			tr.append(makeTd(message.StationName || ""), makeTd(message.StationType || ""), makeTd(message.StarSystem));
-			addRow(docks, tr);
+			addRow(window.docks, tr);
 		}
 
 		else if (message.event === "ApproachSettlement") {
 			tr.append(makeTd(message.Name), makeTd(message.StarSystem));
-			addRow(asett, tr);
+			addRow(window.asett, tr);
 		}
 
 		else if (message.event === "CodexEntry") {
@@ -219,7 +221,7 @@ ws.onmessage = (event) => {
 				makeTd(trimPrefix(message.BodyName || "", message.System)),
 				makeTd(message.SubCategory),
 				makeTd(message.Name));
-			addRow(codex, tr);
+			addRow(window.codex, tr);
 		}
 
 		// TODO: FSSBodySignals, FSSSignalDiscovered, SAASignalsFound
@@ -235,13 +237,13 @@ ws.onmessage = (event) => {
 		tr.append(makeTd(message.commodities ? "Market" : message.ships ? "Shipyard" : message.modules ? "Outfitting" : ""),
 			makeTd(message.stationName),
 			makeTd(message.systemName));
-		addRow(updates, tr);
+		addRow(window.updates, tr);
 	}
 };
 
 
 // TODO: move into infobox class?
-board.addEventListener("click", (ev) => {
+window.board.addEventListener("click", (ev) => {
 	let target;
 
 	if (ev.target.tagName === "TR") {

@@ -80,18 +80,14 @@ ws.onmessage = (event) => {
 
 	gameStats.set("TS", message.timestamp);
 
-	try {
-		const diff = new Date() - new Date(message.timestamp);
-		if (diff > 3600 * 1000) { // timestamp older than 1h
-			tr.classList.add("old");
-			gameStats.inc("Old");
-		}
-		else if (diff < -180 * 1000) { // timestamp more than 3m ahead
-			tr.classList.add("new");
-			gameStats.inc("New");
-		}
-	} catch(error) {
-		console.log("Invalid date:", error);
+	const diff = new Date() - new Date(message.timestamp);
+	if (diff > 3600 * 1000) { // timestamp older than 1h
+		tr.classList.add("old");
+		gameStats.inc("Old");
+	}
+	else if (diff < -180 * 1000) { // timestamp more than 3m ahead
+		tr.classList.add("new");
+		gameStats.inc("New");
 	}
 
 	if (message.event) {
@@ -157,47 +153,43 @@ ws.onmessage = (event) => {
 					makeTd(route[route.length-1].StarSystem),
 					makeTd(`${route.length-1}j`));
 
-				try {
-					let dist = 0;
-					let longest = 0;
-					let cur;
+				let dist = 0;
+				let longest = 0;
+				let cur;
 
-					// sum jump distances
-					for (const wp of route) {
-						if (!cur) {
-							// start system
-							cur = wp.StarPos;
-							// distance to destination system
-							tr.append(makeTd(`${distance3(cur, route[route.length-1].StarPos).toFixed(2)}ly`));
-							continue;
-						}
-
-						const hop = wp.StarPos;
-						const range = distance3(cur, hop);
-
-						if (maxrange < range) {
-							maxrange = range;
-							gameStats.set("Max jump range", `${range.toFixed(2)}ly`);
-						}
-
-						if (longest < range) {
-							longest = range;
-						}
-
-						dist += range;
-						cur = hop;
+				// sum jump distances
+				for (const wp of route) {
+					if (!cur) {
+						// start system
+						cur = wp.StarPos;
+						// distance to destination system
+						tr.append(makeTd(`${distance3(cur, route[route.length-1].StarPos).toFixed(2)}ly`));
+						continue;
 					}
 
-					tr.append(makeTd(route.length > 2 ? `${dist.toFixed(2)}ly` : ""));
+					const hop = wp.StarPos;
+					const range = distance3(cur, hop);
 
-					const td = makeTd(`${longest.toFixed(2)}ly`);
-					if (longest >= 200) {
-						td.classList.add("longjump");
+					if (maxrange < range) {
+						maxrange = range;
+						gameStats.set("Max jump range", `${range.toFixed(2)}ly`);
 					}
-					tr.append(td);
-				} catch(error) {
-					console.log("Error in route:", error);
+
+					if (longest < range) {
+						longest = range;
+					}
+
+					dist += range;
+					cur = hop;
 				}
+
+				tr.append(makeTd(route.length > 2 ? `${dist.toFixed(2)}ly` : ""));
+
+				const td = makeTd(`${longest.toFixed(2)}ly`);
+				if (longest >= 200) {
+					td.classList.add("longjump");
+				}
+				tr.append(td);
 
 				addRow(window.routes, tr);
 			}

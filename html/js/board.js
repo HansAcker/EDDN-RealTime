@@ -4,14 +4,14 @@ import { StatsBox } from "./statsbox.min.js";
 import { InfoBox } from "./infobox.min.js";
 import { distance3, trimPrefix, makeTd, addRow, whatGame } from "./utils.min.js";
 
-/* https://github.com/HansAcker/EDDN-RealTime */
-
 // TODO: modularize
 // TODO: remove/rework global config options (socketUrl, listLength, idleTimeout, resetTimeout)
 // TODO: extract tr creation/styling
 // TODO: table-like block elements instead of tables would simplify things and allow smooth scrolling + animations
 
 
+const activity = new ActivityIcon(window.icon, idleTimeout);
+const infobox = new InfoBox(document.body, window.infotemplate.content.children[0]);
 const gameStats = new StatsBox(window.statsbody, {
 	"Total": 0,
 	"Old": 0,
@@ -30,11 +30,54 @@ const gameStats = new StatsBox(window.statsbody, {
 let maxrange = 0;
 
 
+class MessageRecord {
+	data;
+	gameType;
+
+	isTaxi;
+	isOld;
+	isNew;
+
+	constructor(data) {
+		this.data = data;
+
+		this.gameType = whatGame(data);
+
+		const message = data.message;
+		this.isTaxi = !!message.taxi;
+
+		const diff = new Date() - new Date(message.timestamp);
+		this.isOld = (diff > 3600 * 1000); // timestamp older than 1h
+		this.isNew = (diff < -180 * 1000); // timestamp more than 3m ahead
+	}
+}
+
+// TODO: move into MessageRecord?
+function makeTr(messageRecord) {
+	const tr = document.createElement("tr");
+
+	tr.classList.add("data");
+	tr.classList.add(messageRecord.gameType);
+
+	if (messageRecord.isTaxi) {
+		tr.classList.add("taxi");
+	}
+
+	if (messageRecord.isOld) {
+		tr.classList.add("old");
+	} else if (messageRecord.isNew) {
+		tr.classList.add("new");
+	}
+
+	infobox.set(tr, messageRecord.data);
+
+	return tr;
+}
+
+
 let lastEvent = Date.now();
 
 const ws = new ReconnectingWebSocket(socketUrl);
-const activity = new ActivityIcon(window.icon, idleTimeout);
-const infobox = new InfoBox(document.body, window.infotemplate.content.children[0]);
 
 ws.onopen = activity.idle;
 ws.onclose = activity.off;
@@ -63,30 +106,18 @@ ws.onmessage = (event) => {
 
 	gameStats.inc("Total");
 
-	const gameType = whatGame(data);
-	gameStats.inc(gameType);
-
-	const tr = document.createElement("tr");
-	tr.classList.add("data");
-	tr.classList.add(gameType);
-
-	// TODO: does this needlessly add data for ignored messages to be gc'd?
-	infobox.set(tr, data);
-
-	if (message.Taxi) {
-		gameStats.inc("Taxi");
-		tr.classList.add("taxi");
-	}
+	const messageRecord = new MessageRecord(data);
+	gameStats.inc(messageRecord.gameType);
 
 	gameStats.set("TS", message.timestamp);
 
-	const diff = new Date() - new Date(message.timestamp);
-	if (diff > 3600 * 1000) { // timestamp older than 1h
-		tr.classList.add("old");
-		gameStats.inc("Old");
+	if (messageRecord.isTaxi) {
+		gameStats.inc("Taxi");
 	}
-	else if (diff < -180 * 1000) { // timestamp more than 3m ahead
-		tr.classList.add("new");
+
+	if (messageRecord.isOld) {
+		gameStats.inc("Old");
+	} else if (messageRecord.isNew) {
 		gameStats.inc("New");
 	}
 
@@ -94,23 +125,20 @@ ws.onmessage = (event) => {
 		gameStats.inc(message.event);
 
 		if (message.event === "Scan") {
+			const tr = makeTr(messageRecord);
+
 			tr.append(makeTd(message.BodyName), makeTd(message.ScanType));
 			addRow(window.scanbods, tr);
 
+			// some false positives slip through in pre-discovered systems
 			if (message.WasDiscovered === false && message.ScanType !== "NavBeaconDetail") {
 				if (message.StarType) {
-					const tr = document.createElement("tr");
-					tr.classList.add("data");
-					tr.classList.add(gameType);
-					infobox.set(tr, data);
+					const tr = makeTr(messageRecord);
 					tr.append(makeTd(message.BodyName), makeTd(`${message.StarType} ${message.Subclass}`));
 					addRow(window.newstars, tr);
 				}
 				else if (message.PlanetClass) {
-					const tr = document.createElement("tr");
-					tr.classList.add("data");
-					tr.classList.add(gameType);
-					infobox.set(tr, data);
+					const tr = makeTr(messageRecord);
 					tr.append(makeTd(message.BodyName),
 						makeTd(message.PlanetClass),
 						makeTd(message.AtmosphereType && message.AtmosphereType !== "None" ? message.AtmosphereType : ""),
@@ -121,15 +149,12 @@ ws.onmessage = (event) => {
 		}
 
 		else if (message.event === "FSDJump") {
+			const tr = makeTr(messageRecord);
 			tr.append(makeTd(message.StarSystem));
 			addRow(window.jumps, tr);
 
 			if (message.Population > 0 || message.SystemAllegiance) {
-				const tr = document.createElement("tr");
-				tr.classList.add("data");
-				tr.classList.add(gameType);
-				infobox.set(tr, data);
-
+				const tr = makeTr(messageRecord);
 				const faction = message.SystemFaction || {};
 				tr.append(makeTd(message.StarSystem),
 					makeTd(message.Population >= 1000000000 ? (message.Population / 1000000000).toFixed(2) + "G" :
@@ -146,6 +171,7 @@ ws.onmessage = (event) => {
 		}
 
 		else if (message.event === "NavRoute") {
+			const tr = makeTr(messageRecord);
 			const route = message.Route || [];
 
 			if (route.length > 1) {
@@ -199,16 +225,19 @@ ws.onmessage = (event) => {
 		}
 
 		else if (message.event === "Docked" || message.event === "Location") {
+			const tr = makeTr(messageRecord);
 			tr.append(makeTd(message.StationName || ""), makeTd(message.StationType || ""), makeTd(message.StarSystem));
 			addRow(window.docks, tr);
 		}
 
 		else if (message.event === "ApproachSettlement") {
+			const tr = makeTr(messageRecord);
 			tr.append(makeTd(message.Name), makeTd(message.StarSystem));
 			addRow(window.asett, tr);
 		}
 
 		else if (message.event === "CodexEntry") {
+			const tr = makeTr(messageRecord);
 			tr.append(makeTd(message.System),
 				makeTd(trimPrefix(message.BodyName || "", message.System)),
 				makeTd(message.SubCategory),
@@ -226,6 +255,7 @@ ws.onmessage = (event) => {
 	else {
 		// commodities, modules, ships
 
+		const tr = makeTr(messageRecord);
 		tr.append(makeTd(message.commodities ? "Market" : message.ships ? "Shipyard" : message.modules ? "Outfitting" : ""),
 			makeTd(message.stationName),
 			makeTd(message.systemName));

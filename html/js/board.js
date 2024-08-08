@@ -34,16 +34,22 @@ class MessageRecord {
 	data;
 	gameType;
 
+	timestamp;
+	event;
+
 	isTaxi;
 	isOld;
 	isNew;
 
 	constructor(data) {
 		this.data = data;
-
 		this.gameType = whatGame(data);
 
 		const message = data.message;
+
+		this.timestamp = message.timestamp;
+		this.event = message.event;
+
 		this.isTaxi = !!message.taxi;
 
 		const diff = new Date() - new Date(message.timestamp);
@@ -109,7 +115,7 @@ ws.onmessage = (event) => {
 	const messageRecord = new MessageRecord(data);
 	gameStats.inc(messageRecord.gameType);
 
-	gameStats.set("TS", message.timestamp);
+	gameStats.set("TS", messageRecord.timestamp);
 
 	if (messageRecord.isTaxi) {
 		gameStats.inc("Taxi");
@@ -121,10 +127,10 @@ ws.onmessage = (event) => {
 		gameStats.inc("New");
 	}
 
-	if (message.event) {
-		gameStats.inc(message.event);
+	if (messageRecord.event) {
+		gameStats.inc(messageRecord.event);
 
-		switch (message.event) {
+		switch (messageRecord.event) {
 			case "Scan": {
 				const tr = makeTr(messageRecord);
 

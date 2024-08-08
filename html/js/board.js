@@ -124,132 +124,140 @@ ws.onmessage = (event) => {
 	if (message.event) {
 		gameStats.inc(message.event);
 
-		if (message.event === "Scan") {
-			const tr = makeTr(messageRecord);
-
-			tr.append(makeTd(message.BodyName), makeTd(message.ScanType));
-			addRow(window.scanbods, tr);
-
-			// some false positives slip through in pre-discovered systems
-			if (message.WasDiscovered === false && message.ScanType !== "NavBeaconDetail") {
-				if (message.StarType) {
-					const tr = makeTr(messageRecord);
-					tr.append(makeTd(message.BodyName), makeTd(`${message.StarType} ${message.Subclass}`));
-					addRow(window.newstars, tr);
-				}
-				else if (message.PlanetClass) {
-					const tr = makeTr(messageRecord);
-					tr.append(makeTd(message.BodyName),
-						makeTd(message.PlanetClass),
-						makeTd(message.AtmosphereType && message.AtmosphereType !== "None" ? message.AtmosphereType : ""),
-						makeTd(message.Landable ? "Yes" : ""));
-					addRow(window.newplanets, tr);
-				}
-			}
-		}
-
-		else if (message.event === "FSDJump") {
-			const tr = makeTr(messageRecord);
-			tr.append(makeTd(message.StarSystem));
-			addRow(window.jumps, tr);
-
-			if (message.Population > 0 || message.SystemAllegiance) {
+		switch (message.event) {
+			case "Scan": {
 				const tr = makeTr(messageRecord);
-				const faction = message.SystemFaction || {};
-				tr.append(makeTd(message.StarSystem),
-					makeTd(message.Population >= 1000000000 ? (message.Population / 1000000000).toFixed(2) + "G" :
-						message.Population >= 1000000 ? (message.Population / 1000000).toFixed(2) + "M" :
-						message.Population >= 1000 ? (message.Population / 1000).toFixed(2) + "k" :
-						message.Population > 0 ? (message.Population / 1).toFixed(2) :
-						""
-					),
-					makeTd(message.SystemAllegiance),
-					makeTd(faction.Name || ""),
-					makeTd(faction.FactionState || ""));
-				addRow(window.visits, tr);
-			}
-		}
 
-		else if (message.event === "NavRoute") {
-			const tr = makeTr(messageRecord);
-			const route = message.Route || [];
+				tr.append(makeTd(message.BodyName), makeTd(message.ScanType));
+				addRow(window.scanbods, tr);
 
-			if (route.length > 1) {
-				tr.append(makeTd(route[0].StarSystem),
-					makeTd(route[route.length-1].StarSystem),
-					makeTd(`${route.length-1}j`));
-
-				let dist = 0;
-				let longest = 0;
-				let cur;
-
-				// sum jump distances
-				for (const wp of route) {
-					if (!cur) {
-						// start system
-						cur = wp.StarPos;
-						// distance to destination system
-						tr.append(makeTd(`${distance3(cur, route[route.length-1].StarPos).toFixed(2)}ly`));
-						continue;
+				// some false positives slip through in pre-discovered systems
+				if (message.WasDiscovered === false && message.ScanType !== "NavBeaconDetail") {
+					if (message.StarType) {
+						const tr = makeTr(messageRecord);
+						tr.append(makeTd(message.BodyName), makeTd(`${message.StarType} ${message.Subclass}`));
+						addRow(window.newstars, tr);
 					}
-
-					const hop = wp.StarPos;
-					const range = distance3(cur, hop);
-
-					if (maxrange < range) {
-						maxrange = range;
-						gameStats.set("Max jump range", `${range.toFixed(2)}ly`);
+					else if (message.PlanetClass) {
+						const tr = makeTr(messageRecord);
+						tr.append(makeTd(message.BodyName),
+							makeTd(message.PlanetClass),
+							makeTd(message.AtmosphereType && message.AtmosphereType !== "None" ? message.AtmosphereType : ""),
+							makeTd(message.Landable ? "Yes" : ""));
+						addRow(window.newplanets, tr);
 					}
-
-					if (longest < range) {
-						longest = range;
-					}
-
-					dist += range;
-					cur = hop;
 				}
+				break;
+			}
 
-				tr.append(makeTd(route.length > 2 ? `${dist.toFixed(2)}ly` : ""));
+			case "FSDJump": {
+				const tr = makeTr(messageRecord);
+				tr.append(makeTd(message.StarSystem));
+				addRow(window.jumps, tr);
 
-				const td = makeTd(`${longest.toFixed(2)}ly`);
-				if (longest >= 200) {
-					td.classList.add("longjump");
+				if (message.Population > 0 || message.SystemAllegiance) {
+					const tr = makeTr(messageRecord);
+					const faction = message.SystemFaction || {};
+					tr.append(makeTd(message.StarSystem),
+						makeTd(message.Population >= 1000000000 ? (message.Population / 1000000000).toFixed(2) + "G" :
+							message.Population >= 1000000 ? (message.Population / 1000000).toFixed(2) + "M" :
+							message.Population >= 1000 ? (message.Population / 1000).toFixed(2) + "k" :
+							message.Population > 0 ? (message.Population / 1).toFixed(2) :
+							""
+						),
+						makeTd(message.SystemAllegiance),
+						makeTd(faction.Name || ""),
+						makeTd(faction.FactionState || ""));
+					addRow(window.visits, tr);
 				}
-				tr.append(td);
-
-				addRow(window.routes, tr);
+				break;
 			}
-			else {
-				console.log("Short NavRoute:", data);
+
+			case "NavRoute": {
+				const tr = makeTr(messageRecord);
+				const route = message.Route || [];
+
+				if (route.length > 1) {
+					tr.append(makeTd(route[0].StarSystem),
+						makeTd(route[route.length-1].StarSystem),
+						makeTd(`${route.length-1}j`));
+
+					let dist = 0;
+					let longest = 0;
+					let cur;
+
+					// sum jump distances
+					for (const wp of route) {
+						if (!cur) {
+							// start system
+							cur = wp.StarPos;
+							// distance to destination system
+							tr.append(makeTd(`${distance3(cur, route[route.length-1].StarPos).toFixed(2)}ly`));
+							continue;
+						}
+
+						const hop = wp.StarPos;
+						const range = distance3(cur, hop);
+
+						if (maxrange < range) {
+							maxrange = range;
+							gameStats.set("Max jump range", `${range.toFixed(2)}ly`);
+						}
+
+						if (longest < range) {
+							longest = range;
+						}
+
+						dist += range;
+						cur = hop;
+					}
+
+					tr.append(makeTd(route.length > 2 ? `${dist.toFixed(2)}ly` : ""));
+
+					const td = makeTd(`${longest.toFixed(2)}ly`);
+					if (longest >= 200) {
+						td.classList.add("longjump");
+					}
+					tr.append(td);
+
+					addRow(window.routes, tr);
+				}
+				else {
+					console.log("Short NavRoute:", data);
+				}
+				break;
 			}
-		}
 
-		else if (message.event === "Docked" || message.event === "Location") {
-			const tr = makeTr(messageRecord);
-			tr.append(makeTd(message.StationName || ""), makeTd(message.StationType || ""), makeTd(message.StarSystem));
-			addRow(window.docks, tr);
-		}
+			case "Docked":
+			case "Location": {
+				const tr = makeTr(messageRecord);
+				tr.append(makeTd(message.StationName || ""), makeTd(message.StationType || ""), makeTd(message.StarSystem));
+				addRow(window.docks, tr);
+				break;
+			}
 
-		else if (message.event === "ApproachSettlement") {
-			const tr = makeTr(messageRecord);
-			tr.append(makeTd(message.Name), makeTd(message.StarSystem));
-			addRow(window.asett, tr);
-		}
+			case "ApproachSettlement": {
+				const tr = makeTr(messageRecord);
+				tr.append(makeTd(message.Name), makeTd(message.StarSystem));
+				addRow(window.asett, tr);
+				break;
+			}
 
-		else if (message.event === "CodexEntry") {
-			const tr = makeTr(messageRecord);
-			tr.append(makeTd(message.System),
-				makeTd(trimPrefix(message.BodyName || "", message.System)),
-				makeTd(message.SubCategory),
-				makeTd(message.Name));
-			addRow(window.codex, tr);
-		}
+			case "CodexEntry": {
+				const tr = makeTr(messageRecord);
+				tr.append(makeTd(message.System),
+					makeTd(trimPrefix(message.BodyName || "", message.System)),
+					makeTd(message.SubCategory),
+					makeTd(message.Name));
+				addRow(window.codex, tr);
+				break;
+			}
 
-		// TODO: FSSBodySignals, FSSSignalDiscovered, SAASignalsFound
-		// TODO: DockingGranted, DockingDenied
+			// TODO: FSSBodySignals, FSSSignalDiscovered, SAASignalsFound
+			// TODO: DockingGranted, DockingDenied
 
-		else {
-			gameStats.inc("Ignored");
+			default:
+				gameStats.inc("Ignored");
 		}
 	}
 	else {

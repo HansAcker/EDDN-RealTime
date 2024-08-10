@@ -37,10 +37,10 @@ class StatsBox {
 		if (stat in this.#rows) {
 			this.#rows[stat].textContent = this.#stats[stat];
 		} else {
-			const row = document.createElement("tr");
-			row.append(makeTd(stat), this.#rows[stat] = makeTd(`${this.#stats[stat]}`));
-			row.children[0].removeAttribute("title"); row.children[1].removeAttribute("title"); // TODO: workaround. makeTd always sets a title
-			this.#statsbody.append(row);
+			const tr = document.createElement("tr");
+			tr.append(makeTd(stat), this.#rows[stat] = makeTd(`${this.#stats[stat]}`));
+			tr.children[0].removeAttribute("title"); tr.children[1].removeAttribute("title"); // TODO: workaround. makeTd always sets a title
+			this.#statsbody.append(tr);
 		}
 	}
 }

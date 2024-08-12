@@ -102,7 +102,7 @@ ws.onmessage = (event) => {
 	const message = data.message;
 
 	if (!message) {
-		console.log("No message: ", data);
+		console.log("No message:", data);
 		activity.error();
 		return;
 	}

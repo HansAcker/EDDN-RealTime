@@ -180,10 +180,10 @@ ws.onmessage = (event) => {
 			}
 
 			case "NavRoute": {
-				const tr = makeTr(messageRecord);
 				const route = message.Route || [];
 
 				if (route.length > 1) {
+					const tr = makeTr(messageRecord);
 					tr.append(makeTd(route[0].StarSystem),
 						makeTd(route[route.length-1].StarSystem),
 						makeTd(`${route.length-1}j`));

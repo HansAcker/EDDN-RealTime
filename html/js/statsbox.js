@@ -6,7 +6,7 @@ class StatsBox {
 	#rows = {}; // TODO: use WeakMap?
 
 	constructor(tbody, values = {}) {
-		tbody.innerHTML = ""; // TODO: workaround. remove initial table content
+		tbody.replaceChildren(); // TODO: workaround. remove initial table content
 		this.#statsbody = tbody;
 
 		for (const key in values) {

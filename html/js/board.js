@@ -50,7 +50,7 @@ class MessageRecord {
 		this.timestamp = message.timestamp;
 		this.event = message.event;
 
-		this.isTaxi = !!message.taxi;
+		this.isTaxi = !!message.Taxi;
 
 		const diff = new Date() - new Date(message.timestamp);
 		this.isOld = (diff > 3600 * 1000); // timestamp older than 1h

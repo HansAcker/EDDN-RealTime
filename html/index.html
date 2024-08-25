@@ -104,6 +104,40 @@
 </thead>
 <tbody id="statsbody"></tbody>
 </table>
+
+<table>
+<caption>Event Stats</caption>
+<thead>
+	<tr><th>Event</th><th style="width: 25%;">Count</th></tr>
+</thead>
+<tbody id="eventsbody"></tbody>
+</table>
+
+<table>
+<caption>Software Stats</caption>
+<thead>
+	<tr><th>Software</th><th style="width: 25%;">Count</th></tr>
+</thead>
+<tbody id="softbody"></tbody>
+</table>
+
+<table>
+<caption>Legend</caption>
+<thead>
+	<tr><th>Legend</th>
+</thead>
+<tbody style="text-align: center;">
+<tr class="Odyssey"><td>Odyssey</td></tr>
+<tr class="Horizons"><td>Horizons</td></tr>
+<tr class="Legacy"><td>Legacy</td></tr>
+<tr class="Base"><td>A bug (Live but not Horizons)</td></tr>
+<tr class="Unknown"><td>Unknown</td></tr>
+<tr class="Odyssey taxi"><td>Taxi (Apex/Frontline)</td></tr>
+<tr class="Odyssey old"><td>Older than 1h</td></tr>
+<tr class="Odyssey new"><td>In the future</td></tr>
+</tbody>
+</table>
+
 </div>
 
 <template id="infotemplate">
@@ -135,7 +169,9 @@ const resetTimeout = 300000;
 {
 	const tbHTML = "<tr><td>&nbsp;</td></tr>".repeat(listLength);
 	for (const tb of board.querySelectorAll("tbody")) {
-		tb.innerHTML = tbHTML;
+		if (!tb.innerHTML) {
+			tb.innerHTML = tbHTML;
+		}
 	}
 }
 </script>

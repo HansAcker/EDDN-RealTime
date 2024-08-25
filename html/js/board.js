@@ -6,24 +6,25 @@ import { distance3, trimPrefix, makeTd, addRow, whatGame } from "./utils.min.js"
 
 // TODO: modularize
 // TODO: remove/rework global config options (socketUrl, listLength, idleTimeout, resetTimeout)
-// TODO: extract tr creation/styling
 // TODO: table-like block elements instead of tables would simplify things and allow smooth scrolling + animations
 
 
 const activity = new ActivityIcon(window.icon, idleTimeout);
 const infobox = new InfoBox(document.body, window.infotemplate.content.children[0]);
+const softwareStats = new StatsBox(window.softbody);
+const eventStats = new StatsBox(window.eventsbody);
 const gameStats = new StatsBox(window.statsbody, {
 	"Total": 0,
+	"Odyssey": 0,
+	"Horizons": 0,
+	"Base": 0,
+	"Legacy": 0,
+	"Unknown": 0,
+	"Taxi": 0,
 	"Old": 0,
 	"New": 0,
 	"Ignored": 0,
-	"Taxi": 0,
-	"Base": 0,
-	"Horizons": 0,
-	"Odyssey": 0,
-	"Legacy": 0,
-	"Unknown": 0,
-	"TS": "",
+	"Last timestamp": "",
 	"Max jump range": ""
 });
 
@@ -75,6 +76,7 @@ function makeTr(messageRecord) {
 		tr.classList.add("new");
 	}
 
+	// key data by weak ref to table row, used in click event
 	infobox.set(tr, messageRecord.data);
 
 	return tr;
@@ -115,7 +117,20 @@ ws.onmessage = (event) => {
 	const messageRecord = new MessageRecord(data);
 	gameStats.inc(messageRecord.gameType);
 
-	gameStats.set("TS", messageRecord.timestamp);
+	gameStats.set("Last timestamp", messageRecord.timestamp);
+
+	// TODO: this should go into SortedStatsBox and insert new tr in the right position
+	{
+		const tbody = window.softbody;
+		const oldCount = tbody.childElementCount;
+
+		// TODO: group totals by softwareName, collapse individual versions
+		softwareStats.inc(`${data.header.softwareName} ${data.header.softwareVersion}`);
+
+		if (tbody.childElementCount != oldCount) {
+			tbody.replaceChildren(...[...tbody.children].sort((a, b) => a.children[0].textContent < b.children[0].textContent ? 1 : -1));
+		}
+	}
 
 	if (messageRecord.isTaxi) {
 		gameStats.inc("Taxi");
@@ -128,7 +143,19 @@ ws.onmessage = (event) => {
 	}
 
 	if (messageRecord.event) {
-		gameStats.inc(messageRecord.event);
+		eventStats.inc(messageRecord.event);
+
+		// TODO: this should probably also go into SortedStatsBox and re-order tbody instead of replace
+		//  - always iterates over the whole table if nothing changed
+		//  - .every() uses dynamic function/context per message
+		{
+			const tbody = window.eventsbody;
+			const tchildren = [...tbody.children];
+			const sorted = [...tchildren].sort((a, b) => parseInt(b.children[1].textContent) - parseInt(a.children[1].textContent));
+			if (!sorted.every((el, i) => el === tchildren[i])) {
+				tbody.replaceChildren(...sorted);
+			}
+		}
 
 		switch (messageRecord.event) {
 			case "Scan": {
@@ -259,8 +286,9 @@ ws.onmessage = (event) => {
 				break;
 			}
 
-			// TODO: FSSBodySignals, FSSSignalDiscovered, SAASignalsFound
-			// TODO: DockingGranted, DockingDenied
+			// FSSDiscoveryScan, FSSAllBodiesFound, FSSBodySignals, FSSSignalDiscovered,
+			// SAASignalsFound, ScanBaryCentre, NavBeaconScan,
+			// DockingGranted, DockingDenied, FCMaterials, CarrierJump
 
 			default:
 				gameStats.inc("Ignored");

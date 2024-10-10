@@ -21,6 +21,7 @@ const gameStats = new StatsBox(window.statsbody, {
 	"Legacy": 0,
 	"Unknown": 0,
 	"Taxi": 0,
+	"Multicrew": 0,
 	"Old": 0,
 	"New": 0,
 	"Ignored": 0,
@@ -39,6 +40,8 @@ class MessageRecord {
 	event;
 
 	isTaxi;
+	isMulticrew;
+
 	isOld;
 	isNew;
 
@@ -52,6 +55,7 @@ class MessageRecord {
 		this.event = message.event;
 
 		this.isTaxi = !!message.Taxi;
+		this.isMulticrew = !!message.Multicrew;
 
 		const diff = new Date() - new Date(message.timestamp);
 		this.isOld = (diff > 3600 * 1000); // timestamp older than 1h
@@ -68,6 +72,10 @@ function makeTr(messageRecord) {
 
 	if (messageRecord.isTaxi) {
 		tr.classList.add("taxi");
+	}
+
+	if (messageRecord.isMulticrew) {
+		tr.classList.add("multicrew");
 	}
 
 	if (messageRecord.isOld) {
@@ -134,6 +142,10 @@ ws.onmessage = (event) => {
 
 	if (messageRecord.isTaxi) {
 		gameStats.inc("Taxi");
+	}
+
+	if (messageRecord.isMulticrew) {
+		gameStats.inc("Multicrew");
 	}
 
 	if (messageRecord.isOld) {

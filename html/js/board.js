@@ -1,6 +1,6 @@
 import { ReconnectingWebSocket } from "./reconnecting-websocket.min.js";
 import { ActivityIcon } from "./activity_icon.min.js";
-import { StatsBox } from "./statsbox.min.js";
+import { StatsBox, SortedStatsBox } from "./statsbox.min.js";
 import { InfoBox } from "./infobox.min.js";
 import { distance3, trimPrefix, makeTd, addRow, whatGame } from "./utils.min.js";
 
@@ -12,7 +12,7 @@ import { distance3, trimPrefix, makeTd, addRow, whatGame } from "./utils.min.js"
 const activity = new ActivityIcon(window.icon, idleTimeout);
 const infobox = new InfoBox(document.body, window.infotemplate.content.children[0]);
 const softwareStats = new StatsBox(window.softbody);
-const eventStats = new StatsBox(window.eventsbody);
+const eventStats = new SortedStatsBox(window.eventsbody);
 const gameStats = new StatsBox(window.statsbody, {
 	"Total": 0,
 	"Odyssey": 0,
@@ -156,18 +156,6 @@ ws.onmessage = (event) => {
 
 	if (messageRecord.event) {
 		eventStats.inc(messageRecord.event);
-
-		// TODO: this should probably also go into SortedStatsBox and re-order tbody instead of replace
-		//  - always iterates over the whole table if nothing changed
-		//  - .every() uses dynamic function/context per message
-		{
-			const tbody = window.eventsbody;
-			const tchildren = [...tbody.children];
-			const sorted = [...tchildren].sort((a, b) => parseInt(b.children[1].textContent) - parseInt(a.children[1].textContent));
-			if (!sorted.every((el, i) => el === tchildren[i])) {
-				tbody.replaceChildren(...sorted);
-			}
-		}
 
 		switch (messageRecord.event) {
 			case "Scan": {

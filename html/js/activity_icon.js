@@ -46,10 +46,7 @@ class Activity {
 	off = this.#set.bind(this, Activity._states.off, 0);
 	idle = this.#set.bind(this, Activity._states.idle, 0);
 	error = this.#set.bind(this, Activity._states.error, 0);
-
-	ok(timeout = this.#idleTimeout) {
-		this.#set(Activity._states.ok, timeout);
-	}
+	ok = (timeout = this.#idleTimeout) => this.#set(Activity._states.ok, timeout);
 }
 
 

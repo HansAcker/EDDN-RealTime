@@ -1,4 +1,5 @@
 class StatsRow {
+	// TODO: shape-morphism optimization? #value is always a number except for two stats where it's a string
 	#value;
 	key;
 
@@ -29,13 +30,14 @@ class StatsRow {
 	}
 }
 
+
 class StatsBox {
 	#statsbody;
 	_stats = {}; // indices into rows
 	_rows = []; // sorted array of StatsRow
 
 	constructor(tbody, values = {}) {
-		tbody.replaceChildren(); // TODO: workaround. remove initial table content
+		tbody.replaceChildren(); // clear existing table content
 		this.#statsbody = tbody;
 
 		for (const key in values) {
@@ -67,9 +69,10 @@ class StatsBox {
 	}
 }
 
-class SortedStatsBox extends StatsBox {
-	// TODO: (re-)sort in set()
 
+// TODO: (re-)sort in set()
+
+class SortedStatsBox extends StatsBox {
 	inc(key) {
 		if (this.has(key)) {
 			const idxOld = this._stats[key];
@@ -93,5 +96,6 @@ class SortedStatsBox extends StatsBox {
 		}
 	}
 }
+
 
 export { StatsBox, SortedStatsBox };

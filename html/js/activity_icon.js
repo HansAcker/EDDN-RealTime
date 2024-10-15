@@ -4,15 +4,15 @@
 class Activity {
 	// TODO: does it make sense to use Symbol like this instead of just strings? or numbers?
 	static _states = {
-		ok: Symbol("ok"),
-		off: Symbol("off"),
-		idle: Symbol("idle"),
-		error: Symbol("error")
+		_ok: Symbol("ok"),
+		_off: Symbol("off"),
+		_idle: Symbol("idle"),
+		_error: Symbol("error")
 	};
 
 	#idleTimeout;
 	#idleTimer = null;
-	#lastState = Activity._states.off;
+	#lastState = Activity._states._off;
 
 	_element;
 
@@ -43,20 +43,20 @@ class Activity {
 		}
 	}
 
-	off = this.#set.bind(this, Activity._states.off, 0);
-	idle = this.#set.bind(this, Activity._states.idle, 0);
-	error = this.#set.bind(this, Activity._states.error, 0);
-	ok = (timeout = this.#idleTimeout) => this.#set(Activity._states.ok, timeout);
+	off = this.#set.bind(this, Activity._states._off, 0);
+	idle = this.#set.bind(this, Activity._states._idle, 0);
+	error = this.#set.bind(this, Activity._states._error, 0);
+	ok = (timeout = this.#idleTimeout) => this.#set(Activity._states._ok, timeout);
 }
 
 
 // changes the href attribute of an object, typically a <link rel=icon> elememt
 class PageIconActivity extends Activity {
 	static #icons = {
-		[Activity._states.ok]: "img/activity-icon/activity-icon--state-ok.svg",
-		[Activity._states.off]: "img/activity-icon/activity-icon--state-off.svg",
-		[Activity._states.idle]: "img/activity-icon/activity-icon--state-idle.svg",
-		[Activity._states.error]: "img/activity-icon/activity-icon--state-error.svg"
+		[Activity._states._ok]: "img/activity-icon/activity-icon--state-ok.svg",
+		[Activity._states._off]: "img/activity-icon/activity-icon--state-off.svg",
+		[Activity._states._idle]: "img/activity-icon/activity-icon--state-idle.svg",
+		[Activity._states._error]: "img/activity-icon/activity-icon--state-error.svg"
 	};
 
 	_changeState(newState, oldState) {
@@ -68,10 +68,10 @@ class PageIconActivity extends Activity {
 // adds/removes CSS classes
 class ClassActivity extends Activity {
 	static #classes = {
-		[Activity._states.ok]: "activity-icon--state-ok",
-		[Activity._states.off]: "activity-icon--state-off",
-		[Activity._states.idle]: "activity-icon--state-idle",
-		[Activity._states.error]: "activity-icon--state-error"
+		[Activity._states._ok]: "activity-icon--state-ok",
+		[Activity._states._off]: "activity-icon--state-off",
+		[Activity._states._idle]: "activity-icon--state-idle",
+		[Activity._states._error]: "activity-icon--state-error"
 	};
 
 	_changeState(newState, oldState) {

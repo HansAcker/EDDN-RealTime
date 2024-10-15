@@ -77,19 +77,24 @@ class SortedStatsBox extends StatsBox {
 		if (this.has(key)) {
 			const idxOld = this._stats[key];
 			const stat = this._rows[idxOld];
+
 			stat.value++;
 			const val = stat.value;
+
+			// find new position in rows array
 			let idxNew = idxOld;
 			while (idxNew > 0 && val > this._rows[idxNew-1].value) {
-				idxNew--;
+				//console.log(`${key}: ${this._rows[idxNew-1].key} ${this._stats[this._rows[idxNew-1].key]} => ${idxNew}`);
+				this._stats[this._rows[idxNew-1].key] = idxNew--; // update indices
 			}
+
 			if (idxNew != idxOld) {
 				this._rows[idxNew].tr.before(stat.tr); // move table row
 				this._rows.splice(idxOld, 1); // cut
 				this._rows.splice(idxNew, 0, stat); // paste
-				while (idxNew <= idxOld) {
-					this._stats[this._rows[idxNew].key] = idxNew++; // update indices
-				}
+
+				//console.log(`${key}: ${this._stats[key]} => ${idxNew}`);
+				this._stats[key] = idxNew;
 			}
 		} else {
 			this.set(key, 1);

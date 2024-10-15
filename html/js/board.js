@@ -1,5 +1,5 @@
 import { ReconnectingWebSocket } from "./reconnecting-websocket.min.js";
-import { PageActivityIcon } from "./page_activity_icon.min.js";
+import { PageIconActivity } from "./activity_icon.min.js";
 import { StatsBox, SortedStatsBox } from "./statsbox.min.js";
 import { InfoBox } from "./infobox.min.js";
 import { distance3, trimPrefix, makeTd, addRow, whatGame } from "./utils.min.js";
@@ -9,7 +9,7 @@ import { distance3, trimPrefix, makeTd, addRow, whatGame } from "./utils.min.js"
 // TODO: table-like block elements instead of tables would simplify things and allow smooth scrolling + animations
 
 
-const activity = new PageActivityIcon(window.icon, idleTimeout);
+const activity = new PageIconActivity(window.icon, idleTimeout);
 const infobox = new InfoBox(document.body, window.infotemplate.content.children[0]);
 const softwareStats = new StatsBox(window.softbody);
 const eventStats = new SortedStatsBox(window.eventsbody);

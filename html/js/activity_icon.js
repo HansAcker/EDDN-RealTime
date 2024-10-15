@@ -5,7 +5,6 @@
 // changes from ok to idle after idleTimeout, all other states use no timer
 
 class Activity {
-	// TODO: does it make sense to use Symbol like this instead of just strings? or numbers?
 	static _states = {
 		_ok: Symbol("ok"),
 		_off: Symbol("off"),

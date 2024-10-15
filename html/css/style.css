@@ -113,7 +113,6 @@ td, th {
 	font-weight: bold;
 }
 
-
 tr.data:hover {
 	outline: 2px solid yellow;
 }
@@ -131,7 +130,7 @@ tr.data:hover {
 	scrollbar-width: auto;
 }
 
-.infobox .infobox-header {
+.infobox__header {
 	position: sticky;
 	top: 0px;
 	background-color: #aaa;

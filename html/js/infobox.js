@@ -16,7 +16,6 @@ class InfoBox {
 		return this.#infoMap.has(element);
 	}
 
-	// TODO: better selectors
 	show(element) {
 		if (!this.has(element)) {
 			return;
@@ -26,21 +25,21 @@ class InfoBox {
 		const msgText = JSON.stringify(msg, null, 2);
 
 		const infoBox = this.#template.cloneNode(true);
-		infoBox.querySelector("pre").textContent = msgText;
+		infoBox.querySelector(".infobox__content").textContent = msgText;
 
-		infoBox.querySelector(".infobox-header").addEventListener("click", (ev) => {
+		infoBox.querySelector(".infobox__header").addEventListener("click", (ev) => {
 			ev.stopPropagation();
 
-			if (ev.target.classList.contains("button-copy-msg")) {
+			if (ev.target.classList.contains("infobox__button--copy-msg")) {
 				navigator.clipboard.writeText(msgText);
 			}
-			else if (ev.target.classList.contains("button-copy-gts")) {
+			else if (ev.target.classList.contains("infobox__button--copy-gts")) {
 				navigator.clipboard.writeText(msg.header.gatewayTimestamp);
 			}
-			else if (ev.target.classList.contains("button-copy-uid")) {
+			else if (ev.target.classList.contains("infobox__button--copy-uid")) {
 				navigator.clipboard.writeText(msg.header.uploaderID);
 			}
-			else { /* if (ev.target.classList.contains("button-close")) { */
+			else { /* if (ev.target.classList.contains("infobox__button--close")) { */
 				infoBox.remove();
 			}
 		});

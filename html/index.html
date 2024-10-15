@@ -142,15 +142,14 @@
 
 <template id="infotemplate">
 <div class="infobox">
-	<div class="infobox-header">
-		<button class="button-copy-msg">Copy message</button>
-		<button class="button-copy-gts">Copy gateway timestamp</button>
-		<button class="button-copy-uid">Copy uploader ID</button>
-		<button class="button-close">Close window</button>
+	<div class="infobox__header">
+		<button class="infobox__button infobox__button--copy-msg">Copy message</button>
+		<button class="infobox__button infobox__button--copy-gts">Copy gateway timestamp</button>
+		<button class="infobox__button infobox__button--copy-uid">Copy uploader ID</button>
+		<button class="infobox__button infobox__button--close">Close window</button>
 	</div>
-	<div>
-		<!-- content -->
-		<pre></pre>
+	<div class="infobox__contentbox">
+		<pre class="infobox__content"></pre>
 	</div>
 </div>
 </template>

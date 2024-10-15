@@ -54,6 +54,7 @@ class Activity {
 
 
 // changes the href attribute of an object, typically a <link rel=icon> elememt
+
 class PageIconActivity extends Activity {
 	static #icons = {
 		[Activity._states._ok]: "img/activity-icon/activity-icon--state-ok.svg",
@@ -69,7 +70,8 @@ class PageIconActivity extends Activity {
 
 
 // adds/removes CSS classes
-class ClassActivity extends Activity {
+
+class CSSActivity extends Activity {
 	static #classes = {
 		[Activity._states._ok]: "activity-icon--state-ok",
 		[Activity._states._off]: "activity-icon--state-off",
@@ -78,9 +80,9 @@ class ClassActivity extends Activity {
 	};
 
 	_changeState(newState, oldState) {
-		this._element.classList.remove(ClassActivity.#classes[oldState]);
-		this._element.classList.add(ClassActivity.#classes[newState]);
+		this._element.classList.remove(CSSActivity.#classes[oldState]);
+		this._element.classList.add(CSSActivity.#classes[newState]);
 	}
 }
 
-export { PageIconActivity, ClassActivity };
+export { PageIconActivity, CSSActivity };

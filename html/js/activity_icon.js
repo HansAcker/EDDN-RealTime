@@ -28,6 +28,7 @@ class ActivityIcon {
 		this.#idleTimeout = idleTimeout;
 	}
 
+	// TODO: clears/sets timeouts with every update. use fixed loop?
 	#set(state, timeout = 0) {
 		if (this.#idleTimer) {
 			clearTimeout(this.#idleTimer);

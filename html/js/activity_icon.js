@@ -55,13 +55,11 @@ class Activity {
 
 // changes the href attribute of an object, typically a <link rel=icon> elememt
 class PageIconActivity extends Activity {
-	// can't use CSS to style the page icon href
-	// TODO: move to configuration block
 	static #icons = {
-		[Activity._states.ok]: "img/led/led-circle-green.svg",
-		[Activity._states.off]: "img/led/led-circle-red.svg",
-		[Activity._states.idle]: "img/led/led-circle-grey.svg",
-		[Activity._states.error]: "img/led/led-circle-yellow.svg"
+		[Activity._states.ok]: "img/activity-icon/activity-icon--state-ok.svg",
+		[Activity._states.off]: "img/activity-icon/activity-icon--state-off.svg",
+		[Activity._states.idle]: "img/activity-icon/activity-icon--state-idle.svg",
+		[Activity._states.error]: "img/activity-icon/activity-icon--state-error.svg"
 	};
 
 	_changeState(newState, oldState) {

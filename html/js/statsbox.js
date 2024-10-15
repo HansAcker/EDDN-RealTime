@@ -34,7 +34,7 @@ class StatsRow {
 class StatsBox {
 	#statsbody;
 	_stats = {}; // indices into rows
-	_rows = []; // sorted array of StatsRow
+	_rows = []; // array of StatsRow
 
 	constructor(tbody, values = {}) {
 		tbody.replaceChildren(); // clear existing table content
@@ -70,6 +70,7 @@ class StatsBox {
 }
 
 
+// SortedStatsBox keeps _rows and table sorted on inc()
 // TODO: (re-)sort in set()
 
 class SortedStatsBox extends StatsBox {

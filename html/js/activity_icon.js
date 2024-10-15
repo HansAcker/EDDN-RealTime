@@ -1,6 +1,9 @@
 // TODO: rename everything
 
 
+// activity status
+// changes from ok to idle after idleTimeout, all other states use no timer
+
 class Activity {
 	// TODO: does it make sense to use Symbol like this instead of just strings? or numbers?
 	static _states = {
@@ -43,10 +46,10 @@ class Activity {
 		}
 	}
 
+	ok = this.#set.bind(this, Activity._states._ok, this.#idleTimeout);
 	off = this.#set.bind(this, Activity._states._off, 0);
 	idle = this.#set.bind(this, Activity._states._idle, 0);
 	error = this.#set.bind(this, Activity._states._error, 0);
-	ok = (timeout = this.#idleTimeout) => this.#set(Activity._states._ok, timeout);
 }
 
 

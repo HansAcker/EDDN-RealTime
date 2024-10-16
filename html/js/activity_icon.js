@@ -53,6 +53,7 @@ class Activity {
 
 
 // changes the href attribute of an object, typically a <link rel=icon> elememt
+// TODO: same as IconActivity(attribute="href")
 
 class PageIconActivity extends Activity {
 	static #icons = {
@@ -84,4 +85,47 @@ class CSSActivity extends Activity {
 	}
 }
 
-export { PageIconActivity, CSSActivity };
+
+// unused WIP based on Activity class
+
+// changes an object property
+
+class AttributeActivity extends Activity {
+	static #defaults = {
+		[Activity._states._ok]: "ok",
+		[Activity._states._off]: "off",
+		[Activity._states._idle]: "idle",
+		[Activity._states._error]: "error"
+	};
+
+	#attribute;
+	#values;
+
+	// TODO: due to property mangling, it's virtually impossible to provide an external values dict
+	constructor(element, idleTimeout = 0, attribute = "textContent", values = AttributeActivity.#defaults) {
+		super(element, idleTimeout);
+		this.#attribute = attribute;
+		this.#values = values;
+	}
+
+	_changeState(newState, oldState) {
+		this._element[this.#attribute] = this.#values[newState];
+	}
+}
+
+
+class IconActivity extends AttributeActivity {
+	static #icons = {
+		[Activity._states._ok]: "img/activity-icon/activity-icon--state-ok.svg",
+		[Activity._states._off]: "img/activity-icon/activity-icon--state-off.svg",
+		[Activity._states._idle]: "img/activity-icon/activity-icon--state-idle.svg",
+		[Activity._states._error]: "img/activity-icon/activity-icon--state-error.svg"
+	};
+
+	constructor(element, idleTimeout = 0, attribute = "src", values = IconActivity.#icons) {
+		super(element, idleTimeout, attribute, IconActivity.#icons);
+	}
+}
+
+
+export { PageIconActivity, CSSActivity, AttributeActivity, IconActivity };

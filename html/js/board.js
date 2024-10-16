@@ -33,33 +33,33 @@ let maxrange = 0;
 
 
 class MessageRecord {
-	data;
-	gameType;
+	_data;
+	_gameType;
 
-	timestamp;
-	event;
+	_timestamp;
+	_event;
 
-	isTaxi;
-	isMulticrew;
+	_isTaxi;
+	_isMulticrew;
 
-	isOld;
-	isNew;
+	_isOld;
+	_isNew;
 
 	constructor(data) {
-		this.data = data;
-		this.gameType = whatGame(data);
+		this._data = data;
+		this._gameType = whatGame(data);
 
 		const message = data.message;
 
-		this.timestamp = message.timestamp;
-		this.event = message.event;
+		this._timestamp = message.timestamp;
+		this._event = message.event;
 
-		this.isTaxi = !!message.Taxi;
-		this.isMulticrew = !!message.Multicrew;
+		this._isTaxi = !!message.Taxi;
+		this._isMulticrew = !!message.Multicrew;
 
 		const diff = new Date() - new Date(message.timestamp);
-		this.isOld = (diff > 3600 * 1000); // timestamp older than 1h
-		this.isNew = (diff < -180 * 1000); // timestamp more than 3m ahead
+		this._isOld = (diff > 3600 * 1000); // timestamp older than 1h
+		this._isNew = (diff < -180 * 1000); // timestamp more than 3m ahead
 	}
 }
 
@@ -68,24 +68,24 @@ function makeTr(messageRecord) {
 	const tr = document.createElement("tr");
 
 	tr.classList.add("data");
-	tr.classList.add(messageRecord.gameType);
+	tr.classList.add(messageRecord._gameType);
 
-	if (messageRecord.isTaxi) {
+	if (messageRecord._isTaxi) {
 		tr.classList.add("taxi");
 	}
 
-	if (messageRecord.isMulticrew) {
+	if (messageRecord._isMulticrew) {
 		tr.classList.add("multicrew");
 	}
 
-	if (messageRecord.isOld) {
+	if (messageRecord._isOld) {
 		tr.classList.add("old");
-	} else if (messageRecord.isNew) {
+	} else if (messageRecord._isNew) {
 		tr.classList.add("new");
 	}
 
 	// key data by weak ref to table row, used in click event
-	infobox.set(tr, messageRecord.data);
+	infobox.set(tr, messageRecord._data);
 
 	return tr;
 }
@@ -126,9 +126,9 @@ ws.onmessage = (event) => {
 	gameStats.inc("Total");
 
 	const messageRecord = new MessageRecord(data);
-	gameStats.inc(messageRecord.gameType);
+	gameStats.inc(messageRecord._gameType);
 
-	gameStats.set("Last timestamp", messageRecord.timestamp);
+	gameStats.set("Last timestamp", messageRecord._timestamp);
 
 	// TODO: this should go into SortedStatsBox and insert new tr in the right position
 	{
@@ -143,24 +143,24 @@ ws.onmessage = (event) => {
 		}
 	}
 
-	if (messageRecord.isTaxi) {
+	if (messageRecord._isTaxi) {
 		gameStats.inc("Taxi");
 	}
 
-	if (messageRecord.isMulticrew) {
+	if (messageRecord._isMulticrew) {
 		gameStats.inc("Multicrew");
 	}
 
-	if (messageRecord.isOld) {
+	if (messageRecord._isOld) {
 		gameStats.inc("Old");
-	} else if (messageRecord.isNew) {
+	} else if (messageRecord._isNew) {
 		gameStats.inc("New");
 	}
 
-	if (messageRecord.event) {
-		eventStats.inc(messageRecord.event);
+	if (messageRecord._event) {
+		eventStats.inc(messageRecord._event);
 
-		switch (messageRecord.event) {
+		switch (messageRecord._event) {
 			case "Scan": {
 				const tr = makeTr(messageRecord);
 

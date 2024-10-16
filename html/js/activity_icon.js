@@ -86,6 +86,8 @@ class CSSActivity extends Activity {
 }
 
 
+/*
+
 // unused WIP based on Activity class
 
 // changes an object property
@@ -127,5 +129,7 @@ class IconActivity extends AttributeActivity {
 	}
 }
 
+*/
 
-export { PageIconActivity, CSSActivity, AttributeActivity, IconActivity };
+
+export { PageIconActivity, CSSActivity };

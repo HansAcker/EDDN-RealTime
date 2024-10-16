@@ -103,19 +103,22 @@ ws.onmessage = (event) => {
 
 	try {
 		data = JSON.parse(event.data);
+
+		// TODO: check typeof === "object"?
+		if (!(data.$schemaRef && data.header && data.message)) {
+			console.log("Invalid message:", data);
+			activity.error();
+			return;
+		}
 	} catch(error) {
-		console.log("JSON parse error:", error);
+		console.log("JSON object error:", error);
 		activity.error();
 		return;
 	}
 
+	const schemaRef = data.$schemaRef;
+	const header = data.header;
 	const message = data.message;
-
-	if (!message) {
-		console.log("No message:", data);
-		activity.error();
-		return;
-	}
 
 	activity.ok();
 	lastEvent = Date.now();
@@ -133,7 +136,7 @@ ws.onmessage = (event) => {
 		const oldCount = tbody.childElementCount;
 
 		// TODO: group totals by softwareName, collapse individual versions
-		softwareStats.inc(`${data.header.softwareName} ${data.header.softwareVersion}`);
+		softwareStats.inc(`${header.softwareName} ${header.softwareVersion}`);
 
 		if (tbody.childElementCount != oldCount) {
 			tbody.replaceChildren(...[...tbody.children].sort((a, b) => a.children[0].textContent < b.children[0].textContent ? 1 : -1));

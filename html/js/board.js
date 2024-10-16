@@ -99,7 +99,7 @@ ws.onopen = activity.idle;
 ws.onclose = activity.off;
 
 ws.onmessage = (event) => {
-	let data = {};
+	let data;
 
 	try {
 		data = JSON.parse(event.data);

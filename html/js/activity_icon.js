@@ -123,7 +123,7 @@ class IconActivity extends AttributeActivity {
 	};
 
 	constructor(element, idleTimeout = 0, attribute = "src", values = IconActivity.#icons) {
-		super(element, idleTimeout, attribute, IconActivity.#icons);
+		super(element, idleTimeout, attribute, values);
 	}
 }
 

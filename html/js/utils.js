@@ -29,3 +29,49 @@ export function whatGame(data) {
 		return "Unknown";
 	}
 }
+
+export const GalacticRegions = [
+	"Null", // 0
+	"Galactic Centre", // 1
+	"Empyrean Straits", // 2
+	"Ryker's Hope", // 3
+	"Odin's Hold", // 4
+	"Norma Arm", // 5
+	"Arcadian Stream", // 6
+	"Izanami", // 7
+	"Inner Orion-Perseus Conflux", // 8
+	"Inner Scutum-Centaurus Arm", // 9
+	"Norma Expanse", // 10
+	"Trojan Belt", // 11
+	"The Veils", // 12
+	"Newton's Vault", // 13
+	"The Conduit", // 14
+	"Outer Orion-Perseus Conflux", // 15
+	"Orion-Cygnus Arm", // 16
+	"Temple", // 17
+	"Inner Orion Spur", // 18
+	"Hawking's Gap", // 19
+	"Dryman's Point", // 20
+	"Sagittarius-Carina Arm", // 21
+	"Mare Somnia", // 22
+	"Acheron", // 23
+	"Formorian Frontier", // 24
+	"Hieronymus Delta", // 25
+	"Outer Scutum-Centaurus Arm", // 26
+	"Outer Arm", // 27
+	"Aquila's Halo", // 28
+	"Errant Marches", // 29
+	"Perseus Arm", // 30
+	"Formidine Rift", // 31
+	"Vulcan Gate", // 32
+	"Elysian Shore", // 33
+	"Sanguineous Rim", // 34
+	"Outer Orion Spur", // 35
+	"Achilles's Altar", // 36
+	"Xibalba", // 37
+	"Lyra's Song", // 38
+	"Tenebrae", // 39
+	"The Abyss", // 40
+	"Kepler's Crest", // 41
+	"The Void", // 42
+];

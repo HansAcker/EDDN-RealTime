@@ -2,7 +2,7 @@ import { ReconnectingWebSocket } from "./reconnecting-websocket.min.js";
 import { PageIconActivity } from "./activity_icon.min.js";
 import { StatsBox, SortedStatsBox } from "./statsbox.min.js";
 import { InfoBox } from "./infobox.min.js";
-import { distance3, trimPrefix, makeTd, addRow, whatGame } from "./utils.min.js";
+import { distance3, trimPrefix, makeTd, addRow, whatGame, GalacticRegions } from "./utils.min.js";
 
 // TODO: modularize
 // TODO: remove/rework global config options (socketUrl, listLength, idleTimeout, resetTimeout)
@@ -285,7 +285,7 @@ ws.onmessage = (event) => {
 					makeTd(trimPrefix(message.BodyName || "", message.System)),
 					makeTd(`${message.Category.replace(/^\$Codex_Category_(.*);$/, "$1").replaceAll("_", " ")} / ${message.SubCategory.replace(/^\$Codex_SubCategory_(.*);$/, "$1").replaceAll("_", " ")}`),
 					makeTd(message.Name.replace(/^\$Codex_Ent_(.*)_Name;$/, "$1").replaceAll("_", " ")),
-					makeTd(message.Region.replace(/^\$Codex_RegionName_(.*);$/, "$1")));
+					makeTd(GalacticRegions[message.Region.replace(/^\$Codex_RegionName_(.*);$/, "$1")]));
 				addRow(window.codex, tr);
 				break;
 			}

@@ -283,8 +283,9 @@ ws.onmessage = (event) => {
 				const tr = makeTr(messageRecord);
 				tr.append(makeTd(message.System),
 					makeTd(trimPrefix(message.BodyName || "", message.System)),
-					makeTd(message.SubCategory),
-					makeTd(message.Name));
+					makeTd(`${message.Category.replace(/^\$Codex_Category_(.*);$/, "$1").replaceAll("_", " ")} / ${message.SubCategory.replace(/^\$Codex_SubCategory_(.*);$/, "$1").replaceAll("_", " ")}`),
+					makeTd(message.Name.replace(/^\$Codex_Ent_(.*)_Name;$/, "$1").replaceAll("_", " ")),
+					makeTd(message.Region.replace(/^\$Codex_RegionName_(.*);$/, "$1")));
 				addRow(window.codex, tr);
 				break;
 			}

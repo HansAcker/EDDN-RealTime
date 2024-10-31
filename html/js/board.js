@@ -168,7 +168,7 @@ ws.onmessage = (event) => {
 				addRow(window.scanbods, tr);
 
 				// some false positives slip through in pre-discovered systems
-				if (message.WasDiscovered === false && message.ScanType !== "NavBeaconDetail") {
+				if (message.WasDiscovered === false && message.WasMapped === false && message.ScanType !== "NavBeaconDetail") {
 					if (message.StarType) {
 						const tr = makeTr(messageRecord);
 						tr.append(makeTd(message.BodyName), makeTd(`${message.StarType} ${message.Subclass}`));

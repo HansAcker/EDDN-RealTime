@@ -12,7 +12,6 @@ class Activity {
 		_error: Symbol("error")
 	};
 
-	#idleTimeout;
 	#idleTimer = null;
 	#lastState = Activity._states._off;
 
@@ -20,7 +19,7 @@ class Activity {
 
 	constructor(element, idleTimeout = 0) {
 		this._element = element;
-		this.#idleTimeout = idleTimeout;
+		this.ok = this.#set.bind(this, Activity._states._ok, idleTimeout);
 	}
 
 	_changeState(newState, oldState) {
@@ -45,7 +44,7 @@ class Activity {
 		}
 	}
 
-	ok = () => this.#set(Activity._states._ok, this.#idleTimeout);
+	ok;
 	off = this.#set.bind(this, Activity._states._off, 0);
 	idle = this.#set.bind(this, Activity._states._idle, 0);
 	error = this.#set.bind(this, Activity._states._error, 0);

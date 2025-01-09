@@ -79,7 +79,7 @@ class StatsBox {
 class SortedStatsBox extends StatsBox {
 	inc(key) {
 		if (this.has(key)) {
-			const idxOld = this._stats[key];
+			let idxOld = this._stats[key];
 			const stat = this._rows[idxOld];
 
 			stat.value++;
@@ -94,8 +94,14 @@ class SortedStatsBox extends StatsBox {
 
 			if (idxNew != idxOld) {
 				this._rows[idxNew].tr.before(stat.tr); // move table row
-				this._rows.splice(idxOld, 1); // cut
-				this._rows.splice(idxNew, 0, stat); // paste
+
+				// shift array back by one
+				while (idxOld > idxNew) {
+					this._rows[idxOld] = this._rows[idxOld-1];
+					idxOld--;
+				}
+
+				this._rows[idxNew] = stat;
 
 				//console.log(`${key}: ${this._stats[key]} => ${idxNew}`);
 				this._stats[key] = idxNew;

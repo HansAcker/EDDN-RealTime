@@ -32,7 +32,7 @@ cd EDDN-RealTime/html
 python3 -m http.server
 ```
 
-Then point your browser to http:\//127.0.0.1:8000/. You can edit the files
+Then point your browser to ``http://127.0.0.1:8000/``. You can edit the files
 locally while the data websocket still connects to the server at
 eddn-realtime.space.
 

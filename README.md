@@ -18,7 +18,7 @@ https://eddn-realtime.space/
 - under ``Settings -> Pages`` set ``Source`` to ``GitHub Actions``
 - Go to ``Actions`` and enable Actions
 - Select ``Deploy static content to Pages``, run workflow
-- If successful, open https://\<yourname\>.github.io/EDDN-RealTime/
+- If successful, open ``https://<yourname>.github.io/EDDN-RealTime/``
 
 
 ### How to edit locally

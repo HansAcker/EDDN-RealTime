@@ -96,11 +96,9 @@ class SortedStatsBox extends StatsBox {
 				this._rows[idxNew].tr.before(stat.tr); // move table row
 
 				// shift array back by one
-				while (idxOld > idxNew) {
-					this._rows[idxOld] = this._rows[idxOld-1];
-					idxOld--;
-				}
+				this._rows.copyWithin(idxNew+1, idxNew, idxOld);
 
+				// re-insert element
 				this._rows[idxNew] = stat;
 
 				//console.log(`${key}: ${this._stats[key]} => ${idxNew}`);

@@ -44,7 +44,7 @@ class Activity {
 		}
 	}
 
-	ok;
+	ok; // set in constructor
 	off = this.#set.bind(this, Activity._states._off, 0);
 	idle = this.#set.bind(this, Activity._states._idle, 0);
 	error = this.#set.bind(this, Activity._states._error, 0);

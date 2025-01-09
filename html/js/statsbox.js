@@ -1,3 +1,6 @@
+
+// counts and displays named events or other information
+
 class StatsRow {
 	// TODO: shape-morphism optimization? #value is always a number except for two stats where it's a string
 	#value;

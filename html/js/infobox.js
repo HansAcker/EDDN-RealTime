@@ -1,7 +1,10 @@
+
+// displays message contents
+
 class InfoBox {
 	#container;
 	#template;
-	#infoMap = new WeakMap();
+	#infoMap = new WeakMap(); // only keep data while the key object exists
 
 	constructor(container, template) {
 		this.#container = container;

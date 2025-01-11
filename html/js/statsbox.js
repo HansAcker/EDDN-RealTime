@@ -73,7 +73,7 @@ class StatsBox {
 }
 
 
-// SortedStatsBox keeps _rows and table sorted on inc()
+// SortedStatsBox keeps _rows and table sorted
 
 class SortedStatsBox extends StatsBox {
 	set(key, value) {

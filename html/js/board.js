@@ -120,7 +120,7 @@ ws.onmessage = (event) => {
 			return;
 		}
 	} catch(error) {
-		console.log("JSON object error:", error);
+		console.log("JSON object error:", error, data);
 		activity.error();
 		return;
 	}

@@ -32,9 +32,14 @@ const gameStats = new StatsBox(window.statsbody, {
 let maxrange = 0;
 
 
+// TODO: unverified assumption: faster access
 class MessageRecord {
 	_data;
 	_gameType;
+
+	_schemaRef;
+	_header;
+	_message;
 
 	_timestamp;
 	_event;
@@ -51,6 +56,10 @@ class MessageRecord {
 
 		const message = data.message;
 
+		this._schemaRef = data.$schemaRef;
+		this._header = data.header;
+		this._message = message;
+
 		this._timestamp = message.timestamp;
 		this._event = message.event;
 
@@ -63,7 +72,7 @@ class MessageRecord {
 	}
 }
 
-// TODO: move into MessageRecord?
+// TODO: move into MessageRecord? uses global infobox
 function makeTr(messageRecord) {
 	const tr = document.createElement("tr");
 

@@ -176,38 +176,39 @@ function updateSoftwareStats(messageRecord) {
 function handleMessage(messageRecord) {
 	if (messageRecord._event) {
 		eventStats.inc(messageRecord._event);
-
-		switch (messageRecord._event) {
-			case "Scan": eventScan(messageRecord); break;
-
-			case "FSDJump": eventFSDJump(messageRecord); break;
-
-			case "NavRoute": eventNavRoute(messageRecord); break;
-
-			case "Docked":
-			case "Location": eventLocation(messageRecord); break;
-
-			case "ApproachSettlement": eventApproachSettlement(messageRecord); break;
-
-			case "CodexEntry": eventCodexEntry(messageRecord); break;
-
-			// FSSDiscoveryScan, FSSAllBodiesFound, FSSBodySignals, FSSSignalDiscovered,
-			// SAASignalsFound, ScanBaryCentre, NavBeaconScan,
-			// DockingGranted, DockingDenied, FCMaterials, CarrierJump
-
-			default:
-				gameStats.inc("Ignored");
-		}
+		(EDDNEventHandlers[messageRecord._event] || eventIgnored)(messageRecord);
 	} else {
-		// commodities, modules, ships
-		const message = messageRecord._message;
-		const tr = makeTr(messageRecord);
-
-		tr.append(makeTd(message.commodities ? "Market" : message.ships ? "Shipyard" : message.modules ? "Outfitting" : ""),
-			makeTd(message.stationName),
-			makeTd(message.systemName));
-		addRow(window.updates, tr);
+		eventDefault(messageRecord);
 	}
+}
+
+const EDDNEventHandlers = {
+	"Scan": eventScan,
+	"FSDJump": eventFSDJump,
+	"NavRoute": eventNavRoute,
+	"Docked": eventLocation,
+	"Location": eventLocation,
+	"ApproachSettlement": eventApproachSettlement,
+	"CodexEntry": eventCodexEntry,
+
+	// FSSDiscoveryScan, FSSAllBodiesFound, FSSBodySignals, FSSSignalDiscovered,
+	// SAASignalsFound, ScanBaryCentre, NavBeaconScan,
+	// DockingGranted, DockingDenied, FCMaterials, CarrierJump
+}
+
+function eventIgnored(messageRecord) {
+	gameStats.inc("Ignored");
+}
+
+function eventDefault(messageRecord) {
+	// commodities, modules, ships
+	const message = messageRecord._message;
+	const tr = makeTr(messageRecord);
+
+	tr.append(makeTd(message.commodities ? "Market" : message.ships ? "Shipyard" : message.modules ? "Outfitting" : ""),
+		makeTd(message.stationName),
+		makeTd(message.systemName));
+	addRow(window.updates, tr);
 }
 
 function eventScan(messageRecord) {

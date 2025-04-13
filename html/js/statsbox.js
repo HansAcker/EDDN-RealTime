@@ -97,10 +97,10 @@ class SortedStatsBox extends StatsBox {
 
 		// find new position in rows array
 		const stat = this._rows[idxOld];
-		const val = stat._value;
+		const value = stat._value;
 		let idxNew = idxOld;
 
-		while (idxNew > 0 && val > this._rows[idxNew-1]._value) {
+		while (idxNew > 0 && value > this._rows[idxNew-1]._value) {
 			//console.log(`${key}: ${this._rows[idxNew-1]._key} ${this._stats[this._rows[idxNew-1]._key]} => ${idxNew}`);
 			this._stats[this._rows[idxNew-1]._key] = idxNew--; // update indices
 		}

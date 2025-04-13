@@ -1,8 +1,8 @@
-import { ReconnectingWebSocket } from "./reconnecting-websocket.min.js";
-import { PageIconActivity } from "./activity_icon.min.js";
-import { StatsBox, SortedStatsBox } from "./statsbox.min.js";
-import { InfoBox } from "./infobox.min.js";
-import { distance3, trimPrefix, makeTd, addRow, whatGame, GalacticRegions } from "./utils.min.js";
+import { ReconnectingWebSocket } from "./reconnecting-websocket.js";
+import { PageIconActivity } from "./activity_icon.js";
+import { StatsBox, SortedStatsBox } from "./statsbox.js";
+import { InfoBox } from "./infobox.js";
+import { distance3, trimPrefix, makeTd, addRow, whatGame, GalacticRegions } from "./utils.js";
 
 // TODO: modularize
 // TODO: remove/rework global config options (socketUrl, listLength, idleTimeout, resetTimeout)

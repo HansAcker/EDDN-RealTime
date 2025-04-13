@@ -2,19 +2,18 @@
 <html>
 <link rel="icon" sizes="any" href="img/activity-icon/activity-icon--state-off.svg" id="icon">
 <link rel="preload" href="fonts/orbitron/orbitron-light-webfont.woff" as="font" type="font/woff" crossorigin>
+<link rel="modulepreload" href="js/reconnecting-websocket.js">
+<link rel="modulepreload" href="js/activity_icon.js">
+<link rel="modulepreload" href="js/statsbox.js">
+<link rel="modulepreload" href="js/infobox.js">
+<link rel="modulepreload" href="js/utils.js">
+<link rel="modulepreload" href="js/board.js">
 <link rel="stylesheet" href="css/style.css">
-<link rel="modulepreload" href="js/reconnecting-websocket.min.js">
-<link rel="modulepreload" href="js/activity_icon.min.js">
-<link rel="modulepreload" href="js/statsbox.min.js">
-<link rel="modulepreload" href="js/infobox.min.js">
-<link rel="modulepreload" href="js/utils.min.js">
-<link rel="modulepreload" href="js/board.min.js">
 
 <!-- https://github.com/HansAcker/EDDN-RealTime -->
-<title>EDDN RealTime Feed</title>
+<title>Elite Dangerous Data Network Real Time Feed</title>
 <meta name="description" content="Live Events from the Elite Dangerous Data Network">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="referrer" content="no-referrer">
 
 <div id="board">
 
@@ -176,5 +175,5 @@ const resetTimeout = 300000;
 }
 </script>
 
-<script type="module" src="js/board.min.js"></script>
+<script type="module" src="js/board.js"></script>
 </html>

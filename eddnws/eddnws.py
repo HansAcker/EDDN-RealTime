@@ -144,7 +144,7 @@ def relay_cancel_close() -> None:
 		zmq_close_handler = None
 
 
-async def ws_handler(websocket: websockets.WebSocketServerProtocol, path: Optional[str]) -> None:
+async def ws_handler(websocket: websockets.WebSocketServerProtocol) -> None:
 	ws_conns.add(websocket)
 	print_stderr(f"client connected: {websocket.id} {websocket.remote_address} ({len(ws_conns)} active)")
 

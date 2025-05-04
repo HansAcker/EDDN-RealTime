@@ -177,7 +177,7 @@ async def process_request(path: str, request_headers: websockets.Headers) -> Opt
 	return None
 
 
-async def server() -> None:
+async def server_start() -> None:
 	print_stderr("starting websocket server")
 
 	# set stop condition on signal
@@ -243,4 +243,4 @@ if __name__ == "__main__":
 
 	parse_args(namespace=options)
 	zmq_init()
-	asyncio.run(server())
+	asyncio.run(server_start())

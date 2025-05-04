@@ -186,15 +186,30 @@ async def server() -> None:
 	loop.add_signal_handler(signal.SIGTERM, stop.set_result, "SIGTERM")
 	loop.add_signal_handler(signal.SIGINT, stop.set_result, "SIGINT")
 
-	# TODO: queue size/length. server processes only incoming pongs
+	ws_args = {
+		"process_request": process_request if options.ping_path else None,
+
+		# server processes only incoming pongs
+		"max_size": 4*1024, # limit incoming messages to 4k
+		"max_queue": 4, # limit buffer to 4 messages
+		"write_limit": 128*1024, # TODO: use? broadcast() ignores the limit
+
+		"extensions": [
+			# set compression window size to 32k (2^15)
+			websockets.extensions.permessage_deflate.ServerPerMessageDeflateFactory(
+				server_max_window_bits=15,
+				compress_settings={"memLevel": 8},
+			),
+		],
+	}
 
 	if options.listen_path:
 		print_stderr(f"socket path: {options.listen_path}")
 		# TODO: set umask
-		server = websockets.unix_serve(ws_handler, options.listen_path, process_request=process_request if options.ping_path else None)
+		server = websockets.unix_serve(ws_handler, options.listen_path, **ws_args)
 	else:
 		print_stderr(f"TCP address: {options.listen_addr}:{options.listen_port}")
-		server = websockets.serve(ws_handler, options.listen_addr, options.listen_port, process_request=process_request if options.ping_path else None)
+		server = websockets.serve(ws_handler, options.listen_addr, options.listen_port, **ws_args)
 
 	# run the server until stop condition
 	async with server:

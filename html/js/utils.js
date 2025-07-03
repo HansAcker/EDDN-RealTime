@@ -152,13 +152,13 @@ export function procSystemName(massClass, xb, yb, zb, n2) {
 	let id = xb | (yb << 7) | (zb << 14);
 
 	const c1 = String.fromCharCode((id % 26) + 65);
-	id = Math.floor(id / 26);
+	id = ~~(id / 26);
 
 	const c2 = String.fromCharCode((id % 26) + 65);
-	id = Math.floor(id / 26);
+	id = ~~(id / 26);
 
 	const c3 = String.fromCharCode((id % 26) + 65);
-	id = Math.floor(id / 26);
+	id = ~~(id / 26);
 
 	return `${c1}${c2}-${c3} ${String.fromCharCode(massClass + 97)}${id ? `${id}-${n2}` : n2}`;
 }

@@ -76,6 +76,7 @@ class StatsBox {
 // SortedStatsBox keeps _rows and table sorted
 
 class SortedStatsBox extends StatsBox {
+	// TODO: sort only moves counters up, not down
 	set(key, value) {
 		super.set(key, value);
 		this._sort(key);
@@ -95,16 +96,22 @@ class SortedStatsBox extends StatsBox {
 			return;
 		}
 
-		// find new position in rows array
 		const stat = this._rows[idxOld];
 		const value = stat._value;
-		let idxNew = idxOld;
 
+		// won't move
+		if (value <= this._rows[idxOld-1]._value) {
+			return;
+		}
+
+		// find new position in rows array
+		let idxNew = idxOld;
 		while (idxNew > 0 && value > this._rows[idxNew-1]._value) {
 			//console.log(`${key}: ${this._rows[idxNew-1]._key} ${this._stats[this._rows[idxNew-1]._key]} => ${idxNew}`);
 			this._stats[this._rows[idxNew-1]._key] = idxNew--; // update indices
 		}
 
+		// did move
 		if (idxNew != idxOld) {
 			//console.log(`${key}: ${this._stats[key]} => ${idxNew}`);
 			this._rows[idxNew]._tr.before(stat._tr); // move table row

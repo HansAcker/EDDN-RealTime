@@ -274,35 +274,42 @@ function eventNavRoute(messageRecord) {
 
 		let dist = 0;
 		let longest = 0;
-		let cur;
 
-		// sum jump distances
-		for (const wp of route) {
-			if (!cur) {
-				// start system
-				cur = wp.StarPos;
-				// distance to destination system
-				tr.append(makeTd(`${distance3(cur, route[route.length-1].StarPos).toFixed(2)}ly`));
-				continue;
+		if (route.length === 2) {
+			// single-jump route
+			dist = longest = distance3(route[0].StarPos, route[1].StarPos);
+			tr.append(makeTd(`${dist.toFixed(2)}ly`), makeTd(""));
+		} else {
+			// sum jump distances
+			let cur;
+			for (const wp of route) {
+				if (!cur) {
+					// start system
+					cur = wp.StarPos;
+					// distance to destination system
+					tr.append(makeTd(`${distance3(cur, route[route.length-1].StarPos).toFixed(2)}ly`));
+					continue;
+				}
+
+				const hop = wp.StarPos;
+				const range = distance3(cur, hop);
+
+				if (longest < range) {
+					longest = range;
+				}
+
+				dist += range;
+				cur = hop;
 			}
 
-			const hop = wp.StarPos;
-			const range = distance3(cur, hop);
-
-			if (maxrange < range) {
-				maxrange = range;
-				gameStats.set("Max jump range", `${range.toFixed(2)}ly`);
-			}
-
-			if (longest < range) {
-				longest = range;
-			}
-
-			dist += range;
-			cur = hop;
+			tr.append(makeTd(`${dist.toFixed(2)}ly`));
 		}
 
-		tr.append(makeTd(route.length > 2 ? `${dist.toFixed(2)}ly` : ""));
+		// update the record
+		if (maxrange < longest) {
+			maxrange = longest;
+			gameStats.set("Max jump range", `${longest.toFixed(2)}ly`);
+		}
 
 		const td = makeTd(`${longest.toFixed(2)}ly`);
 		if (longest >= 200) {

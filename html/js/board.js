@@ -160,15 +160,17 @@ function updateGameStats(messageRecord) {
 function updateSoftwareStats(messageRecord) {
 	// TODO: this should go into SortedStatsBox and insert new tr in the right position
 
-	const tbody = window.softbody;
-	const oldCount = tbody.childElementCount;
-
 	// TODO: group totals by softwareName, collapse individual versions
 	const header = messageRecord._header;
-	softwareStats.inc(`${header.softwareName} ${header.softwareVersion}`);
+	const tag = `${header.softwareName} ${header.softwareVersion}`;
 
 	// sort and replace the whole table if its element count changed
-	if (tbody.childElementCount != oldCount) {
+	const needsort = !softwareStats.has(tag);
+
+	softwareStats.inc(tag);
+
+	if (needsort) {
+		const tbody = window.softbody;
 		tbody.replaceChildren(...[...tbody.children].sort((a, b) => a.children[0].textContent < b.children[0].textContent ? 1 : -1));
 	}
 }

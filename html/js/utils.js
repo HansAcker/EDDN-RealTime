@@ -140,7 +140,7 @@ export function decodeId64(id64) {
 
 	const n2 = Number(bitMask(_id64, 32-(boxelBits*3)));
 
-	return { systemAddress, bodyId, massClass, boxels, xs, xb, ys, yb, zs, zb, n2 };
+	return { systemAddress, bodyId, massClass, boxels, xs, ys, zs, xb, yb, zb, n2 };
 }
 
 /*

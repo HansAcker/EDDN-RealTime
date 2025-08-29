@@ -186,6 +186,7 @@ async def server_start() -> None:
 	loop.add_signal_handler(signal.SIGTERM, stop.set_result, "SIGTERM")
 	loop.add_signal_handler(signal.SIGINT, stop.set_result, "SIGINT")
 
+	# TODO: add config options
 	ws_args = {
 		"process_request": process_request if options.ping_path else None,
 
@@ -197,8 +198,8 @@ async def server_start() -> None:
 		"extensions": [
 			# set compression window size to 32k (2^15)
 			websockets.extensions.permessage_deflate.ServerPerMessageDeflateFactory(
-				server_max_window_bits=15,
-				compress_settings={"memLevel": 8},
+				server_max_window_bits = 15,
+				compress_settings = {"memLevel": 8},
 			),
 		],
 	}

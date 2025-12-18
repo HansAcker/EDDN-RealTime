@@ -9,6 +9,15 @@ import zmq.asyncio
 
 from typing import Any, Dict, Set, Tuple, Optional
 
+# TODO: possibly
+# - rework for websockets >13.1 (process_request, ws_conns)
+# - use zlib.decompressobj().decompress(data, size_limit) to limit decompression ratio
+# - limit number of connections
+# - limit client buffers with individual send() instead of unbounded broadcast()
+# - filter log output or remove verbose mode
+# - move global vars into a class
+# - classify arg parser
+
 
 options = argparse.Namespace(
 	verbose = False,
@@ -48,15 +57,15 @@ zmq_task : Optional[asyncio.Task] = None
 zmq_close_handler : Optional[asyncio.TimerHandle] = None
 
 # ZMQ SUB socket
-zmq_sub = zmq.asyncio.Context.instance().socket(zmq.SUB)
+zmq_sub : zmq.asyncio.Socket = zmq.asyncio.Context.instance().socket(zmq.SUB)
 
 
 def zmq_init() -> None:
 	zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
 
+	zmq_sub.setsockopt(zmq.IPV6, True)
 	zmq_sub.setsockopt(zmq.HEARTBEAT_IVL, int(options.zmq_HEARTBEAT_IVL * 1000))
 	zmq_sub.setsockopt(zmq.HEARTBEAT_TIMEOUT, int(options.zmq_HEARTBEAT_TIMEOUT * 1000))
-	zmq_sub.setsockopt(zmq.IPV6, True)
 	zmq_sub.setsockopt(zmq.RECONNECT_IVL_MAX, int(options.zmq_RECONNECT_IVL_MAX * 1000))
 	# zmq_sub.setsockopt(zmq.RCVTIMEO, int(options.zmq_RCVTIMEO * 1000))
 
@@ -90,7 +99,7 @@ async def relay_messages() -> None:
 			print_stderr("decode error:", e)
 			continue
 
-		if not data or type(data) is not dict or not "$schemaRef" in data:
+		if not (isinstance(data, dict) and "$schemaRef" in data):
 			print_stderr("invalid message:", data)
 			continue
 
@@ -136,7 +145,7 @@ def relay_close() -> None:
 
 	zmq_close_handler = asyncio.get_running_loop().call_later(options.zmq_close_delay, relay_stop)
 
-def relay_cancel_close() -> None:
+def relay_close_cancel() -> None:
 	global zmq_close_handler
 
 	if zmq_close_handler is not None:
@@ -149,7 +158,7 @@ async def ws_handler(websocket: websockets.WebSocketServerProtocol) -> None:
 	print_stderr(f"client connected: {websocket.id} {websocket.remote_address} ({len(ws_conns)} active)")
 
 	# cancel the timer
-	relay_cancel_close()
+	relay_close_cancel()
 
 	# first websocket connection starts the relay
 	if zmq_task is None:
@@ -177,7 +186,7 @@ async def process_request(path: str, request_headers: websockets.Headers) -> Opt
 	return None
 
 
-async def server_start() -> None:
+async def server_init() -> None:
 	print_stderr("starting websocket server")
 
 	# set stop condition on signal
@@ -244,4 +253,4 @@ if __name__ == "__main__":
 
 	parse_args(namespace=options)
 	zmq_init()
-	asyncio.run(server_start())
+	asyncio.run(server_init())

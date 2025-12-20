@@ -51,7 +51,7 @@ class Activity {
 }
 
 
-// changes the href attribute of an object, typically a <link rel=icon> elememt
+// changes the href attribute of an object, typically a <link rel=icon> element
 // TODO: same as IconActivity(attribute="href")
 
 class PageIconActivity extends Activity {
@@ -79,8 +79,8 @@ class CSSActivity extends Activity {
 	};
 
 	_changeState(newState, oldState) {
-		this._element.classList.remove(CSSActivity.#classes[oldState]);
 		this._element.classList.add(CSSActivity.#classes[newState]);
+		this._element.classList.remove(CSSActivity.#classes[oldState]);
 	}
 }
 

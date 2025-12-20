@@ -11,20 +11,16 @@ class InfoBox {
 		this.#template = template;
 	}
 
-	set(key, data) {
-		this.#infoMap.set(key, data);
-	}
-
-	has(key) {
-		return this.#infoMap.has(key);
-	}
+	get = this.#infoMap.get.bind(this.#infoMap);
+	set = this.#infoMap.set.bind(this.#infoMap);
+	has = this.#infoMap.has.bind(this.#infoMap);
 
 	show(key) {
 		if (!this.has(key)) {
 			return;
 		}
 
-		const msg = this.#infoMap.get(key);
+		const msg = this.get(key);
 		const msgText = JSON.stringify(msg, null, 2);
 
 		const infoBox = this.#template.cloneNode(true);

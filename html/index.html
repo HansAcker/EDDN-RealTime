@@ -134,11 +134,16 @@ const listLength = 20;
 const idleTimeout = 2300;
 const resetTimeout = 300000;
 
+// set th title attributes
+for (const th of window.board.querySelectorAll("th")) {
+	th.title = th.textContent;
+}
+
 // fill tables with listLength * empty rows
 // TODO: use style?
 {
 	const tbHTML = "<tr><td>&nbsp;".repeat(listLength);
-	for (const tb of board.querySelectorAll("tbody")) {
+	for (const tb of window.board.querySelectorAll("tbody")) {
 		if (!tb.childElementCount) {
 			tb.innerHTML = tbHTML;
 		}

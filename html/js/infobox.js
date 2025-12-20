@@ -11,9 +11,10 @@ class InfoBox {
 		this.#template = template;
 	}
 
-	get = this.#infoMap.get.bind(this.#infoMap);
-	set = this.#infoMap.set.bind(this.#infoMap);
-	has = this.#infoMap.has.bind(this.#infoMap);
+	// TODO: bind or wrap? set() can get called multiple times per message
+	set(key, val) { return this.#infoMap.set(key, val); }
+	get(key) { return this.#infoMap.get(key); }
+	has(key) { return this.#infoMap.has(key); }
 
 	show(key) {
 		if (!this.has(key)) {

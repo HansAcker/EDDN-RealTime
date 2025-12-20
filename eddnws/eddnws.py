@@ -7,11 +7,12 @@ import simplejson
 import websockets
 import zmq.asyncio
 
+# TODO: python >=3.9 supports dict, set, tuple
 from typing import Any, Dict, Set, Tuple, Optional
+
 
 # TODO: possibly
 # - rework for websockets >13.1 (process_request, ws_conns)
-# - use zlib.decompressobj().decompress(data, size_limit) to limit decompression ratio
 # - limit number of connections
 # - limit client buffers with individual send() instead of unbounded broadcast()
 # - filter log output or remove verbose mode
@@ -24,6 +25,7 @@ options = argparse.Namespace(
 	listen_addr = "127.0.0.1",
 	listen_port = 8081,
 	listen_path = None, # listen on socket path instead of TCP, e.g. "/run/eddn/eddnws.sock"
+	msg_size_limit = 4 * 1024 * 1024, # decompressed JSON size limit (bytes)
 	zmq_url = "tcp://eddn.edcd.io:9500", # https://github.com/EDCD/EDDN#eddn-endpoints
 	zmq_close_delay = 3.3,
 	zmq_HEARTBEAT_IVL = 180,
@@ -80,10 +82,27 @@ def zmq_reconnect() -> None:
 	zmq_connect()
 
 
+# EDDN messages are zlib-compressed JSON
+def decode_msg(zmq_msg: bytes) -> Dict[str, Any]:
+	dobj = zlib.decompressobj()
+
+	json = dobj.decompress(zmq_msg, options.msg_size_limit)
+
+	if dobj.unconsumed_tail:
+		raise ValueError("size limit exceeded")
+
+	data = simplejson.loads(json)
+
+	if not (isinstance(data, dict) and "$schemaRef" in data):
+		raise ValueError("missing $schemaRef")
+
+	return data
+
+
 # relay messages from ZMQ to Websockets until ws_handler cancels the Task
 async def relay_messages() -> None:
 	while True:
-		# don't block the loop during message bursts
+		# don't block the websocket loop during ZMQ message bursts
 		await asyncio.sleep(0)
 
 		try:
@@ -93,14 +112,9 @@ async def relay_messages() -> None:
 			continue
 
 		try:
-			# EDDN messages are zlib-compressed JSON
-			data = simplejson.loads(zlib.decompress(zmq_msg))
+			data = decode_msg(zmq_msg)
 		except Exception as e:
 			print_stderr("decode error:", e)
-			continue
-
-		if not (isinstance(data, dict) and "$schemaRef" in data):
-			print_stderr("invalid message:", data)
 			continue
 
 		# normalize outgoing JSON intstead of forwarding the decompressed text as is
@@ -236,11 +250,12 @@ if __name__ == "__main__":
 
 		group = parser.add_argument_group("ZMQ options")
 		group.add_argument("-u", "--url", metavar="URL", dest="zmq_url", help=f"EDDN ZMQ URL (default: {namespace.zmq_url})")
-		group.add_argument("-d", "--zmq_close_delay", metavar="SECONDS", dest="zmq_close_delay", type=float, help=f"delay closing ZMQ connection after the last websocket client leaves (default: {namespace.zmq_close_delay})")
-		group.add_argument("--zmq_HEARTBEAT_IVL", metavar="SECONDS", dest="zmq_HEARTBEAT_IVL", type=float, help=f"set ZMQ ping interval, 0 to disable (default: {namespace.zmq_HEARTBEAT_IVL})")
-		group.add_argument("--zmq_HEARTBEAT_TIMEOUT", metavar="SECONDS", dest="zmq_HEARTBEAT_TIMEOUT", type=float, help=f"set ZMQ ping timeout (default: {namespace.zmq_HEARTBEAT_TIMEOUT})")
-		group.add_argument("--zmq_RECONNECT_IVL_MAX", metavar="SECONDS", dest="zmq_RECONNECT_IVL_MAX", type=float, help=f"set maximum reconnection interval (default: {namespace.zmq_RECONNECT_IVL_MAX})")
-		# group.add_argument("--zmq_RCVTIMEO", metavar="SECONDS", dest="zmq_RCVTIMEO", type=float, help=f"set ZMQ receive timeout (default: {namespace.zmq_RCVTIMEO})")
+		group.add_argument("-d", "--zmq-close-delay", metavar="SECONDS", dest="zmq_close_delay", type=float, help=f"delay closing ZMQ connection after the last websocket client leaves (default: {namespace.zmq_close_delay})")
+		group.add_argument("--size-limit", metavar="BYTES", dest="msg_size_limit", type=int, help=f"set decompressed JSON size limit (default: {namespace.msg_size_limit})")
+		group.add_argument("--zmq-HEARTBEAT_IVL", metavar="SECONDS", dest="zmq_HEARTBEAT_IVL", type=float, help=f"set ZMQ ping interval, 0 to disable (default: {namespace.zmq_HEARTBEAT_IVL})")
+		group.add_argument("--zmq-HEARTBEAT_TIMEOUT", metavar="SECONDS", dest="zmq_HEARTBEAT_TIMEOUT", type=float, help=f"set ZMQ ping timeout (default: {namespace.zmq_HEARTBEAT_TIMEOUT})")
+		group.add_argument("--zmq-RECONNECT_IVL_MAX", metavar="SECONDS", dest="zmq_RECONNECT_IVL_MAX", type=float, help=f"set maximum reconnection interval (default: {namespace.zmq_RECONNECT_IVL_MAX})")
+		# group.add_argument("--zmq-RCVTIMEO", metavar="SECONDS", dest="zmq_RCVTIMEO", type=float, help=f"set ZMQ receive timeout (default: {namespace.zmq_RCVTIMEO})")
 
 		group = parser.add_argument_group("Websocket options")
 		group.add_argument("-s", "--socket", metavar="PATH", dest="listen_path", help=f"listen on Unix socket if set (default: {namespace.listen_path})")

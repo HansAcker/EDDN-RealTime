@@ -114,10 +114,10 @@
 <template id="infotemplate">
 <div class="infobox">
 	<div class="infobox__header">
-		<button class="infobox__button infobox__button--copy-msg">Copy message</button>
-		<button class="infobox__button infobox__button--copy-gts">Copy gateway timestamp</button>
-		<button class="infobox__button infobox__button--copy-uid">Copy uploader ID</button>
-		<button class="infobox__button infobox__button--close">Close window</button>
+		<button class="infobox__button infobox__button--copy-msg" data-infobox__action="copy-msg">Copy message</button>
+		<button class="infobox__button infobox__button--copy-gts" data-infobox__action="copy-gts">Copy gateway timestamp</button>
+		<button class="infobox__button infobox__button--copy-uid" data-infobox__action="copy-uid">Copy uploader ID</button>
+		<button class="infobox__button infobox__button--close" data-infobox__action="close">Close window</button>
 	</div>
 	<div class="infobox__contentbox">
 		<pre class="infobox__content"></pre>

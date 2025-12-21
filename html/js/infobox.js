@@ -4,12 +4,10 @@
 // key: typically a <tr> element
 // val: an EDDN message object
 
-// TODO: use DocumentFragments and importNode()?
-
 
 class InfoBox {
 	#container; // new InfoBox appended here
-	#template; // InfoBox DOM template root node
+	#template; // InfoBox template node
 	#infoMap = new WeakMap(); // only keep data while the key object exists
 
 	constructor(container, template) {
@@ -29,7 +27,9 @@ class InfoBox {
 		}
 
 		const msgText = JSON.stringify(msg, null, 2);
-		const infoBox = this.#template.cloneNode(true);
+
+		// clone the template's first child element, a node reference needed to call .remove() on
+		const infoBox = document.importNode(this.#template.content, true).firstElementChild;
 
 		infoBox.querySelector(".infobox__content").textContent = msgText;
 
@@ -40,7 +40,7 @@ class InfoBox {
 			const target = ev.target.closest(".infobox__header [data-infobox__action]");
 			const action = target?.dataset.infobox__action;
 
-			// TODO: use async copy, handle error
+			// TODO: use async copy, handle success/error
 			const actions = {
 				"copy-msg": () => navigator.clipboard.writeText(msgText),
 				"copy-gts": () => navigator.clipboard.writeText(msg.header?.gatewayTimestamp),
@@ -48,12 +48,8 @@ class InfoBox {
 				"close": () => infoBox.remove(),
 			};
 
-			if (action in actions) {
-				actions[action]();
-			} else {
-				// default action: close on click anywhere in header
-				infoBox.remove();
-			}
+			// default action: close on click anywhere in header
+			(actions[action] ?? actions["close"])();
 		});
 
 		this.#container.append(infoBox);

@@ -10,7 +10,7 @@ import { distance3, trimPrefix, makeTd, addRow, whatGame, GalacticRegions } from
 
 
 const activity = new PageIconActivity(window.icon, idleTimeout);
-const infobox = new InfoBox(document.body, window.infotemplate.content.children[0]);
+const infobox = new InfoBox(document.body, window.infotemplate);
 const softwareStats = new StatsBox(window.softbody);
 const eventStats = new SortedStatsBox(window.eventsbody);
 const gameStats = new StatsBox(window.statsbody, {

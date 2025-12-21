@@ -12,12 +12,15 @@ from typing import Any, Dict, Set, Tuple, Optional
 
 
 # TODO: possibly
-# - rework for websockets >13.1 (process_request, ws_conns)
+# - rework for websockets >=14 (process_request, ws_conns)
 # - limit number of connections
 # - limit client buffers with individual send() instead of unbounded broadcast()
-# - filter log output or remove verbose mode
-# - move global vars into a class
+# - wrap global vars into a class
 # - classify arg parser
+# - use logging
+# - handle/discard incoming client messages
+#   the current client should not send anything and would just get itself disconnected for missing pongs
+# - create/close ZMQ socket on connect/disconnect
 
 
 options = argparse.Namespace(
@@ -39,15 +42,7 @@ options = argparse.Namespace(
 
 # TODO: professional logging
 
-EL = "\x1b[K" # ANSI EL - clear from cursor to the end of the line
-
-# prints on the same line to stdout (CR, sep, *objects, EL)
-def print_same(*objects : Any, sep : Optional[str] = " ", end : Optional[str] = EL, flush : bool = True) -> None:
-	print("\r", *objects, sep=sep, end=end, flush=flush)
-
-# prints on stderr, clears line on stdout
 def print_stderr(*objects : Any, sep : Optional[str] = " ", end : Optional[str] = None, flush : bool = True) -> None:
-	if options.verbose: print_same()
 	print(*objects, sep=sep, end=end, file=sys.stderr, flush=flush)
 
 
@@ -124,23 +119,11 @@ async def relay_messages() -> None:
 		except Exception as e:
 			print_stderr("relay error:", e)
 
-		if options.verbose:
-			try:
-				message = data["message"]
-
-				if not "event" in message:
-					print_same(f"({data['$schemaRef']})")
-				elif "StarSystem" in message:
-					print_same(f"{message['event']}: {message['StarSystem']}")
-				else:
-					print_same(message['event'])
-			except Exception as e:
-				print_same("unrecognized message:", e)
 
 def relay_start() -> None:
 	global zmq_task
 
-	print_stderr("connecting ZMQ")
+	if options.verbose: print_stderr("connecting ZMQ")
 	zmq_connect()
 	zmq_task = asyncio.create_task(relay_messages())
 
@@ -151,7 +134,7 @@ def relay_stop() -> None:
 		zmq_task.cancel()
 		zmq_task = None
 
-	print_stderr("disconnecting ZMQ")
+	if options.verbose: print_stderr("disconnecting ZMQ")
 	zmq_disconnect()
 
 def relay_close() -> None:
@@ -169,7 +152,7 @@ def relay_close_cancel() -> None:
 
 async def ws_handler(websocket: websockets.WebSocketServerProtocol) -> None:
 	ws_conns.add(websocket)
-	print_stderr(f"client connected: {websocket.id} {websocket.remote_address} ({len(ws_conns)} active)")
+	if options.verbose: print_stderr(f"client connected: {websocket.id} {websocket.remote_address} ({len(ws_conns)} active)")
 
 	# cancel the timer
 	relay_close_cancel()
@@ -179,14 +162,13 @@ async def ws_handler(websocket: websockets.WebSocketServerProtocol) -> None:
 		relay_start()
 
 	# wait until client disconnects
-	# TODO: handle/discard incoming messages
 	try:
 		await websocket.wait_closed()
 	except Exception as e:
 		print_stderr("websocket error:", e)
 
 	ws_conns.remove(websocket)
-	print_stderr(f"client disconnected: {websocket.id} {websocket.remote_address} ({len(ws_conns)} active)")
+	if options.verbose: print_stderr(f"client disconnected: {websocket.id} {websocket.remote_address} ({len(ws_conns)} active)")
 
 	# last websocket stops the relay
 	if not ws_conns and zmq_task:
@@ -201,7 +183,7 @@ async def process_request(path: str, request_headers: websockets.Headers) -> Opt
 
 
 async def server_init() -> None:
-	print_stderr("starting websocket server")
+	if options.verbose: print_stderr("starting websocket server")
 
 	# set stop condition on signal
 	loop = asyncio.get_running_loop()
@@ -228,16 +210,17 @@ async def server_init() -> None:
 	}
 
 	if options.listen_path:
-		print_stderr(f"socket path: {options.listen_path}")
+		if options.verbose: print_stderr(f"socket path: {options.listen_path}")
 		# TODO: set umask
 		server = websockets.unix_serve(ws_handler, options.listen_path, **ws_args)
 	else:
-		print_stderr(f"TCP address: {options.listen_addr}:{options.listen_port}")
+		if options.verbose: print_stderr(f"TCP address: {options.listen_addr}:{options.listen_port}")
 		server = websockets.serve(ws_handler, options.listen_addr, options.listen_port, **ws_args)
 
 	# run the server until stop condition
 	async with server:
-		print_stderr(f"received {await stop}, stopping websocket server")
+		stop_signal = await stop
+		if options.verbose: print_stderr(f"received {stop_signal}, stopping websocket server")
 
 
 if __name__ == "__main__":
@@ -246,7 +229,7 @@ if __name__ == "__main__":
 					description="Relay EDDN messages to websocket clients",
 					epilog="https://github.com/HansAcker/EDDN-RealTime")
 
-		parser.add_argument("-v", "--verbose", action="store_true", help=f"log events to stdout (default: {namespace.verbose})")
+		parser.add_argument("-v", "--verbose", action="store_true", help=f"(default: {namespace.verbose})")
 
 		group = parser.add_argument_group("ZMQ options")
 		group.add_argument("-u", "--url", metavar="URL", dest="zmq_url", help=f"EDDN ZMQ URL (default: {namespace.zmq_url})")

@@ -357,14 +357,7 @@ function eventCodexEntry(messageRecord) {
 
 // TODO: move into infobox class?
 window.board.addEventListener("click", (ev) => {
-	let target;
-
-	if (ev.target.tagName === "TR") {
-		target = ev.target;
-	}
-	else if (ev.target.tagName === "TD") {
-		target = ev.target.parentNode;
-	}
+	const target = ev.target.closest("tr");
 
 	if (target && infobox.has(target)) {
 		infobox.show(target);

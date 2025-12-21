@@ -107,14 +107,11 @@ class SortedStatsBox extends StatsBox {
 		// find new position in rows array
 		let idxNew = idxOld;
 		do {
-			//console.log(`${key}: ${this._rows[idxNew-1]._key} ${this._stats[this._rows[idxNew-1]._key]} => ${idxNew}`);
 			this._stats[this._rows[idxNew-1]._key] = idxNew--; // update indices
 		} while (idxNew > 0 && value > this._rows[idxNew-1]._value);
 
 		// update rows
-		//console.log(`${key}: ${this._stats[key]} => ${idxNew}`);
 		this._rows[idxNew]._tr.before(stat._tr); // move table row
-
 		this._rows.copyWithin(idxNew+1, idxNew, idxOld); // shift array back by one
 		this._rows[idxNew] = stat; // re-insert element
 		this._stats[key] = idxNew; // update index

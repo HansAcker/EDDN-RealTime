@@ -7,7 +7,7 @@
 
 class InfoBox {
 	#container; // new InfoBox appended here
-	#template; // InfoBox template node
+	#template; // InfoBox <template> element
 	#infoMap = new WeakMap(); // only keep data while the key object exists
 
 	constructor(container, template) {
@@ -31,6 +31,14 @@ class InfoBox {
 		// clone the template's first child element, a node reference needed to call .remove() on
 		const infoBox = document.importNode(this.#template.content, true).firstElementChild;
 
+		// TODO: use async copy, handle success/error
+		const actions = {
+			"copy-msg": () => navigator.clipboard.writeText(msgText),
+			"copy-gts": () => navigator.clipboard.writeText(msg.header?.gatewayTimestamp),
+			"copy-uid": () => navigator.clipboard.writeText(msg.header?.uploaderID),
+			"close": () => infoBox.remove(),
+		};
+
 		infoBox.querySelector(".infobox__content").textContent = msgText;
 
 		infoBox.querySelector(".infobox__header").addEventListener("click", (ev) => {
@@ -42,14 +50,7 @@ class InfoBox {
 			// default action: close on click anywhere in header
 			const action = target?.dataset.infobox__action ?? "close";
 
-			// TODO: use async copy, handle success/error
-			const actions = {
-				"copy-msg": () => navigator.clipboard.writeText(msgText),
-				"copy-gts": () => navigator.clipboard.writeText(msg.header?.gatewayTimestamp),
-				"copy-uid": () => navigator.clipboard.writeText(msg.header?.uploaderID),
-				"close": () => infoBox.remove(),
-			};
-
+			// TODO: log if action not found?
 			actions[action]?.();
 		});
 

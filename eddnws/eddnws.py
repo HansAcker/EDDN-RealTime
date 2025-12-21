@@ -1,9 +1,9 @@
 import argparse
 import asyncio
+import json
 import signal
 import sys
 import zlib
-import simplejson
 import websockets
 import zmq.asyncio
 
@@ -86,12 +86,12 @@ def zmq_reconnect() -> None:
 def decode_msg(zmq_msg: bytes) -> Dict[str, Any]:
 	dobj = zlib.decompressobj()
 
-	json = dobj.decompress(zmq_msg, options.msg_size_limit)
+	json_text = dobj.decompress(zmq_msg, options.msg_size_limit)
 
 	if dobj.unconsumed_tail:
 		raise ValueError("size limit exceeded")
 
-	data = simplejson.loads(json)
+	data = json.loads(json_text)
 
 	if not (isinstance(data, dict) and "$schemaRef" in data):
 		raise ValueError("missing $schemaRef")
@@ -120,7 +120,7 @@ async def relay_messages() -> None:
 		# normalize outgoing JSON intstead of forwarding the decompressed text as is
 		# sort_keys can improve stream compression. EDDN dicts usually already are ordered
 		try:
-			websockets.broadcast(ws_conns, simplejson.dumps(data, sort_keys=True))
+			websockets.broadcast(ws_conns, json.dumps(data, sort_keys=True))
 		except Exception as e:
 			print_stderr("relay error:", e)
 

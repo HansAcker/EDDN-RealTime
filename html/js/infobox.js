@@ -38,7 +38,9 @@ class InfoBox {
 
 			// find the action button that was clicked
 			const target = ev.target.closest(".infobox__header [data-infobox__action]");
-			const action = target?.dataset.infobox__action;
+
+			// default action: close on click anywhere in header
+			const action = target?.dataset.infobox__action ?? "close";
 
 			// TODO: use async copy, handle success/error
 			const actions = {
@@ -48,8 +50,7 @@ class InfoBox {
 				"close": () => infoBox.remove(),
 			};
 
-			// default action: close on click anywhere in header
-			(actions[action] ?? actions["close"])();
+			actions[action]?.();
 		});
 
 		this.#container.append(infoBox);

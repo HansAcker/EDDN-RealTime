@@ -210,7 +210,7 @@ class EDDNWebsocketServer:
 			None
 		"""
 		if self._relay_task is not None and not self._relay_task.done():
-			self._logger.warning("relay_start(): zmq_task is not done")
+			self._logger.warning("relay_start(): relay_task is not done")
 			return
 
 		self._logger.info("connecting ZMQ")
@@ -307,8 +307,8 @@ class EDDNWebsocketServer:
 			except Exception as e:
 				# TODO: a fatal ZMQ socket exception stops the relay but does not clean up relay_task
 				#		- the next client connection would restart the relay task but not the socket
-				#		 - count failures, reconnect ZMQ, backoff delay?
-				#		 - or terminate the server?
+				#		- count failures, reconnect ZMQ, backoff delay?
+				#		- or terminate the server?
 				self._logger.exception("receive error, relay task exiting:", e)
 				break
 
@@ -387,6 +387,7 @@ class EDDNWebsocketServer:
 		# TODO: the websocket client does not log or back off on code 1013 yet
 
 		if (self.options.connection_limit > 0 and len(self._ws_conns) >= self.options.connection_limit):
+			self._logger.info(f"client rejected, connection limit reached: {websocket.id} {websocket.remote_address} ({len(self._ws_conns)} active)")
 			await websocket.close(1013, "Connection limit reached")
 			return
 
@@ -440,6 +441,7 @@ class EDDNWebsocketServer:
 
 			for websocket in slow_clients:
 				self._logger.info(f"client {websocket.id} write buffer limit exceeded, disconnecting")
+				# TODO: if close() hangs, this could schedule one call per client per second
 				asyncio.create_task(websocket.close(1008, "Write buffer overrun"))
 
 			await asyncio.sleep(1)

@@ -4,12 +4,16 @@ import logging
 import signal
 import sys
 import zlib
+
 import orjson
 import websockets
 import zmq.asyncio
 
+from dataclasses import dataclass
+
 # TODO: python >=3.9 supports dict, set, tuple
 from typing import Any, Dict, Set, Tuple, Optional
+
 
 # TODO: rework logger
 logging.basicConfig(format="%(levelname)s: %(message)s - %(module)s.%(funcName)s()", level=logging.INFO)
@@ -17,8 +21,7 @@ logger = logging.getLogger("eddnws")
 
 
 # TODO: possibly
-# - classify arg parser
-#   - use dataclass for options/defaults
+# - improve arg parser
 # - configure logging properly
 #   - pass optional logger in constructor kwargs/options
 #   - use a different log level for websocket's logger
@@ -30,8 +33,10 @@ logger = logging.getLogger("eddnws")
 # - handle/discard incoming client messages
 #   - the current client should not send anything and would just get itself disconnected for missing pongs
 # - re-think monitor_task lifecycle, make its timing configurable
+#   - is monitoring the write buffer actually needed? missing pongs would disconnect a stalled client soon
 # - use SO_REUSEPORT on websocket to attach multiple script instances to the same port
 # - InterpreterPoolExecutor could be better suited to offload JSON, requires python >=3.14
+# - run a profiler to find the actual hot spots
 # - continue to ignore signal handler incompatibility with native Windows, the script runs under WSL
 # - keep compatibility with python 3.8 for now
 # - review LLM-generated docstrings
@@ -43,32 +48,32 @@ class EDDNWebsocketServer:
 	from a ZMQ subscription to connected Websocket clients.
 	"""
 
-	# TODO: use plain dict for instance options, keep convenient Namespace on the class variable with defaults?
-	#		- or give in and make it a dataclass
-	options = argparse.Namespace(
-		verbosity = 0, # translates to log level
+	@dataclass
+	class ServerOptions:
+		"""Configuration options for the EDDN Websocket Server."""
 
-		listen_addr = "127.0.0.1",
-		listen_port = 8081,
-		listen_path = None, # listen on socket path instead of TCP, e.g. "/run/eddn/eddnws.sock"
+		verbosity: int = 0 # translates to log level
 
-		ping_path = "/ping", # respond to health-checks if set
+		listen_addr: str = "127.0.0.1"
+		listen_port: int = 8081
+		listen_path: Optional[str] = None # listen on socket path instead of TCP, e.g. "/run/eddn/eddnws.sock"
+
+		ping_path: Optional[str] = "/ping" # respond to health-checks if set
 
 		# default safety limits
-		msg_size_limit = 4 * 1024 * 1024, # decompressed JSON size limit (bytes)
-		client_buffer_limit = 1 * 1024 * 1024, # per-client send buffer limit (bytes)
-		connection_limit = 1000, # max. number of active websockets accepted by ws_handler
+		msg_size_limit: int = 4 * 1024 * 1024 # decompressed JSON size limit (bytes)
+		client_buffer_limit: int = 1 * 1024 * 1024 # per-client send buffer limit (bytes)
+		connection_limit: int = 1000 # max. number of active websockets accepted by ws_handler
 
-		zmq_url = "tcp://eddn.edcd.io:9500", # https://github.com/EDCD/EDDN#eddn-endpoints
-		zmq_close_delay = 3.3,
+		zmq_url: str = "tcp://eddn.edcd.io:9500" # https://github.com/EDCD/EDDN#eddn-endpoints
+		zmq_close_delay: float = 3.3
 		# TODO: ZMQ_CONNECT_TIMEOUT
-		zmq_HEARTBEAT_IVL = 180,
-		zmq_HEARTBEAT_TIMEOUT = 20,
-		zmq_RECONNECT_IVL_MAX = 60,
-		# zmq_RCVTIMEO = 600, # TODO: what would setting RCVTIMEO achieve?
-		zmq_RCVHWM = 1000, # TODO: should this be called msg_backlog_limit?
+		zmq_HEARTBEAT_IVL: float = 180
+		zmq_HEARTBEAT_TIMEOUT: float = 20
+		zmq_RECONNECT_IVL_MAX: float = 60
+		# zmq_RCVTIMEO: float = 600 # TODO: what would setting RCVTIMEO achieve?
+		zmq_RCVHWM: int = 1000 # TODO: should this be called msg_backlog_limit?
 		# TODO: set ZMQ_MAXMSGSIZE?
-	)
 
 
 	def __init__(self, options: Optional[Dict[str, Any]] = None) -> None:
@@ -86,10 +91,9 @@ class EDDNWebsocketServer:
 		if options is None:
 			options = {}
 
-		# TODO: properly merge options? python >= 3.9 supports dict1 | dict2
-		self.options = argparse.Namespace(**{**vars(self.options), **options})
+		self.options = EDDNWebsocketServer.ServerOptions(**options)
 
-		# TODO: pass optional logger in constructor/options or handle either -v[v] or -d N to set log level
+		# TODO: pass optional logger in constructor/options, handle -v[v] to set log level
 		self._logger = logger
 
 		# active websocket connections
@@ -455,7 +459,8 @@ class EDDNWebsocketServer:
 				# websockets could close the transport before ws_handler removes the client from the set
 				if websocket.transport and websocket.transport.get_write_buffer_size() > self.options.client_buffer_limit:
 					self._logger.info(f"client {websocket.id} write buffer limit exceeded, disconnecting")
-					# TODO: if close() hangs, this could schedule one call per client per second
+					# TODO: if close() times out, which it likely does, this would schedule one call per stalled client per second
+					#       - remove websocket from ws_conns here? but then the connection_limit could be exceeded
 					asyncio.create_task(websocket.close(1008, "Write buffer overrun"))
 
 			await asyncio.sleep(1)
@@ -527,38 +532,38 @@ if __name__ == "__main__":
 		pass
 
 
-	def parse_args(defaults : argparse.Namespace = argparse.Namespace()) -> argparse.Namespace:
+	def parse_args() -> Dict[str, Any]:
 		parser = argparse.ArgumentParser(
 					description="Relay EDDN messages to websocket clients",
-					epilog="https://github.com/HansAcker/EDDN-RealTime")
+					epilog="https://github.com/HansAcker/EDDN-RealTime",
+					argument_default=argparse.SUPPRESS)
 
-		namespace = argparse.Namespace(**{**vars(EDDNWebsocketServer.options), **vars(defaults)})
+		defaults = EDDNWebsocketServer.ServerOptions()
 
 		# TODO: clarify help string? it actually de-creases the log level which makes it more verbose
-		parser.add_argument("-v", "--verbose", action="count", dest="verbosity", default=0, help=f"increase log level")
+		parser.add_argument("-v", "--verbose", action="count", dest="verbosity", help=f"increase log level")
 
 		group = parser.add_argument_group("ZMQ options")
-		group.add_argument("-u", "--url", metavar="URL", dest="zmq_url", help=f"EDDN ZMQ URL (default: {namespace.zmq_url})")
-		group.add_argument("-d", "--zmq-close-delay", metavar="SECONDS", dest="zmq_close_delay", type=float, help=f"delay closing ZMQ connection after the last websocket client leaves (default: {namespace.zmq_close_delay})")
-		group.add_argument("--size-limit", metavar="BYTES", dest="msg_size_limit", type=int, help=f"set decompressed JSON size limit (default: {namespace.msg_size_limit})")
-		group.add_argument("--zmq-HEARTBEAT_IVL", metavar="SECONDS", dest="zmq_HEARTBEAT_IVL", type=float, help=f"set ZMQ ping interval, 0 to disable (default: {namespace.zmq_HEARTBEAT_IVL})")
-		group.add_argument("--zmq-HEARTBEAT_TIMEOUT", metavar="SECONDS", dest="zmq_HEARTBEAT_TIMEOUT", type=float, help=f"set ZMQ ping timeout (default: {namespace.zmq_HEARTBEAT_TIMEOUT})")
-		group.add_argument("--zmq-RECONNECT_IVL_MAX", metavar="SECONDS", dest="zmq_RECONNECT_IVL_MAX", type=float, help=f"set maximum reconnection interval (default: {namespace.zmq_RECONNECT_IVL_MAX})")
-		# group.add_argument("--zmq-RCVTIMEO", metavar="SECONDS", dest="zmq_RCVTIMEO", type=float, help=f"set ZMQ receive timeout (default: {namespace.zmq_RCVTIMEO})")
-		group.add_argument("--zmq-RCVHWM", metavar="NUM", dest="zmq_RCVHWM", type=int, help=f"set ZMQ message backlog limit, 0 to disable (default: {namespace.zmq_RCVHWM})")
+		group.add_argument("-u", "--url", metavar="URL", dest="zmq_url", help=f"EDDN ZMQ URL (default: {defaults.zmq_url})")
+		# TODO: -d is usually "debug", use another letter?
+		group.add_argument("-d", "--zmq-close-delay", metavar="SECONDS", dest="zmq_close_delay", type=float, help=f"delay closing ZMQ connection after the last websocket client leaves (default: {defaults.zmq_close_delay})")
+		group.add_argument("--size-limit", metavar="BYTES", dest="msg_size_limit", type=int, help=f"set decompressed JSON size limit (default: {defaults.msg_size_limit})")
+		group.add_argument("--zmq-HEARTBEAT_IVL", metavar="SECONDS", dest="zmq_HEARTBEAT_IVL", type=float, help=f"set ZMQ ping interval, 0 to disable (default: {defaults.zmq_HEARTBEAT_IVL})")
+		group.add_argument("--zmq-HEARTBEAT_TIMEOUT", metavar="SECONDS", dest="zmq_HEARTBEAT_TIMEOUT", type=float, help=f"set ZMQ ping timeout (default: {defaults.zmq_HEARTBEAT_TIMEOUT})")
+		group.add_argument("--zmq-RECONNECT_IVL_MAX", metavar="SECONDS", dest="zmq_RECONNECT_IVL_MAX", type=float, help=f"set maximum reconnection interval (default: {defaults.zmq_RECONNECT_IVL_MAX})")
+		# group.add_argument("--zmq-RCVTIMEO", metavar="SECONDS", dest="zmq_RCVTIMEO", type=float, help=f"set ZMQ receive timeout (default: {defaults.zmq_RCVTIMEO})")
+		group.add_argument("--zmq-RCVHWM", metavar="NUM", dest="zmq_RCVHWM", type=int, help=f"set ZMQ message backlog limit, 0 to disable (default: {defaults.zmq_RCVHWM})")
 
 		group = parser.add_argument_group("Websocket options")
-		group.add_argument("-s", "--socket", metavar="PATH", dest="listen_path", help=f"listen on Unix socket if set (default: {namespace.listen_path})")
-		group.add_argument("-a", "--addr", dest="listen_addr", help=f"listen on TCP address (default: {namespace.listen_addr})")
-		group.add_argument("-p", "--port", dest="listen_port", type=int, help=f"listen on TCP port (default: {namespace.listen_port})")
-		group.add_argument("--client-buffer-limit", metavar="BYTES", dest="client_buffer_limit", type=int, help=f"set per-client write buffer limit, 0 to disable (default: {namespace.client_buffer_limit})")
-		group.add_argument("--connection-limit", metavar="NUM", dest="connection_limit", type=int, help=f"set websocket connection count limit, 0 to disable (default: {namespace.connection_limit})")
+		group.add_argument("-s", "--socket", metavar="PATH", dest="listen_path", help=f"listen on Unix socket if set (default: {defaults.listen_path})")
+		group.add_argument("-a", "--addr", dest="listen_addr", help=f"listen on TCP address (default: {defaults.listen_addr})")
+		group.add_argument("-p", "--port", dest="listen_port", type=int, help=f"listen on TCP port (default: {defaults.listen_port})")
+		group.add_argument("--client-buffer-limit", metavar="BYTES", dest="client_buffer_limit", type=int, help=f"set per-client write buffer limit, 0 to disable (default: {defaults.client_buffer_limit})")
+		group.add_argument("--connection-limit", metavar="NUM", dest="connection_limit", type=int, help=f"set websocket connection count limit, 0 to disable (default: {defaults.connection_limit})")
 
 		# TODO: add ws keepalive, timeouts, queue size/length
 
-		parser.parse_args(namespace=namespace)
-
-		return namespace
+		return vars(parser.parse_args())
 
 
-	asyncio.run(EDDNWebsocketServer(vars(parse_args())).serve())
+	asyncio.run(EDDNWebsocketServer(parse_args()).serve())

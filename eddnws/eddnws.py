@@ -69,7 +69,7 @@ class EDDNWebsocketServer:
 	)
 
 
-	def __init__(self, options: Dict[str, Any] = {}) -> None:
+	def __init__(self, options: Optional[Dict[str, Any]] = None) -> None:
 		"""
 		Initialize the EDDN Websocket Server instance.
 
@@ -80,6 +80,10 @@ class EDDNWebsocketServer:
 		Returns:
 			None
 		"""
+
+		if options is None:
+			options = {}
+
 		# TODO: properly merge options? python >= 3.9 supports dict1 | dict2
 		self.options = argparse.Namespace(**{**vars(self.options), **options})
 
@@ -323,6 +327,7 @@ class EDDNWebsocketServer:
 				# raise RuntimeError("fatal ZMQ socket exception")
 
 				# send SIGHUP to self, let the init system restart the server
+				# TODO: set the "stop" future here
 				import os
 				os.kill(os.getpid(), signal.SIGHUP)
 				break
@@ -446,18 +451,14 @@ class EDDNWebsocketServer:
 			None
 		"""
 		while self.options.client_buffer_limit > 0:
-			slow_clients = [
-				# iterate over a copy of ws_conns
-				# TODO: if ws_conns gets large, a better solution than list(ws_conns) might be needed
-				websocket for websocket in list(self._ws_conns)
-					# websockets could close the transport before ws_handler removes the client from the set
-					if websocket.transport and websocket.transport.get_write_buffer_size() > self.options.client_buffer_limit
-			]
-
-			for websocket in slow_clients:
-				self._logger.info(f"client {websocket.id} write buffer limit exceeded, disconnecting")
-				# TODO: if close() hangs, this could schedule one call per client per second
-				asyncio.create_task(websocket.close(1008, "Write buffer overrun"))
+			# iterate over a copy of ws_conns
+			# TODO: if ws_conns gets large, a better solution than list(ws_conns) might be needed
+			for websocket in list(self._ws_conns):
+				# websockets could close the transport before ws_handler removes the client from the set
+				if websocket.transport and websocket.transport.get_write_buffer_size() > self.options.client_buffer_limit:
+					self._logger.info(f"client {websocket.id} write buffer limit exceeded, disconnecting")
+					# TODO: if close() hangs, this could schedule one call per client per second
+					asyncio.create_task(websocket.close(1008, "Write buffer overrun"))
 
 			await asyncio.sleep(1)
 

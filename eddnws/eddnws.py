@@ -64,7 +64,7 @@ class EDDNWebsocketServer:
 		zmq_HEARTBEAT_IVL = 180,
 		zmq_HEARTBEAT_TIMEOUT = 20,
 		zmq_RECONNECT_IVL_MAX = 60,
-		# zmq_RCVTIMEO = 600, # TODO: why was RCVTIMEO defined but not used, was there a reason?
+		# zmq_RCVTIMEO = 600, # TODO: what would setting RCVTIMEO achieve?
 		zmq_RCVHWM = 1000, # TODO: should this be called msg_backlog_limit?
 	)
 
@@ -231,6 +231,10 @@ class EDDNWebsocketServer:
 		Returns:
 			None
 		"""
+		if self._relay_close_handler is not None:
+			self._relay_close_handler.cancel()
+			self._relay_close_handler = None
+
 		if self._relay_task is not None:
 			self._relay_task.cancel()
 			self._relay_task = None
@@ -304,12 +308,23 @@ class EDDNWebsocketServer:
 		while self._zmq_sub is not None:
 			try:
 				zmq_msg = await self._zmq_sub.recv()
+
+			except zmq.Again:
+				# EAGAIN: zmq.RCVTIMEO is >= 0 (default -1) and recv() timed out
+				# TODO: what to do here other than try again?
+				await asyncio.sleep(0.1)
+
 			except Exception as e:
 				# TODO: a fatal ZMQ socket exception stops the relay but does not clean up relay_task
 				#		- the next client connection would restart the relay task but not the socket
 				#		- count failures, reconnect ZMQ, backoff delay?
-				#		- or terminate the server?
+				#		- terminate the server via HUP to self for now
 				self._logger.exception("receive error, relay task exiting:", e)
+				# raise RuntimeError("fatal ZMQ socket exception")
+
+				# send SIGHUP to self, let the init system restart the server
+				import os
+				os.kill(os.getpid(), signal.SIGHUP)
 				break
 
 			try:

@@ -45,6 +45,8 @@ class EDDNWebsocketServer:
 	# TODO: use plain dict for instance options, keep convenient Namespace on the class variable with defaults?
 	#		- or give in and make it a dataclass
 	options = argparse.Namespace(
+		verbosity = 0, # translates to log level
+
 		listen_addr = "127.0.0.1",
 		listen_port = 8081,
 		listen_path = None, # listen on socket path instead of TCP, e.g. "/run/eddn/eddnws.sock"
@@ -383,7 +385,7 @@ class EDDNWebsocketServer:
 		# TODO: check len(ws_conns) before the websocket handshake, after the HTTP Upgrade (process_request)?
 		# TODO: the websocket client does not log or back off on code 1013 yet
 
-		if (len(self._ws_conns) >= self.options.connection_limit):
+		if (self.options.connection_limit > 0 and len(self._ws_conns) >= self.options.connection_limit):
 			await websocket.close(1013, "Connection limit reached")
 			return
 
@@ -426,7 +428,7 @@ class EDDNWebsocketServer:
 		Returns:
 			None
 		"""
-		while True:
+		while self.options.client_buffer_limit > 0:
 			slow_clients = [
 				# iterate over a copy of ws_conns
 				# TODO: if ws_conns gets large, a better solution than list(ws_conns) might be needed
@@ -500,9 +502,6 @@ class EDDNWebsocketServer:
 
 
 
-
-# TODO: old startup code - clean up arg parser and server init, use defaults from class
-
 if __name__ == "__main__":
 	try:
 		import uvloop
@@ -511,21 +510,15 @@ if __name__ == "__main__":
 		pass
 
 
-	def parse_args(namespace : argparse.Namespace) -> None:
-		"""
-		Parse command-line arguments and update the provided namespace.
-
-		Args:
-			namespace (argparse.Namespace): The namespace object (defaults) to update with parsed arguments.
-
-		Returns:
-			None
-		"""
+	def parse_args(defaults : argparse.Namespace = argparse.Namespace()) -> argparse.Namespace:
 		parser = argparse.ArgumentParser(
 					description="Relay EDDN messages to websocket clients",
 					epilog="https://github.com/HansAcker/EDDN-RealTime")
 
-		parser.add_argument("-v", "--verbose", action="count", default=None)
+		namespace = argparse.Namespace(**{**vars(EDDNWebsocketServer.options), **vars(defaults)})
+
+		# TODO: clarify help string? it actually de-creases the log level which makes it more verbose
+		parser.add_argument("-v", "--verbose", action="count", dest="verbosity", default=0, help=f"increase log level")
 
 		group = parser.add_argument_group("ZMQ options")
 		group.add_argument("-u", "--url", metavar="URL", dest="zmq_url", help=f"EDDN ZMQ URL (default: {namespace.zmq_url})")
@@ -535,32 +528,21 @@ if __name__ == "__main__":
 		group.add_argument("--zmq-HEARTBEAT_TIMEOUT", metavar="SECONDS", dest="zmq_HEARTBEAT_TIMEOUT", type=float, help=f"set ZMQ ping timeout (default: {namespace.zmq_HEARTBEAT_TIMEOUT})")
 		group.add_argument("--zmq-RECONNECT_IVL_MAX", metavar="SECONDS", dest="zmq_RECONNECT_IVL_MAX", type=float, help=f"set maximum reconnection interval (default: {namespace.zmq_RECONNECT_IVL_MAX})")
 		# group.add_argument("--zmq-RCVTIMEO", metavar="SECONDS", dest="zmq_RCVTIMEO", type=float, help=f"set ZMQ receive timeout (default: {namespace.zmq_RCVTIMEO})")
+		group.add_argument("--zmq-RCVHWM", metavar="NUM", dest="zmq_RCVHWM", type=int, help=f"set ZMQ message backlog limit, 0 to disable (default: {namespace.zmq_RCVHWM})")
 
 		group = parser.add_argument_group("Websocket options")
 		group.add_argument("-s", "--socket", metavar="PATH", dest="listen_path", help=f"listen on Unix socket if set (default: {namespace.listen_path})")
 		group.add_argument("-a", "--addr", dest="listen_addr", help=f"listen on TCP address (default: {namespace.listen_addr})")
 		group.add_argument("-p", "--port", dest="listen_port", type=int, help=f"listen on TCP port (default: {namespace.listen_port})")
+		group.add_argument("--client-buffer-limit", metavar="BYTES", dest="client_buffer_limit", type=int, help=f"set per-client write buffer limit, 0 to disable (default: {namespace.client_buffer_limit})")
+		group.add_argument("--connection-limit", metavar="NUM", dest="connection_limit", type=int, help=f"set websocket connection count limit, 0 to disable (default: {namespace.connection_limit})")
 
 		# TODO: add ws keepalive, timeouts, queue size/length
 
 		parser.parse_args(namespace=namespace)
 
+		return namespace
 
-	options = argparse.Namespace(
-		listen_addr = "127.0.0.1",
-		listen_port = 8081,
-		listen_path = None, # listen on socket path instead of TCP, e.g. "/run/eddn/eddnws.sock"
-		msg_size_limit = 4 * 1024 * 1024, # decompressed JSON size limit (bytes)
-		client_buffer_limit = 1 * 1024 * 1024, # per-client send buffer limit (bytes)
-		zmq_url = "tcp://eddn.edcd.io:9500", # https://github.com/EDCD/EDDN#eddn-endpoints
-		zmq_close_delay = 3.3,
-		zmq_HEARTBEAT_IVL = 180,
-		zmq_HEARTBEAT_TIMEOUT = 20,
-		zmq_RECONNECT_IVL_MAX = 60,
-		# zmq_RCVTIMEO = 600,
-		ping_path = "/ping", # respond to health-checks if set
-		ping_response = b"OK\n",
-	)
 
-	parse_args(namespace=options)
+	options = parse_args()
 	asyncio.run(EDDNWebsocketServer(vars(options)).serve())

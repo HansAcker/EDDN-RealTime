@@ -34,6 +34,7 @@ logger = logging.getLogger("eddnws")
 # - InterpreterPoolExecutor could be better suited to offload JSON, requires python >=3.14
 # - continue to ignore signal handler incompatibility with native Windows, the script runs under WSL
 # - keep compatibility with python 3.8 for now
+# - review LLM-generated docstrings
 
 
 class EDDNWebsocketServer:

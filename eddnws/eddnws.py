@@ -11,6 +11,7 @@ import zmq.asyncio
 # TODO: python >=3.9 supports dict, set, tuple
 from typing import Any, Dict, Set, Tuple, Optional
 
+# TODO: rework logger
 logging.basicConfig(format="%(levelname)s: %(message)s - %(module)s.%(funcName)s()", level=logging.INFO)
 logger = logging.getLogger("eddnws")
 
@@ -23,6 +24,8 @@ logger = logging.getLogger("eddnws")
 #   - use a different log level for websocket's logger
 #   - set proper name
 # - rework for websockets >=14 (process_request, ws_handler)
+# - pass optional ZMQ context in constructor
+# - move signal handling out of server?
 # - support external socket passing
 # - handle/discard incoming client messages
 #   - the current client should not send anything and would just get itself disconnected for missing pongs

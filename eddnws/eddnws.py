@@ -61,11 +61,13 @@ class EDDNWebsocketServer:
 
 		zmq_url = "tcp://eddn.edcd.io:9500", # https://github.com/EDCD/EDDN#eddn-endpoints
 		zmq_close_delay = 3.3,
+		# TODO: ZMQ_CONNECT_TIMEOUT
 		zmq_HEARTBEAT_IVL = 180,
 		zmq_HEARTBEAT_TIMEOUT = 20,
 		zmq_RECONNECT_IVL_MAX = 60,
 		# zmq_RCVTIMEO = 600, # TODO: what would setting RCVTIMEO achieve?
 		zmq_RCVHWM = 1000, # TODO: should this be called msg_backlog_limit?
+		# TODO: set ZMQ_MAXMSGSIZE?
 	)
 
 
@@ -122,6 +124,10 @@ class EDDNWebsocketServer:
 		"""
 		if path == self.options.ping_path:
 			return (200, [("Content-Type", "text/plain")], b"OK\n")
+
+		if request_headers["Upgrade"] == "websocket" and self.options.connection_limit > 0 and len(self._ws_conns) >= self.options.connection_limit:
+				self._logger.info(f"client rejected, connection limit reached ({len(self._ws_conns)} active)")
+				return (503, [("Content-Type", "text/plain"), ("Retry-After", "10")], b"Connection limit reached\n")
 
 		return None
 
@@ -403,14 +409,6 @@ class EDDNWebsocketServer:
 		Exceptions:
 			Catches and logs generic Exceptions during the connection lifetime.
 		"""
-		# TODO: check len(ws_conns) before the websocket handshake, after the HTTP Upgrade (process_request)?
-		# TODO: the websocket client does not log or back off on code 1013 yet
-
-		if (self.options.connection_limit > 0 and len(self._ws_conns) >= self.options.connection_limit):
-			self._logger.info(f"client rejected, connection limit reached: {websocket.id} {websocket.remote_address} ({len(self._ws_conns)} active)")
-			await websocket.close(1013, "Connection limit reached")
-			return
-
 		self._ws_conns.add(websocket)
 		self._logger.info(f"client connected: {websocket.id} {websocket.remote_address} ({len(self._ws_conns)} active)")
 

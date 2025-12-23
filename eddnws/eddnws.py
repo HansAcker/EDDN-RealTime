@@ -57,7 +57,7 @@ class EDDNWebsocketServer:
 		# default safety limits
 		msg_size_limit = 4 * 1024 * 1024, # decompressed JSON size limit (bytes)
 		client_buffer_limit = 1 * 1024 * 1024, # per-client send buffer limit (bytes)
-		connection_limit = 1000, # max. number of active websockets accept by ws_handler
+		connection_limit = 1000, # max. number of active websockets accepted by ws_handler
 
 		zmq_url = "tcp://eddn.edcd.io:9500", # https://github.com/EDCD/EDDN#eddn-endpoints
 		zmq_close_delay = 3.3,
@@ -69,7 +69,7 @@ class EDDNWebsocketServer:
 	)
 
 
-	def __init__(self, options: Dict[str, Any]) -> None:
+	def __init__(self, options: Dict[str, Any] = {}) -> None:
 		"""
 		Initialize the EDDN Websocket Server instance.
 
@@ -545,5 +545,4 @@ if __name__ == "__main__":
 		return namespace
 
 
-	options = parse_args()
-	asyncio.run(EDDNWebsocketServer(vars(options)).serve())
+	asyncio.run(EDDNWebsocketServer(vars(parse_args())).serve())

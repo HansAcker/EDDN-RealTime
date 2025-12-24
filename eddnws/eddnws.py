@@ -26,9 +26,10 @@ logger = logging.getLogger("eddnws")
 #   - use a different log level for websocket's logger
 #   - set proper name
 # - rework for websockets >=14 (process_request, ws_handler)
-# - split EDDNReceiver and WebsocketRelay modules again, with an iterator between them?
+# - split EDDNReceiver and WebsocketRelay modules again, with an iterator or Queue between them?
 #   - generic WebsocketRelay would read str from iterator, broadcast to clients
 #   - EDDNReceiver would read from ZMQ, parse, validate, normalize, yield
+#   - handle lazy start/stop through iterator instance creation/cleanup?
 #   - or split EDDN parser and ZMQ handler, too?
 #   - keep it simple and fast enough
 # - pass optional ZMQ context in constructor
@@ -112,8 +113,6 @@ class EDDNWebsocketServer:
 		# ZMQ Context and Socket
 		self._zmq_ctx : zmq.asyncio.Context = zmq.asyncio.Context.instance()
 		self._zmq_sub : Optional[zmq.asyncio.Socket] = None
-
-		# TODO: keep a reference to the asyncio loop in the instance? pass optional loop argument?
 
 
 	# TODO: this method changed between websockets 13 and 14, support both with version switch?
@@ -339,7 +338,7 @@ class EDDNWebsocketServer:
 
 			except zmq.Again:
 				# EAGAIN: zmq.RCVTIMEO is >= 0 (default -1) and recv() timed out
-				# TODO: what to do here other than try again?
+				# TODO: what to do here other than try again? heartbeat-timeout reconnects the socket
 				await asyncio.sleep(0.1)
 
 			except Exception as e:

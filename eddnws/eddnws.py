@@ -11,7 +11,7 @@ import zmq.asyncio
 from dataclasses import dataclass
 
 # TODO: python >=3.9 supports dict, set, tuple
-from typing import Any, Dict, Set, Tuple, Optional
+from typing import Any, Coroutine, Dict, Set, Tuple, Optional
 
 
 # TODO: rework logger
@@ -120,6 +120,15 @@ class EDDNWebsocketServer:
 		self._zmq_ctx : zmq.asyncio.Context = zmq.asyncio.Context.instance()
 		self._zmq_sub : Optional[zmq.asyncio.Socket] = None
 
+		# references to one-shot tasks. unreferenced tasks could be garbage-collected before/while running
+		self._background_tasks : Set[asyncio.Task] = set()
+
+
+	def _create_task(self, coro: Coroutine[Any, Any, Any]) -> None:
+		task : asyncio.Task = asyncio.create_task(coro)
+		self._background_tasks.add(task)
+		task.add_done_callback(self._background_tasks.discard)
+
 
 	# TODO: this method changed between websockets 13 and 14
 	async def _process_request_legacy(self, path: str, request_headers: websockets.Headers) -> Optional[Tuple[int, websockets.HeadersLike, bytes]]:
@@ -179,6 +188,9 @@ class EDDNWebsocketServer:
 		Returns:
 			None
 		"""
+		if self._zmq_sub is None:
+			return
+
 		# EDDN doesn't support any subscription filters
 		self._zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
 
@@ -505,7 +517,7 @@ class EDDNWebsocketServer:
 				# TODO: websocket.transport should never be None while websocket.open is True but the type-checker might not know
 				if websocket.open and websocket.transport.get_write_buffer_size() > self.options.client_buffer_limit:
 					self._logger.info(f"client {websocket.id} write buffer limit exceeded, disconnecting")
-					asyncio.create_task(websocket.close(1008, "Write buffer overrun"))
+					self._create_task(websocket.close(1008, "Write buffer overrun"))
 
 			await asyncio.sleep(self.options.client_check_interval)
 

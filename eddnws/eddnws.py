@@ -507,7 +507,7 @@ class EDDNWebsocketServer:
 					self._logger.info(f"client {websocket.id} write buffer limit exceeded, disconnecting")
 					asyncio.create_task(websocket.close(1008, "Write buffer overrun"))
 
-			await asyncio.sleep(self.options.client_check_interval:)
+			await asyncio.sleep(self.options.client_check_interval)
 
 
 	async def serve(self) -> None:
@@ -534,6 +534,8 @@ class EDDNWebsocketServer:
 		# TODO: add config options
 		ws_args = {
 			"process_request": self._process_request_legacy if self.options.ping_path else None,
+
+			"origins": None, # TODO: make origin check configurable
 
 			# server processes only incoming pongs
 			"max_size": 4*1024, # limit incoming messages to 4k

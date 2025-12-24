@@ -2,7 +2,6 @@ import argparse
 import asyncio
 import logging
 import signal
-import sys
 import zlib
 
 import orjson
@@ -28,6 +27,7 @@ logger = logging.getLogger("eddnws")
 #   - set proper name
 # - rework for websockets >=14 (process_request, ws_handler)
 # - pass optional ZMQ context in constructor
+#   - split WebsocketServer and ZMQReceiver classes again?
 # - move signal handling out of server?
 # - support external socket passing
 # - handle/discard incoming client messages

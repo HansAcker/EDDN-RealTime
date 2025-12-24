@@ -25,7 +25,9 @@ logger = logging.getLogger("eddnws")
 #   - pass optional logger in constructor kwargs/options
 #   - use a different log level for websocket's logger
 #   - set proper name
-# - rework for websockets >=14 (process_request, ws_handler)
+# - rework for websockets >=14
+#   - ws_handler() should cope with the argument type change (DeprecationWarning), could be adapted for type-checking
+#   - process_request() needs to be changed - support both with version switch?
 # - split EDDNReceiver and WebsocketRelay modules again, with an iterator or Queue between them?
 #   - generic WebsocketRelay would read str from iterator, broadcast to clients
 #   - EDDNReceiver would read from ZMQ, parse, validate, normalize, yield
@@ -115,8 +117,8 @@ class EDDNWebsocketServer:
 		self._zmq_sub : Optional[zmq.asyncio.Socket] = None
 
 
-	# TODO: this method changed between websockets 13 and 14, support both with version switch?
-	async def _process_request(self, path: str, request_headers: websockets.Headers) -> Optional[Tuple[int, websockets.HeadersLike, bytes]]:
+	# TODO: this method changed between websockets 13 and 14
+	async def _process_request_legacy(self, path: str, request_headers: websockets.Headers) -> Optional[Tuple[int, websockets.HeadersLike, bytes]]:
 		"""
 		Intercept the WebSocket handshake to handle HTTP requests (e.g., health checks).
 
@@ -142,6 +144,21 @@ class EDDNWebsocketServer:
 				self._logger.info(f"client rejected, connection limit reached ({len(self._ws_conns)} active)")
 				# TODO: review how the websocket client handles 503, Retry-After is usually ignored
 				return (503, [("Content-Type", "text/plain"), ("Retry-After", "10")], b"Connection limit reached\n")
+
+		return None
+
+	#async def _process_request(self, connection: websockets.ServerConnection, request: websockets.Request) -> Optional[websockets.Response]:
+	async def _process_request(self, connection, request):
+		# answer health checks with hardcoded response
+		# TODO: include len(ws_conns), ZMQ status?
+		if request.path == self.options.ping_path:
+			return connection.respond(200, "OK\n")
+
+		# enforce websocket connection limits on the HTTP Upgrade request, before the websocket handshake takes place
+		if request.headers["Upgrade"] == "websocket" and self.options.connection_limit > 0 and len(self._ws_conns) >= self.options.connection_limit:
+				self._logger.info(f"client rejected, connection limit reached: {connection.remote_address} {connection.id} ({len(self._ws_conns)} active)")
+				# TODO: review how the websocket client handles 503, Retry-After is usually ignored
+				return connection.respond(503, "Connection limit reached\n")
 
 		return None
 
@@ -500,7 +517,7 @@ class EDDNWebsocketServer:
 
 		# TODO: add config options
 		ws_args = {
-			"process_request": self._process_request if self.options.ping_path else None,
+			"process_request": self._process_request_legacy if self.options.ping_path else None,
 
 			# server processes only incoming pongs
 			"max_size": 4*1024, # limit incoming messages to 4k

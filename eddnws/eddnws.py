@@ -381,11 +381,11 @@ class EDDNWebsocketServer:
 				# TODO: a fatal ZMQ socket exception stops the relay but does not clean up relay_task
 				#		- the next client connection would restart the relay task but not the socket
 				#		- count failures, reconnect ZMQ, backoff delay?
-				#		- terminate the server for now
-				self._logger.exception("receive error, relay task exiting:", e)
-				# raise RuntimeError("fatal ZMQ socket exception")
+				#		- terminate the server for now, let the init system restart it
 
+				self._logger.exception("receive error, relay task exiting:", e)
 				self._stop_future.set_result("ZMQ Error")
+				# raise RuntimeError("fatal ZMQ socket exception")
 				break
 
 			try:
@@ -630,5 +630,6 @@ if __name__ == "__main__":
 
 	# TODO: rework logger
 	logging.basicConfig(format="%(levelname)s: %(message)s - %(module)s.%(funcName)s()", level=logging.INFO)
+	logging.getLogger("websockets").setLevel(logging.WARNING)
 
 	asyncio.run(EDDNWebsocketServer(parse_args()).serve())

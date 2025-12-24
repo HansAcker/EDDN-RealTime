@@ -26,8 +26,12 @@ logger = logging.getLogger("eddnws")
 #   - use a different log level for websocket's logger
 #   - set proper name
 # - rework for websockets >=14 (process_request, ws_handler)
+# - split EDDNReceiver and WebsocketRelay modules again, with an iterator between them?
+#   - generic WebsocketRelay would read str from iterator, broadcast to clients
+#   - EDDNReceiver would read from ZMQ, parse, validate, normalize, yield
+#   - or split EDDN parser and ZMQ handler, too?
+#   - keep it simple and fast enough
 # - pass optional ZMQ context in constructor
-#   - split WebsocketServer and ZMQReceiver classes again?
 # - move signal handling out of server?
 # - support external socket passing
 # - handle/discard incoming client messages

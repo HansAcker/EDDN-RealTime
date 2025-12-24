@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import logging
 import signal
+import warnings
 import zlib
 
 import orjson
@@ -14,15 +15,10 @@ from dataclasses import dataclass
 from typing import Any, Coroutine, Dict, Set, Tuple, Optional
 
 
-# TODO: rework logger
-logging.basicConfig(format="%(levelname)s: %(message)s - %(module)s.%(funcName)s()", level=logging.INFO)
-logger = logging.getLogger("eddnws")
-
 
 # TODO: possibly
 # - improve arg parser
 # - configure logging properly
-#   - pass optional logger in constructor kwargs/options
 #   - use a different log level for websocket's logger
 #   - set proper name
 # - rework for websockets >=14
@@ -42,6 +38,7 @@ logger = logging.getLogger("eddnws")
 # - re-think monitor_task lifecycle, make its timing configurable
 #   - is monitoring the write buffer actually needed? missing pongs would disconnect a stalled client soon
 # - re-think the assertion checks in zmq_(dis)connect, relay_start/stop and how to react (if relay_task is not done, etc)
+#   - possibly use Event or similar to implement the lazy disconnect?
 # - use SO_REUSEPORT on websocket to attach multiple script instances to the same port
 # - InterpreterPoolExecutor could be better suited to offload JSON, requires python >=3.14
 # - run a profiler to find the actual hot spots
@@ -89,7 +86,7 @@ class EDDNWebsocketServer:
 		# TODO: set ZMQ_LINGER = 0?
 
 
-	def __init__(self, options: Optional[Dict[str, Any]] = None) -> None:
+	def __init__(self, options: Optional[Dict[str, Any]] = None, *, logger : Optional[logging.Logger] = None) -> None:
 		"""
 		Initialize the EDDN Websocket Server instance.
 
@@ -103,10 +100,10 @@ class EDDNWebsocketServer:
 
 		if options is None:
 			options = {}
-
 		self.options = EDDNWebsocketServer.ServerOptions(**options)
 
-		# TODO: pass optional logger in constructor/options, handle -v[v] to set log level
+		if logger is None:
+			logger = logging.getLogger(__name__)
 		self._logger = logger
 
 		# active websocket connections
@@ -216,7 +213,7 @@ class EDDNWebsocketServer:
 			None
 		"""
 		if self._zmq_sub is not None:
-			self._logger.warning("zmq_sub is not None")
+			warnings.warn("zmq_sub is not None", RuntimeWarning)
 			return
 
 		self._logger.info("connecting ZMQ")
@@ -235,7 +232,7 @@ class EDDNWebsocketServer:
 			None
 		"""
 		if self._zmq_sub is None:
-			self._logger.warning("zmq_sub is None")
+			warnings.warn("zmq_sub is None", RuntimeWarning)
 			return
 
 		self._logger.info("disconnecting ZMQ")
@@ -278,7 +275,7 @@ class EDDNWebsocketServer:
 			(self._relay_task is not None and not self._relay_task.done()) or
 			(self._monitor_task is not None and not self._monitor_task.done())
 		):
-			self._logger.warning("relay tasks not done")
+			warnings.warn("relay tasks not done", RuntimeWarning)
 			return
 
 		self._zmq_connect()
@@ -553,7 +550,8 @@ class EDDNWebsocketServer:
 		ws_args = {
 			"process_request": self._process_request_legacy if self.options.ping_path else None,
 
-			"origins": None, # TODO: make origin check configurable
+			# TODO: make origin check configurable
+			"origins": None,
 
 			# server processes only incoming pongs
 			"max_size": 4*1024, # limit incoming messages to 4k
@@ -630,5 +628,7 @@ if __name__ == "__main__":
 
 		return vars(parser.parse_args())
 
+	# TODO: rework logger
+	logging.basicConfig(format="%(levelname)s: %(message)s - %(module)s.%(funcName)s()", level=logging.INFO)
 
 	asyncio.run(EDDNWebsocketServer(parse_args()).serve())

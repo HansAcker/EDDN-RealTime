@@ -124,6 +124,9 @@ class EDDNWebsocketServer:
 		# references to one-shot tasks. unreferenced tasks could be garbage-collected before/while running
 		self._background_tasks : Set[asyncio.Task] = set()
 
+		# set this future to exit serve()
+		self._stop_future: Optional[asyncio.Future] = None
+
 
 	def _create_task(self, coro: Coroutine[Any, Any, Any]) -> None:
 		task : asyncio.Task = asyncio.create_task(coro)
@@ -385,10 +388,7 @@ class EDDNWebsocketServer:
 				self._logger.exception("receive error, relay task exiting:", e)
 				# raise RuntimeError("fatal ZMQ socket exception")
 
-				# send SIGHUP to self, let the init system restart the server
-				# TODO: set the "stop" future here
-				import os
-				os.kill(os.getpid(), signal.SIGHUP)
+				self._stop_future.set_result("ZMQ Error")
 				break
 
 			try:
@@ -544,9 +544,10 @@ class EDDNWebsocketServer:
 
 		# set stop condition on signal
 		loop = asyncio.get_running_loop()
-		stop = loop.create_future()
+		self._stop_future = loop.create_future()
+
 		for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
-			loop.add_signal_handler(sig, stop.set_result, sig.name)
+			loop.add_signal_handler(sig, self._stop_future.set_result, sig.name)
 
 		# TODO: add config options
 		ws_args = {
@@ -579,9 +580,9 @@ class EDDNWebsocketServer:
 
 		# run the server until stop condition
 		async with server:
-			stop_signal = await stop
+			stop_signal = await self._stop_future
 			self._relay_stop()
-			self._logger.info(f"received {stop_signal}, stopping websocket server")
+			self._logger.info(f"received '{stop_signal}', stopping websocket server")
 			# TODO: explicitly close all websocket connections before asyncio does it on exit?
 			# TODO: explicitly terminate ZMQ context here?
 

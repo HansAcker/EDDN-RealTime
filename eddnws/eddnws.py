@@ -34,6 +34,7 @@ logger = logging.getLogger("eddnws")
 #   - the current client should not send anything and would just get itself disconnected for missing pongs
 # - re-think monitor_task lifecycle, make its timing configurable
 #   - is monitoring the write buffer actually needed? missing pongs would disconnect a stalled client soon
+# - re-think the assertion checks in zmq_(dis)connect, relay_start/stop and how to react (if relay_task is not done, etc)
 # - use SO_REUSEPORT on websocket to attach multiple script instances to the same port
 # - InterpreterPoolExecutor could be better suited to offload JSON, requires python >=3.14
 # - run a profiler to find the actual hot spots
@@ -108,6 +109,8 @@ class EDDNWebsocketServer:
 		self._zmq_ctx : zmq.asyncio.Context = zmq.asyncio.Context.instance()
 		self._zmq_sub : Optional[zmq.asyncio.Socket] = None
 
+		# TODO: keep a reference to the asyncio loop in the instance? pass optional loop argument?
+
 
 	# TODO: this method changed between websockets 13 and 14, support both with version switch?
 	async def _process_request(self, path: str, request_headers: websockets.Headers) -> Optional[Tuple[int, websockets.HeadersLike, bytes]]:
@@ -126,11 +129,15 @@ class EDDNWebsocketServer:
 				is intercepted (e.g., for /ping).
 				Returns None to let the WebSocket handshake proceed normally.
 		"""
+		# answer health checks with hardcoded response
+		# TODO: include len(ws_conns), ZMQ status?
 		if path == self.options.ping_path:
 			return (200, [("Content-Type", "text/plain")], b"OK\n")
 
+		# enforce websocket connection limits on the HTTP Upgrade request, before the websocket handshake takes place
 		if request_headers["Upgrade"] == "websocket" and self.options.connection_limit > 0 and len(self._ws_conns) >= self.options.connection_limit:
 				self._logger.info(f"client rejected, connection limit reached ({len(self._ws_conns)} active)")
+				# TODO: review how the websocket client handles 503, Retry-After is usually ignored
 				return (503, [("Content-Type", "text/plain"), ("Retry-After", "10")], b"Connection limit reached\n")
 
 		return None
@@ -162,8 +169,6 @@ class EDDNWebsocketServer:
 		"""
 		Initialize the ZMQ socket and connect to the upstream EDDN relay.
 
-		If a socket already exists, it logs a warning and returns immediately.
-
 		Args:
 			None
 
@@ -171,12 +176,12 @@ class EDDNWebsocketServer:
 			None
 		"""
 		if self._zmq_sub is not None:
-			self._logger.warning("zmq_connect(): zmq_sub is not None")
+			self._logger.warning("zmq_sub is not None")
 			return
 
+		self._logger.info("connecting ZMQ")
 		self._zmq_sub = self._zmq_ctx.socket(zmq.SUB)
 		self._zmq_socket_init()
-
 		self._zmq_sub.connect(self.options.zmq_url)
 
 	def _zmq_disconnect(self) -> None:
@@ -190,9 +195,10 @@ class EDDNWebsocketServer:
 			None
 		"""
 		if self._zmq_sub is None:
-			self._logger.warning("zmq_disconnect(): zmq_sub is None")
+			self._logger.warning("zmq_sub is None")
 			return
 
+		self._logger.info("disconnecting ZMQ")
 		self._zmq_sub.close(linger=0)
 		self._zmq_sub = None
 
@@ -223,11 +229,16 @@ class EDDNWebsocketServer:
 		Returns:
 			None
 		"""
-		if self._relay_task is not None and not self._relay_task.done():
-			self._logger.warning("relay_start(): relay_task is not done")
+
+		# TODO: cancel tasks if they exist? it should never happen
+		#       - actually, just move the relay_task check from ws_handler here?
+		if (
+			(self._relay_task is not None and not self._relay_task.done()) or
+			(self._monitor_task is not None and not self._monitor_task.done())
+		):
+			self._logger.warning("relay tasks not done")
 			return
 
-		self._logger.info("connecting ZMQ")
 		self._zmq_connect()
 
 		self._relay_task = asyncio.create_task(self._relay_messages())
@@ -258,7 +269,6 @@ class EDDNWebsocketServer:
 			self._monitor_task = None
 
 		if self._zmq_sub is not None:
-			self._logger.info("disconnecting ZMQ")
 			self._zmq_disconnect()
 
 	def _relay_close(self) -> None:
@@ -332,7 +342,7 @@ class EDDNWebsocketServer:
 				# TODO: a fatal ZMQ socket exception stops the relay but does not clean up relay_task
 				#		- the next client connection would restart the relay task but not the socket
 				#		- count failures, reconnect ZMQ, backoff delay?
-				#		- terminate the server via HUP to self for now
+				#		- terminate the server for now
 				self._logger.exception("receive error, relay task exiting:", e)
 				# raise RuntimeError("fatal ZMQ socket exception")
 

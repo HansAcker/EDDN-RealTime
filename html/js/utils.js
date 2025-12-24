@@ -104,18 +104,17 @@ this is because the amount of space taken by these pieces of data is different
 depending on the mass code.
 */
 
-// const bitMask = (field, bits, shift) => ((BigInt(field) & (~(BigInt(~0) << BigInt(bits)) << BigInt(shift))) >> BigInt(shift))
-const bitMask = (field, bits) => (BigInt(field) & (~(BigInt(~0) << BigInt(bits))));
+const bitMask = (field, bits) => (BigInt(field) & (~(~0n << BigInt(bits))));
 
 // id64 should be String or BigInt. Number type could garble the critical lower bits
 export function decodeId64(id64) {
 	let _id64 = BigInt(id64);
 
-	const bodyId = Number(_id64 >> BigInt(55));
+	const bodyId = Number(_id64 >> 55n);
 	const systemAddress = bitMask(_id64, 55);
 
 	const massClass = Number(bitMask(_id64, 3));
-	_id64 = _id64 >> BigInt(3);
+	_id64 = _id64 >> 3n;
 
 	const boxelBits = 7 - massClass;
 	const boxels = boxelBits ? 2**boxelBits : 0;
@@ -124,19 +123,19 @@ export function decodeId64(id64) {
 	_id64 = _id64 >> BigInt(boxelBits);
 
 	const zs = Number(bitMask(_id64, 7));
-	_id64 = _id64 >> BigInt(7);
+	_id64 = _id64 >> 7n;
 
 	const yb = Number(bitMask(_id64, boxelBits));
 	_id64 = _id64 >> BigInt(boxelBits);
 
 	const ys = Number(bitMask(_id64, 6));
-	_id64 = _id64 >> BigInt(6);
+	_id64 = _id64 >> 6n;
 
 	const xb = Number(bitMask(_id64, boxelBits));
 	_id64 = _id64 >> BigInt(boxelBits);
 
 	const xs = Number(bitMask(_id64, 7));
-	_id64 = _id64 >> BigInt(7);
+	_id64 = _id64 >> 7n;
 
 	const n2 = Number(bitMask(_id64, 32-(boxelBits*3)));
 

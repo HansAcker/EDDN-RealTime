@@ -456,11 +456,8 @@ class EDDNWebsocketServer:
 			# iterate over a copy of ws_conns
 			# TODO: if ws_conns gets large, a better solution than list(ws_conns) might be needed
 			for websocket in list(self._ws_conns):
-				if (
-					# websockets could close the transport before ws_handler removes the client from the set
-					websocket.open and websocket.transport and
-					websocket.transport.get_write_buffer_size() > self.options.client_buffer_limit
-				):
+				# TODO: websocket.transport should never be None while websocket.open is True but the type-checker might not know
+				if websocket.open and websocket.transport.get_write_buffer_size() > self.options.client_buffer_limit:
 					self._logger.info(f"client {websocket.id} write buffer limit exceeded, disconnecting")
 					asyncio.create_task(websocket.close(1008, "Write buffer overrun"))
 

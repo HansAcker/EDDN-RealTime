@@ -443,6 +443,14 @@ class EDDNWebsocketServer:
 		Exceptions:
 			Catches and logs generic Exceptions during the connection lifetime.
 		"""
+
+		# a burst of handshakes could bypass the limit check in process_request()
+		if self.options.connection_limit > 0 and len(self._ws_conns) >= self.options.connection_limit:
+			self._logger.info(f"client rejected, connection limit reached: {websocket.remote_address} {websocket.id} ({len(self._ws_conns)} active)")
+			# TODO: websocket client currently does not back off on code 1013
+			await websocket.close(1013, "Connection limit reached")
+			return
+
 		self._ws_conns.add(websocket)
 		self._logger.info(f"client connected: {websocket.id} {websocket.remote_address} ({len(self._ws_conns)} active)")
 

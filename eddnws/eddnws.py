@@ -86,6 +86,7 @@ class EDDNWebsocketServer:
 		# zmq_RCVTIMEO: float = 600 # TODO: what would setting RCVTIMEO achieve?
 		zmq_RCVHWM: int = 1000 # TODO: should this be called msg_backlog_limit?
 		# TODO: set ZMQ_MAXMSGSIZE?
+		# TODO: set ZMQ_LINGER = 0?
 
 
 	def __init__(self, options: Optional[Dict[str, Any]] = None) -> None:
@@ -423,6 +424,7 @@ class EDDNWebsocketServer:
 		Raises:
 			ValueError: If the decompressed size exceeds msg_size_limit.
 			ValueError: If the message is malformed (unconsumed tail).
+			ValueError: If the decompressed message is empty.
 			ValueError: If the JSON is missing the required '$schemaRef' key.
 			zlib.error: If decompression fails.
 			orjson.JSONDecodeError: If the decompressed data is not valid JSON.
@@ -433,6 +435,9 @@ class EDDNWebsocketServer:
 
 		if dobj.unconsumed_tail:
 			raise ValueError("size limit exceeded")
+
+		if not json_text:
+			raise ValueError("empty payload")
 
 		# parse incoming JSON. make sure it looks like a valid EDDN message
 		data = orjson.loads(json_text)
@@ -577,7 +582,8 @@ class EDDNWebsocketServer:
 			stop_signal = await stop
 			self._relay_stop()
 			self._logger.info(f"received {stop_signal}, stopping websocket server")
-			# TODO: explicitly close all client connections before asyncio does it on exit?
+			# TODO: explicitly close all websocket connections before asyncio does it on exit?
+			# TODO: explicitly terminate ZMQ context here?
 
 
 

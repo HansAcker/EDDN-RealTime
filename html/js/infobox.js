@@ -4,6 +4,8 @@
 // key: typically a <tr> element
 // val: an EDDN message object
 
+// assumes that the template is wrapped by a single element
+
 
 class InfoBox {
 	#container; // new InfoBox appended here
@@ -45,6 +47,7 @@ class InfoBox {
 			ev.stopPropagation();
 
 			// find the action button that was clicked
+			// TODO: verify that infoBox.contains(target)?
 			const target = ev.target.closest(".infobox__header [data-infobox__action]");
 
 			// default action: close on click anywhere in header

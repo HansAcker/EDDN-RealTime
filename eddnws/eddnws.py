@@ -69,9 +69,13 @@ class EDDNWebsocketServer:
 		ping_path: Optional[str] = "/ping" # respond to health-checks if set
 
 		# default safety limits
-		msg_size_limit: int = 4 * 1024 * 1024 # decompressed JSON size limit (bytes)
-		client_buffer_limit: int = 1 * 1024 * 1024 # per-client send buffer limit (bytes)
 		connection_limit: int = 1000 # max. number of active websockets accepted by ws_handler
+
+		# TODO: sane defaults? client_buffer_limit should probably be larger than msg_size_limit
+		msg_size_limit: int = 1 * 1024 * 1024 # decompressed JSON size limit (bytes)
+
+		client_buffer_limit: int = 2 * 1024 * 1024 # per-client send buffer limit (bytes)
+		client_check_interval: int = 1 # client buffer limit check interval
 
 		zmq_url: str = "tcp://eddn.edcd.io:9500" # https://github.com/EDCD/EDDN#eddn-endpoints
 		zmq_close_delay: float = 3.3
@@ -252,6 +256,8 @@ class EDDNWebsocketServer:
 
 		# TODO: cancel tasks if they exist? it should never happen
 		#       - actually, just move the relay_task check from ws_handler here?
+		# TODO: if relay_task is not None but done it could indicate a ZMQ exception, reconnect?
+		#       - the current behaviour is to terminate the server process and not worry about it here
 		if (
 			(self._relay_task is not None and not self._relay_task.done()) or
 			(self._monitor_task is not None and not self._monitor_task.done())
@@ -381,6 +387,8 @@ class EDDNWebsocketServer:
 
 			try:
 				# websocket stream compression runs on main thread
+				# TODO: could broadcasting a large message to a large number of clients stall the loop?
+				#       - consider disabling context takeover. it loses the benefit of pointers to previous JSON keys, etc.
 				websockets.broadcast(self._ws_conns, data)
 			except Exception as e:
 				self._logger.exception("relay error:", e)
@@ -481,7 +489,7 @@ class EDDNWebsocketServer:
 		"""
 		Periodically monitor client write buffers and disconnect slow consumers.
 
-		Checks the write buffer size of every active connection once per second.
+		Checks the write buffer size of every active connection (default: once per second).
 		If a client exceeds `client_buffer_limit`, they are disconnected with code 1008.
 
 		Args:
@@ -499,7 +507,7 @@ class EDDNWebsocketServer:
 					self._logger.info(f"client {websocket.id} write buffer limit exceeded, disconnecting")
 					asyncio.create_task(websocket.close(1008, "Write buffer overrun"))
 
-			await asyncio.sleep(1)
+			await asyncio.sleep(self.options.client_check_interval:)
 
 
 	async def serve(self) -> None:

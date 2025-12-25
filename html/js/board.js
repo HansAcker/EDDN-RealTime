@@ -104,10 +104,10 @@ let lastEvent = Date.now();
 
 const ws = new ReconnectingWebSocket(socketUrl);
 
-ws.onopen = activity.idle;
-ws.onclose = activity.off;
+ws.addEventListener("open",activity.idle);
+ws.addEventListener("close", activity.off);
 
-ws.onmessage = (event) => {
+ws.addEventListener("message", (event) => {
 	let data;
 
 	try {
@@ -135,7 +135,7 @@ ws.onmessage = (event) => {
 	updateSoftwareStats(messageRecord);
 
 	handleMessage(messageRecord);
-};
+});
 
 function updateGameStats(messageRecord) {
 	gameStats.set("Last timestamp", messageRecord._timestamp);

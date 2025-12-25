@@ -21,6 +21,13 @@ body {
 	overflow-anchor: none;
 }
 
+#board {
+	display: flex;
+	flex-wrap: wrap;
+/*	gap: 1rem; */
+	align-items: flex-start;
+}
+
 table {
 	--tabs: 4;
 }
@@ -35,9 +42,9 @@ table {
 
 table {
 	--baseWidth: calc(100% / var(--tabs));
-	width: var(--baseWidth);
+/*	--baseWidth: calc((100% - (var(--tabs) - 1) * 1rem) / var(--tabs)); */
+	flex: 0 1 var(--baseWidth);
 	max-width: 100%;
-	float: left;
 	border: 1px solid #f94;
 
 	/* experimental */
@@ -47,15 +54,15 @@ table {
 }
 
 table.narrow {
-	width: calc(var(--baseWidth) * 0.6);
+	flex: 0 1 calc(var(--baseWidth) * 0.6);
 }
 
 table.wide {
-	width: calc(var(--baseWidth) * 1.4);
+	flex: 0 1 calc(var(--baseWidth) * 1.4);
 }
 
 table.wider {
-	width: calc(var(--baseWidth) * 2);
+	flex: 0 1 calc(var(--baseWidth) * 2);
 }
 
 caption {

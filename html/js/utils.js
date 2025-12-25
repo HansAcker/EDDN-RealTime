@@ -1,7 +1,8 @@
+// html/js/utils.js
 // export const distanceN = (v0, v1) => Math.hypot(...v0.map((v, i) => v - v1[i]));
 export const distance3 = (v0, v1) => Math.hypot(v0[0] - v1[0], v0[1] - v1[1], v0[2] - v1[2]); // subtract vectors, return length
 export const trimPrefix = (str, prefix) => (str.startsWith(prefix) ? str.slice(prefix.length) : str).trim();
-export const makeTd = (textContent) => { const td = document.createElement("td"); td.textContent = td.title = textContent; return td; };
+export const makeCell = (textContent) => { const div = document.createElement("div"); div.classList.add("cell"); div.textContent = div.title = textContent; return div; };
 
 export function addRow(tbody, tr) {
 	// TODO: remove/rework global config option listLength

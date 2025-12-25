@@ -1,3 +1,4 @@
+/* html/css/style.css */
 @font-face {
 	/* https://www.theleagueofmoveabletype.com/orbitron */
 	font-family: 'orbitron';
@@ -5,12 +6,6 @@
 	font-weight: normal;
 	font-style: normal;
 }
-
-/*
-html {
-	scrollbar-width: none;
-}
-*/
 
 body {
 	margin: 0;
@@ -24,105 +19,142 @@ body {
 #board {
 	display: flex;
 	flex-wrap: wrap;
-/*	gap: 1rem; */
 	align-items: flex-start;
 }
 
-table {
+/* Base table-like box */
+.table {
 	--tabs: 4;
-}
 
-/* @media screen and (min-width: 2201px) {table { --tabs: 5; }} */
-/* @media screen and (max-width: 2200px) {table { --tabs: 4; }} */
-/*
-@media screen and (max-width: 1300px) {table { --tabs: 3; }}
-@media screen and (max-width: 800px) {table { --tabs: 2; }}
-@media screen and (max-width: 450px) {table { --tabs: 1; }}
-*/
-
-table {
 	--baseWidth: calc(100% / var(--tabs));
-/*	--baseWidth: calc((100% - (var(--tabs) - 1) * 1rem) / var(--tabs)); */
 	flex: 0 1 var(--baseWidth);
 	max-width: 100%;
 	border: 1px solid #f94;
+	box-sizing: border-box;
+
+	display: flex;
+	flex-direction: column;
 
 	/* experimental */
-	content-visibility: auto; /* the page is probably too short for this to have an effect */
+	content-visibility: auto;
 	contain-intrinsic-size: auto;
-	will-change: transform; /* quirk to force compositing, repaint tables individually */
+	will-change: transform;
 }
 
-table.narrow {
+/* Sizing modifiers */
+.table.narrow {
 	flex: 0 1 calc(var(--baseWidth) * 0.6);
 }
 
-table.wide {
+.table.wide {
 	flex: 0 1 calc(var(--baseWidth) * 1.4);
 }
 
-table.wider {
+.table.wider {
 	flex: 0 1 calc(var(--baseWidth) * 2);
 }
 
-caption {
+.caption {
 	display: none;
 }
 
-thead {
+/* Header and Row Grid Layout */
+.thead, .row {
+	display: grid;
+	gap: 2px;
+}
+
+.thead {
 	font-family: orbitron, sans-serif;
 	color: #f94;
+/*	border-bottom: 1px solid #555; */
+	font-weight: bold;
+	text-align: center;
 }
 
-tbody {
+.thead .cell {
+    padding: 0.25em 0;
+}
+
+.tbody {
 	font-size: 80%;
 	text-align: end;
+
+	/* Make the body a flex container to support 'gap' between rows */
+    display: flex;
+    flex-direction: column;
+    gap: 2px; /* This puts 2px space between every row */
+
 }
 
-td, th {
-	max-width: 0;
+.cell {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	padding: 0 0.25em;
 }
 
-.Odyssey {
-	background-color: #05b;
-}
+/* Table-specific Grid Definitions */
+/* 1 column */
+.table-jumps .thead, .table-jumps .row { grid-template-columns: 1fr; }
 
-.Horizons {
-	background-color: #b50;
-}
+/* Route From, To, Jumps, Distance, Total, Max */
+.table-routes .thead, .table-routes .row { grid-template-columns: 25% 1fr 10% 14% 14% 12%; }
 
-.Base {
-	background-color: #555;
-}
+/* Discovered Star, Class */
+.table-newstars .thead, .table-newstars .row { grid-template-columns: 1fr 20%; }
 
-.Legacy {
-	background-color: #333;
-}
+/* Discovered Body, Class, Atmosphere, Landable */
+.table-newplanets .thead, .table-newplanets .row { grid-template-columns: 1fr 25% 20% 15%; }
 
-.taxi {
-	color: yellow;
-	font-weight: bold;
-}
+/* Scanned Body, Scan Type */
+.table-scanbods .thead, .table-scanbods .row { grid-template-columns: 1fr 30%; }
 
-.old {
-	color: #aaa;
-}
+/* Settlement Approach, System */
+.table-asett .thead, .table-asett .row { grid-template-columns: 50% 1fr; }
 
-.new {
-	color: #a00;
-}
+/* Docked At, Type, System */
+.table-docks .thead, .table-docks .row { grid-template-columns: 40% 25% 1fr; }
 
-.longjump {
-	font-weight: bold;
-}
+/* Updated, Station, System */
+.table-updates .thead, .table-updates .row { grid-template-columns: 25% 40% 1fr; }
 
-tr.data:hover {
+/* System Visited, Population, Allegiance, Faction, State */
+.table-visits .thead, .table-visits .row { grid-template-columns: 25% 15% 15% 1fr 10%; }
+
+/* System, Body, Codex Category, Type, Region */
+.table-codex .thead, .table-codex .row { grid-template-columns: 1fr 10% 20% 25% 20%; }
+
+/* Stats, Count */
+.table-stats .thead, .table-stats .row { grid-template-columns: 1fr 1fr; }
+
+/* Event, Count / Software, Count */
+.table-events .thead, .table-events .row { grid-template-columns: 1fr 25%; }
+
+/* Legend */
+.table-legend .thead, .table-legend .row { grid-template-columns: 1fr; }
+
+
+/* Colors */
+.Odyssey .cell { background-color: #05b; }
+.Horizons .cell { background-color: #b50; }
+.Base .cell { background-color: #555; }
+.Legacy .cell { background-color: #333; }
+
+.taxi { color: yellow; font-weight: bold; }
+.old { color: #aaa; }
+.new { color: #a00; }
+.longjump { font-weight: bold; }
+
+.row.data:hover {
 	outline: 2px solid yellow;
 }
 
+/* Legend Table Specifics */
+.table-legend .tbody {
+	text-align: center;
+}
+/* Infobox (Unchanged largely, just context) */
 .infobox {
 	position: fixed;
 	top: 20%;
@@ -159,20 +191,15 @@ tr.data:hover {
 
 .infobox__button {
 	position: relative;
-	border-radius: 8px;
-/*	transition: border-color 0.2s; */
-
+	border-radius: 0.5em;
 	outline: 0px solid transparent;
 	outline-offset: 0px;
 	transition: outline-offset 0.2s ease-out, outline-color 0.2s ease-out;
 }
 
-/* Shared Animation Properties */
 [class*="infobox__button--signal-"] {
 	animation: infobox__button_fx--ripple-out 0.6s cubic-bezier(0, 0, 0.2, 1);
 	will-change: outline-offset, outline-color;
-	/* Lift z-index to ensure outline isn't clipped by neighbors */
-	/* TODO: clipped by <div> window edge */
 	z-index: 10;
 }
 

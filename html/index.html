@@ -18,97 +18,150 @@
 
 <div id="board">
 
-<table class="narrow">
-<caption>FSD Jumps
-<thead><tr><th>FSD Jump
-<tbody id="jumps">
-</table>
+<div class="table narrow table-jumps">
+	<div class="caption">FSD Jumps</div>
+	<div class="thead"><div class="cell">FSD Jump</div></div>
+	<div class="tbody" id="jumps"></div>
+</div>
 
-<table class="wide">
-<caption>Routes Plotted
-<thead><tr><th style="width: 25%;">Route From<th>To<th style="width: 10%;">Jumps<th style="width: 14%;">Distance<th style="width: 14%;">Total<th style="width: 12%;">Max
-<tbody id="routes">
-</table>
+<div class="table wide table-routes">
+	<div class="caption">Routes Plotted</div>
+	<div class="thead">
+		<div class="cell">Route From</div>
+		<div class="cell">To</div>
+		<div class="cell">Jumps</div>
+		<div class="cell">Distance</div>
+		<div class="cell">Total</div>
+		<div class="cell">Max</div>
+	</div>
+	<div class="tbody" id="routes"></div>
+</div>
 
-<table class="narrow">
-<caption>Stars discovered
-<thead><tr><th>Discovered Star<th style="width: 20%;">Class
-<tbody id="newstars">
-</table>
+<div class="table narrow table-newstars">
+	<div class="caption">Stars discovered</div>
+	<div class="thead">
+		<div class="cell">Discovered Star</div>
+		<div class="cell">Class</div>
+	</div>
+	<div class="tbody" id="newstars"></div>
+</div>
 
-<table class="wide">
-<caption>Planets discovered
-<thead><tr><th>Discovered Body<th style="width: 25%;">Class<th style="width: 20%;">Atmosphere<th style="width: 15%;">Landable
-<tbody id="newplanets">
-</table>
+<div class="table wide table-newplanets">
+	<div class="caption">Planets discovered</div>
+	<div class="thead">
+		<div class="cell">Discovered Body</div>
+		<div class="cell">Class</div>
+		<div class="cell">Atmosphere</div>
+		<div class="cell">Landable</div>
+	</div>
+	<div class="tbody" id="newplanets"></div>
+</div>
 
-<table>
-<caption>Scanned Bodies
-<thead><tr><th>Scanned Body<th style="width: 30%;">Scan Type
-<tbody id="scanbods">
-</table>
+<div class="table table-scanbods">
+	<div class="caption">Scanned Bodies</div>
+	<div class="thead">
+		<div class="cell">Scanned Body</div>
+		<div class="cell">Scan Type</div>
+	</div>
+	<div class="tbody" id="scanbods"></div>
+</div>
 
-<table>
-<caption>Settlement Approach
-<thead><tr><th style="width: 50%;">Settlement Approach<th>System
-<tbody id="asett">
-</table>
+<div class="table table-asett">
+	<div class="caption">Settlement Approach</div>
+	<div class="thead">
+		<div class="cell">Settlement Approach</div>
+		<div class="cell">System</div>
+	</div>
+	<div class="tbody" id="asett"></div>
+</div>
 
-<table>
-<caption>Docking and Locations
-<thead><tr><th style="width: 40%;">Docked At<th style="width: 25%;">Type<th>System
-<tbody id="docks">
-</table>
+<div class="table table-docks">
+	<div class="caption">Docking and Locations</div>
+	<div class="thead">
+		<div class="cell">Docked At</div>
+		<div class="cell">Type</div>
+		<div class="cell">System</div>
+	</div>
+	<div class="tbody" id="docks"></div>
+</div>
 
-<table>
-<caption>Tables updated
-<thead><tr><th style="width: 25%;">Updated<th style="width: 40%;">Station<th>System
-<tbody id="updates">
-</table>
+<div class="table table-updates">
+	<div class="caption">Tables updated</div>
+	<div class="thead">
+		<div class="cell">Updated</div>
+		<div class="cell">Station</div>
+		<div class="cell">System</div>
+	</div>
+	<div class="tbody" id="updates"></div>
+</div>
 
-<table class="wider">
-<caption>Jumps to inhabited systems
-<thead><tr><th style="width: 25%;">System Visited<th style="width: 15%;">Population<th style="width: 15%;">Allegiance<th>Faction<th style="width: 10%;">State<!-- <th>Conflicts-->
-<tbody id="visits">
-</table>
+<div class="table wider table-visits">
+	<div class="caption">Jumps to inhabited systems</div>
+	<div class="thead">
+		<div class="cell">System Visited</div>
+		<div class="cell">Population</div>
+		<div class="cell">Allegiance</div>
+		<div class="cell">Faction</div>
+		<div class="cell">State</div>
+	</div>
+	<div class="tbody" id="visits"></div>
+</div>
 
-<table class="wider">
-<caption>Codex Discoveries
-<thead><tr><th>System<th style="width: 10%;">Body<th style="width: 20%;">Codex Category<th style="width: 25%;">Type<th style="width: 20%;">Region
-<tbody id="codex">
-</table>
+<div class="table wider table-codex">
+	<div class="caption">Codex Discoveries</div>
+	<div class="thead">
+		<div class="cell">System</div>
+		<div class="cell">Body</div>
+		<div class="cell">Codex Category</div>
+		<div class="cell">Type</div>
+		<div class="cell">Region</div>
+	</div>
+	<div class="tbody" id="codex"></div>
+</div>
 
-<table>
-<caption>Stats
-<thead><tr><th>Stats<th>Count
-<tbody id="statsbody">
-</table>
+<div class="table table-stats">
+	<div class="caption">Stats</div>
+	<div class="thead">
+		<div class="cell">Stats</div>
+		<div class="cell">Count</div>
+	</div>
+	<div class="tbody" id="statsbody"></div>
+</div>
 
-<table>
-<caption>Event Stats
-<thead><tr><th>Event<th style="width: 25%;">Count
-<tbody id="eventsbody">
-</table>
+<div class="table table-events">
+	<div class="caption">Event Stats</div>
+	<div class="thead">
+		<div class="cell">Event</div>
+		<div class="cell">Count</div>
+	</div>
+	<div class="tbody" id="eventsbody"></div>
+</div>
 
-<table>
-<caption>Software Stats
-<thead><tr><th>Software<th style="width: 25%;">Count
-<tbody id="softbody">
-</table>
+<div class="table table-events">
+	<div class="caption">Software Stats</div>
+	<div class="thead">
+		<div class="cell">Software</div>
+		<div class="cell">Count</div>
+	</div>
+	<div class="tbody" id="softbody"></div>
+</div>
 
-<table>
-<caption>Legend
-<thead><tr><th>Legend
-<tbody style="text-align: center;">
-	<tr class="Odyssey"><td>Odyssey
-	<tr class="Horizons"><td>Horizons
-	<tr class="Legacy"><td>Legacy
-	<tr class="Base"><td>A bug (Live but not Horizons)
-	<tr class="Unknown"><td>Unknown
-	<tr class="Odyssey taxi"><td>Taxi (Apex/Frontline)
-	<tr class="Odyssey old"><td>Older than 1h
-	<tr class="Odyssey new"><td>In the future
-</table>
+<div class="table table-legend">
+	<div class="caption">Legend</div>
+	<div class="thead">
+		<div class="cell">Legend</div>
+	</div>
+	<div class="tbody">
+		<div class="row Odyssey"><div class="cell">Odyssey</div></div>
+		<div class="row Horizons"><div class="cell">Horizons</div></div>
+		<div class="row Legacy"><div class="cell">Legacy</div></div>
+		<div class="row Base"><div class="cell">A bug (Live but not Horizons)</div></div>
+		<div class="row Unknown"><div class="cell">Unknown</div></div>
+		<div class="row Odyssey taxi"><div class="cell">Taxi (Apex/Frontline)</div></div>
+		<div class="row Odyssey old"><div class="cell">Older than 1h</div></div>
+		<div class="row Odyssey new"><div class="cell">In the future</div></div>
+	</div>
+</div>
 
 </div>
 
@@ -136,15 +189,15 @@ const idleTimeout = 2300;
 const resetTimeout = 300000;
 
 // set th title attributes
-for (const th of window.board.querySelectorAll("th")) {
-	th.title = th.textContent;
+for (const cell of window.board.querySelectorAll(".thead .cell")) {
+	cell.title = cell.textContent;
 }
 
 // fill tables with listLength * empty rows
 // TODO: use style?
 {
-	const tbHTML = "<tr><td>&nbsp;".repeat(listLength);
-	for (const tb of window.board.querySelectorAll("tbody")) {
+	const tbHTML = '<div class="row"><div class="cell">&nbsp;</div></div>'.repeat(listLength);
+	for (const tb of window.board.querySelectorAll(".tbody")) {
 		if (!tb.childElementCount) {
 			tb.innerHTML = tbHTML;
 		}

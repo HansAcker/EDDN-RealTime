@@ -1,8 +1,9 @@
+// html/js/board.js
 import { ReconnectingWebSocket } from "./reconnecting-websocket.js";
 import { PageIconActivity } from "./activity_icon.js";
 import { StatsBox, SortedStatsBox } from "./statsbox.js";
 import { InfoBox } from "./infobox.js";
-import { distance3, trimPrefix, makeTd, addRow, whatGame, GalacticRegions } from "./utils.js";
+import { distance3, trimPrefix, makeCell, addRow, whatGame, GalacticRegions } from "./utils.js";
 
 // TODO: modularize
 // TODO: remove/rework global config options (socketUrl, listLength, idleTimeout, resetTimeout)
@@ -75,30 +76,31 @@ class MessageRecord {
 }
 
 // TODO: move into MessageRecord? uses global infobox
-function makeTr(messageRecord) {
-	const tr = document.createElement("tr");
+function makeRow(messageRecord) {
+	const div = document.createElement("div");
 
-	tr.classList.add("data");
-	tr.classList.add(messageRecord._gameType);
+	div.classList.add("row");
+	div.classList.add("data");
+	div.classList.add(messageRecord._gameType);
 
 	if (messageRecord._isTaxi) {
-		tr.classList.add("taxi");
+		div.classList.add("taxi");
 	}
 
 	if (messageRecord._isMulticrew) {
-		tr.classList.add("multicrew");
+		div.classList.add("multicrew");
 	}
 
 	if (messageRecord._isOld) {
-		tr.classList.add("old");
+		div.classList.add("old");
 	} else if (messageRecord._isNew) {
-		tr.classList.add("new");
+		div.classList.add("new");
 	}
 
 	// key data by weak ref to table row, used in click event
-	infobox.set(tr, messageRecord._data);
+	infobox.set(div, messageRecord._data);
 
-	return tr;
+	return div;
 }
 
 
@@ -207,61 +209,61 @@ function eventIgnored(messageRecord) {
 function eventDefault(messageRecord) {
 	// commodities, modules, ships
 	const message = messageRecord._message;
-	const tr = makeTr(messageRecord);
+	const row = makeRow(messageRecord);
 
-	tr.append(makeTd(message.commodities ? "Market" : message.ships ? "Shipyard" : message.modules ? "Outfitting" : ""),
-		makeTd(message.stationName),
-		makeTd(message.systemName));
-	addRow(window.updates, tr);
+	row.append(makeCell(message.commodities ? "Market" : message.ships ? "Shipyard" : message.modules ? "Outfitting" : ""),
+		makeCell(message.stationName),
+		makeCell(message.systemName));
+	addRow(window.updates, row);
 }
 
 function eventScan(messageRecord) {
 	const message = messageRecord._message;
-	const tr = makeTr(messageRecord);
+	const row = makeRow(messageRecord);
 
-	tr.append(makeTd(message.BodyName), makeTd(message.ScanType));
-	addRow(window.scanbods, tr);
+	row.append(makeCell(message.BodyName), makeCell(message.ScanType));
+	addRow(window.scanbods, row);
 
 	// some false positives slip through in pre-discovered systems
 	if (message.WasDiscovered === false && message.WasMapped === false && message.ScanType !== "NavBeaconDetail") {
 		if (message.StarType) {
-			const tr = makeTr(messageRecord);
-			tr.append(makeTd(message.BodyName), makeTd(`${message.StarType} ${message.Subclass}`));
-			addRow(window.newstars, tr);
+			const row = makeRow(messageRecord);
+			row.append(makeCell(message.BodyName), makeCell(`${message.StarType} ${message.Subclass}`));
+			addRow(window.newstars, row);
 		}
 		else if (message.PlanetClass) {
-			const tr = makeTr(messageRecord);
-			tr.append(makeTd(message.BodyName),
-				makeTd(message.PlanetClass),
-				makeTd(message.AtmosphereType && message.AtmosphereType !== "None" ? message.AtmosphereType : ""),
-				makeTd(message.Landable ? "Yes" : ""));
-			addRow(window.newplanets, tr);
+			const row = makeRow(messageRecord);
+			row.append(makeCell(message.BodyName),
+				makeCell(message.PlanetClass),
+				makeCell(message.AtmosphereType && message.AtmosphereType !== "None" ? message.AtmosphereType : ""),
+				makeCell(message.Landable ? "Yes" : ""));
+			addRow(window.newplanets, row);
 		}
 	}
 }
 
 function eventFSDJump(messageRecord) {
 	const message = messageRecord._message;
-	const tr = makeTr(messageRecord);
+	const row = makeRow(messageRecord);
 
-	tr.append(makeTd(message.StarSystem));
-	addRow(window.jumps, tr);
+	row.append(makeCell(message.StarSystem));
+	addRow(window.jumps, row);
 
 	if (message.Population > 0 || message.SystemAllegiance) {
-		const tr = makeTr(messageRecord);
+		const row = makeRow(messageRecord);
 		const faction = message.SystemFaction ?? {};
-		tr.append(makeTd(message.StarSystem),
+		row.append(makeCell(message.StarSystem),
 			// TODO: use Intl.NumberFormat?
-			makeTd(message.Population >= 1000000000 ? (message.Population / 1000000000).toFixed(2) + "G" :
+			makeCell(message.Population >= 1000000000 ? (message.Population / 1000000000).toFixed(2) + "G" :
 				message.Population >= 1000000 ? (message.Population / 1000000).toFixed(2) + "M" :
 				message.Population >= 1000 ? (message.Population / 1000).toFixed(2) + "k" :
 				message.Population > 0 ? (message.Population / 1).toFixed(2) :
 				""
 			),
-			makeTd(message.SystemAllegiance),
-			makeTd(faction.Name ?? ""),
-			makeTd(faction.FactionState ?? ""));
-		addRow(window.visits, tr);
+			makeCell(message.SystemAllegiance),
+			makeCell(faction.Name ?? ""),
+			makeCell(faction.FactionState ?? ""));
+		addRow(window.visits, row);
 	}
 }
 
@@ -270,10 +272,10 @@ function eventNavRoute(messageRecord) {
 	const route = message.Route ?? [];
 
 	if (route.length > 1) {
-		const tr = makeTr(messageRecord);
-		tr.append(makeTd(route[0].StarSystem),
-			makeTd(route[route.length-1].StarSystem),
-			makeTd(`${route.length-1}j`));
+		const row = makeRow(messageRecord);
+		row.append(makeCell(route[0].StarSystem),
+			makeCell(route[route.length-1].StarSystem),
+			makeCell(`${route.length-1}j`));
 
 		let dist = 0;
 		let longest = 0;
@@ -282,7 +284,7 @@ function eventNavRoute(messageRecord) {
 			// single-jump route
 
 			dist = longest = distance3(route[0].StarPos, route[1].StarPos);
-			tr.append(makeTd(`${dist.toFixed(2)}ly`), makeTd(""));
+			row.append(makeCell(`${dist.toFixed(2)}ly`), makeCell(""));
 		} else {
 			// sum jump distances
 
@@ -292,7 +294,7 @@ function eventNavRoute(messageRecord) {
 					// start system
 					cur = wp.StarPos;
 					// distance to destination system
-					tr.append(makeTd(`${distance3(cur, route[route.length-1].StarPos).toFixed(2)}ly`));
+					row.append(makeCell(`${distance3(cur, route[route.length-1].StarPos).toFixed(2)}ly`));
 					continue;
 				}
 
@@ -307,7 +309,7 @@ function eventNavRoute(messageRecord) {
 				cur = hop;
 			}
 
-			tr.append(makeTd(`${dist.toFixed(2)}ly`));
+			row.append(makeCell(`${dist.toFixed(2)}ly`));
 		}
 
 		// update the record
@@ -316,13 +318,13 @@ function eventNavRoute(messageRecord) {
 			gameStats.set("Max jump range", `${longest.toFixed(2)}ly`);
 		}
 
-		const td = makeTd(`${longest.toFixed(2)}ly`);
+		const cell = makeCell(`${longest.toFixed(2)}ly`);
 		if (longest >= 200) {
-			td.classList.add("longjump");
+			cell.classList.add("longjump");
 		}
-		tr.append(td);
+		row.append(cell);
 
-		addRow(window.routes, tr);
+		addRow(window.routes, row);
 	} else {
 		console.log("Short NavRoute:", messageRecord._data);
 	}
@@ -330,39 +332,39 @@ function eventNavRoute(messageRecord) {
 
 function eventLocation(messageRecord) {
 	const message = messageRecord._message;
-	const tr = makeTr(messageRecord);
+	const row = makeRow(messageRecord);
 
-	tr.append(makeTd(message.StationName ?? ""), makeTd(message.StationType ?? ""), makeTd(message.StarSystem));
+	row.append(makeCell(message.StationName ?? ""), makeCell(message.StationType ?? ""), makeCell(message.StarSystem));
 
-	addRow(window.docks, tr);
+	addRow(window.docks, row);
 }
 
 function eventApproachSettlement(messageRecord) {
 	const message = messageRecord._message;
-	const tr = makeTr(messageRecord);
+	const row = makeRow(messageRecord);
 
-	tr.append(makeTd(message.Name), makeTd(message.StarSystem));
+	row.append(makeCell(message.Name), makeCell(message.StarSystem));
 
-	addRow(window.asett, tr);
+	addRow(window.asett, row);
 }
 
 function eventCodexEntry(messageRecord) {
 	const message = messageRecord._message;
-	const tr = makeTr(messageRecord);
+	const row = makeRow(messageRecord);
 
-	tr.append(makeTd(message.System),
-		makeTd(trimPrefix(message.BodyName ?? "", message.System)), // strip system name from body name
-		makeTd(message.SubCategory.replace(/^\$Codex_SubCategory_(.*);$/, "$1").replaceAll("_", " ")), // reformat keys
-		makeTd(message.Name.replace(/^\$Codex_Ent_(.*)_Name;$/, "$1").replaceAll("_", " ")),
-		makeTd(GalacticRegions[message.Region.replace(/^\$Codex_RegionName_(.*);$/, "$1")])); // look up region name from number
+	row.append(makeCell(message.System),
+		makeCell(trimPrefix(message.BodyName ?? "", message.System)), // strip system name from body name
+		makeCell(message.SubCategory.replace(/^\$Codex_SubCategory_(.*);$/, "$1").replaceAll("_", " ")), // reformat keys
+		makeCell(message.Name.replace(/^\$Codex_Ent_(.*)_Name;$/, "$1").replaceAll("_", " ")),
+		makeCell(GalacticRegions[message.Region.replace(/^\$Codex_RegionName_(.*);$/, "$1")])); // look up region name from number
 
-	addRow(window.codex, tr);
+	addRow(window.codex, row);
 }
 
 
 // TODO: move into infobox class?
 window.board.addEventListener("click", (ev) => {
-	const target = ev.target.closest("tr");
+	const target = ev.target.closest(".data");
 
 	if (target && infobox.has(target)) {
 		infobox.show(target);

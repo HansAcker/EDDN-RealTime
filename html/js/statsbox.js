@@ -1,31 +1,33 @@
 
 // counts and displays named events or other information
 
+import { makeCell } from "./utils.js";
+
 class StatsRow {
 	// TODO: shape-morphism optimization? #value is always a number except for two stats where it's a string
 	#value;
 	_key;
 
-	#td;
-	_tr;
+	#cell;
+	_row;
 
 	constructor(key, value) {
-		const ktd = document.createElement("td");
-		ktd.textContent = key;
+		const kcell = makeCell(key);
 
-		const td = document.createElement("td");
-		this.#td = td;
+		const vcell = makeCell(value);
+		this.#cell = vcell;
 
-		const tr = document.createElement("tr");
-		tr.append(ktd, td);
-		this._tr = tr;
+		const row = document.createElement("div");
+		row.classList.add("row");
+		row.append(kcell, vcell);
+		this._row = row;
 
 		this._key = key;
 		this._value = value;
 	}
 
 	set _value(newValue) {
-		this.#td.textContent = this.#value = newValue;
+		this.#cell.textContent = this.#cell.title = this.#value = newValue;
 	}
 
 	get _value() {
@@ -57,7 +59,7 @@ class StatsBox {
 			this._rows[this._stats[key]]._value = value;
 		} else {
 			const stat = new StatsRow(key, value);
-			this.#statsbody.append(stat._tr);
+			this.#statsbody.append(stat._row);
 			this._stats[key] = this._rows.length;
 			this._rows.push(stat);
 		}
@@ -111,7 +113,7 @@ class SortedStatsBox extends StatsBox {
 		} while (idxNew > 0 && value > this._rows[idxNew-1]._value);
 
 		// update rows
-		this._rows[idxNew]._tr.before(stat._tr); // move table row
+		this._rows[idxNew]._row.before(stat._row); // move table row
 		this._rows.copyWithin(idxNew+1, idxNew, idxOld); // shift array back by one
 		this._rows[idxNew] = stat; // re-insert element
 		this._stats[key] = idxNew; // update index

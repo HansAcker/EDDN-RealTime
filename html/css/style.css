@@ -137,3 +137,46 @@ tr.data:hover {
 	color: #000;
 	padding: 0.25em;
 }
+
+
+
+.infobox__button {
+	position: relative;
+	border-radius: 8px;
+/*	transition: border-color 0.2s; */
+
+	outline: 0px solid transparent;
+	outline-offset: 0px;
+	transition: outline-offset 0.2s ease-out, outline-color 0.2s ease-out;
+}
+
+/* Shared Animation Properties */
+[class*="infobox__button--signal-"] {
+	animation: infobox__fx--ripple-out 0.6s cubic-bezier(0, 0, 0.2, 1);
+	will-change: outline-offset, outline-color;
+	/* Lift z-index to ensure outline isn't clipped by neighbors */
+	/* TODO: clipped by <div> window edge */
+	z-index: 10;
+}
+
+.infobox__button--signal-success {
+	--pulse-color: rgba(34, 197, 94, 0.8);
+}
+
+.infobox__button--signal-error {
+	--pulse-color: rgba(239, 68, 68, 0.8);
+}
+
+@keyframes infobox__fx--ripple-out {
+	0% {
+		outline: 4px solid var(--pulse-color);
+		outline-offset: 0px;
+	}
+	25% {
+		outline-width: 4px;
+	}
+	100% {
+		outline: 0px solid transparent;
+		outline-offset: 16px;
+	}
+}

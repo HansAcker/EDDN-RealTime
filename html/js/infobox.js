@@ -31,13 +31,13 @@ class InfoBox {
 		const msgText = JSON.stringify(msg, null, 2);
 
 		// clone the template's first child element, a node reference needed to call .remove() on
+		// importNode() vs cloneNode() makes a difference if the <template> contains custom elements
 		const infoBox = document.importNode(this.#template.content, true).firstElementChild;
 
-		// TODO: use async copy, handle success/error
 		const actions = {
-			"copy-msg": () => navigator.clipboard.writeText(msgText),
-			"copy-gts": () => navigator.clipboard.writeText(msg.header?.gatewayTimestamp),
-			"copy-uid": () => navigator.clipboard.writeText(msg.header?.uploaderID),
+			"copy-msg": (button) => InfoBox.#copyToClipboard(msgText, button),
+			"copy-gts": (button) => InfoBox.#copyToClipboard(msg.header?.gatewayTimestamp, button),
+			"copy-uid": (button) => InfoBox.#copyToClipboard(msg.header?.uploaderID, button),
 			"close": () => infoBox.remove(),
 		};
 
@@ -54,10 +54,50 @@ class InfoBox {
 			const action = target?.dataset.infobox__action ?? "close";
 
 			// TODO: log if action not found?
-			actions[action]?.();
+			actions[action]?.(target);
 		});
 
 		this.#container.append(infoBox);
+	}
+
+
+	// TODO: move to utils?
+
+	static #copyToClipboard(text, element) {
+		return new Promise((resolve, reject) => {
+			navigator.clipboard.writeText(text)
+				.then(() => {
+					return InfoBox.#triggerAnimation(element, "infobox__button--signal-success");
+				})
+				.catch((err) => {
+					console.log("copy error:", err);
+					InfoBox.#triggerAnimation(element, "infobox__button--signal-error");
+					reject(err);
+				});
+		});
+	}
+
+	/**
+	 * Triggers a CSS animation class on an element and returns a Promise 
+	 * that resolves when the animation completes.
+	 * @param {HTMLElement} element - The DOM node to animate.
+	 * @param {string} className - The CSS class containing the animation.
+	 * @returns {Promise<void>}
+	 */
+	static #triggerAnimation(element, className) {
+		return new Promise((resolve) => {
+			element.classList.remove(className);
+
+			// force immediate CSS update to reset animation
+			void element.offsetWidth;
+
+			element.addEventListener('animationend', () => {
+				element.classList.remove(className);
+				resolve();
+			}, { once: true });
+
+			element.classList.add(className);
+		});
 	}
 }
 

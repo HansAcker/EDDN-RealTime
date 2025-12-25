@@ -169,7 +169,7 @@ tr.data:hover {
 
 /* Shared Animation Properties */
 [class*="infobox__button--signal-"] {
-	animation: infobox__fx--ripple-out 0.6s cubic-bezier(0, 0, 0.2, 1);
+	animation: infobox__button_fx--ripple-out 0.6s cubic-bezier(0, 0, 0.2, 1);
 	will-change: outline-offset, outline-color;
 	/* Lift z-index to ensure outline isn't clipped by neighbors */
 	/* TODO: clipped by <div> window edge */
@@ -184,7 +184,7 @@ tr.data:hover {
 	--pulse-color: rgb(239 68 68 / 0.8);
 }
 
-@keyframes infobox__fx--ripple-out {
+@keyframes infobox__button_fx--ripple-out {
 	0% {
 		outline: 4px solid var(--pulse-color);
 		outline-offset: 0px;

@@ -173,7 +173,7 @@ function updateSoftwareStats(messageRecord) {
 
 	if (needsort) {
 		const tbody = window.softbody;
-		tbody.replaceChildren(...[...tbody.children].sort((a, b) => a.children[0].textContent < b.children[0].textContent ? 1 : -1));
+		tbody.replaceChildren(...[...tbody.children].sort((a, b) => b.children[0].textContent.localeCompare(a.children[0].textContent)));
 	}
 }
 

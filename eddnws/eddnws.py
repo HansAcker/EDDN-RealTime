@@ -35,7 +35,7 @@ from typing import Any, Coroutine, Dict, Set, Tuple, Optional
 # - support external socket passing
 # - handle/discard incoming client messages
 #   - the current client should not send anything and would just get itself disconnected for missing pongs
-# - re-think monitor_task lifecycle, make its timing configurable
+# - re-think monitor_task lifecycle
 #   - is monitoring the write buffer actually needed? missing pongs would disconnect a stalled client soon
 # - re-think the assertion checks in zmq_(dis)connect, relay_start/stop and how to react (if relay_task is not done, etc)
 #   - possibly use Event or similar to implement the lazy disconnect?
@@ -76,12 +76,11 @@ class EDDNWebsocketServer:
 
 		zmq_url: str = "tcp://eddn.edcd.io:9500" # https://github.com/EDCD/EDDN#eddn-endpoints
 		zmq_close_delay: float = 3.3
-		# TODO: ZMQ_CONNECT_TIMEOUT
 		zmq_HEARTBEAT_IVL: float = 180
 		zmq_HEARTBEAT_TIMEOUT: float = 20
 		zmq_RECONNECT_IVL_MAX: float = 60
-		# zmq_RCVTIMEO: float = 600 # TODO: what would setting RCVTIMEO achieve?
 		zmq_RCVHWM: int = 1000 # TODO: should this be called msg_backlog_limit?
+		# TODO: set ZMQ_CONNECT_TIMEOUT?
 		# TODO: set ZMQ_MAXMSGSIZE?
 		# TODO: set ZMQ_LINGER = 0?
 
@@ -106,6 +105,13 @@ class EDDNWebsocketServer:
 			logger = logging.getLogger(__name__)
 		self._logger = logger
 
+		# set this future to exit serve()
+		self.stop: Optional[asyncio.Future] = None
+
+		# ZMQ Context and Socket
+		self._zmq_ctx : zmq.asyncio.Context = zmq.asyncio.Context.instance()
+		self._zmq_sub : Optional[zmq.asyncio.Socket] = None
+
 		# active websocket connections
 		self._ws_conns : Set[websockets.WebSocketServerProtocol] = set()
 
@@ -114,15 +120,8 @@ class EDDNWebsocketServer:
 		self._relay_close_handler : Optional[asyncio.TimerHandle] = None
 		self._monitor_task : Optional[asyncio.Task] = None
 
-		# ZMQ Context and Socket
-		self._zmq_ctx : zmq.asyncio.Context = zmq.asyncio.Context.instance()
-		self._zmq_sub : Optional[zmq.asyncio.Socket] = None
-
 		# references to one-shot tasks. unreferenced tasks could be garbage-collected before/while running
 		self._background_tasks : Set[asyncio.Task] = set()
-
-		# set this future to exit serve()
-		self._stop_future: Optional[asyncio.Future] = None
 
 
 	def _create_task(self, coro: Coroutine[Any, Any, Any]) -> None:
@@ -199,7 +198,6 @@ class EDDNWebsocketServer:
 		self._zmq_sub.setsockopt(zmq.HEARTBEAT_IVL, int(self.options.zmq_HEARTBEAT_IVL * 1000))
 		self._zmq_sub.setsockopt(zmq.HEARTBEAT_TIMEOUT, int(self.options.zmq_HEARTBEAT_TIMEOUT * 1000))
 		self._zmq_sub.setsockopt(zmq.RECONNECT_IVL_MAX, int(self.options.zmq_RECONNECT_IVL_MAX * 1000))
-		# self._zmq_sub.setsockopt(zmq.RCVTIMEO, int(self.options.zmq_RCVTIMEO * 1000))
 		self._zmq_sub.setsockopt(zmq.RCVHWM, int(self.options.zmq_RCVHWM))
 
 	def _zmq_connect(self) -> None:
@@ -281,7 +279,9 @@ class EDDNWebsocketServer:
 		self._zmq_connect()
 
 		self._relay_task = asyncio.create_task(self._relay_messages())
-		self._monitor_task = asyncio.create_task(self._monitor_client_buffers())
+
+		if self.options.client_check_interval > 0 and self.options.client_buffer_limit > 0:
+			self._monitor_task = asyncio.create_task(self._monitor_client_buffers())
 
 	def _relay_stop(self) -> None:
 		"""
@@ -383,8 +383,8 @@ class EDDNWebsocketServer:
 				#		- count failures, reconnect ZMQ, backoff delay?
 				#		- terminate the server for now, let the init system restart it
 
-				self._logger.exception("receive error, relay task exiting:", e)
-				self._stop_future.set_result("ZMQ Error")
+				self._logger.exception("ZMQ receive error, relay task exiting:", e)
+				self.stop.set_result("ZMQ Error")
 				# raise RuntimeError("fatal ZMQ socket exception")
 				break
 
@@ -401,7 +401,7 @@ class EDDNWebsocketServer:
 				#       - consider disabling context takeover. it loses the benefit of pointers to previous JSON keys, etc.
 				websockets.broadcast(self._ws_conns, data)
 			except Exception as e:
-				self._logger.exception("relay error:", e)
+				self._logger.exception("websockets relay error:", e)
 
 
 	# EDDN messages are zlib-compressed JSON
@@ -512,12 +512,12 @@ class EDDNWebsocketServer:
 		Returns:
 			None
 		"""
-		while self.options.client_buffer_limit > 0:
+		while True:
 			# iterate over a copy of ws_conns
 			# TODO: if ws_conns gets large, a better solution than list(ws_conns) might be needed
 			for websocket in list(self._ws_conns):
-				# TODO: websocket.transport should never be None while websocket.open is True but the type-checker might not know
-				if websocket.open and websocket.transport.get_write_buffer_size() > self.options.client_buffer_limit:
+				# websocket.transport should never be None while websocket.open is True but the type-checker might not know
+				if websocket.open and websocket.transport and websocket.transport.get_write_buffer_size() > self.options.client_buffer_limit:
 					self._logger.info(f"client {websocket.id} write buffer limit exceeded, disconnecting")
 					self._create_task(websocket.close(1008, "Write buffer overrun"))
 
@@ -541,10 +541,10 @@ class EDDNWebsocketServer:
 
 		# set stop condition on signal
 		loop = asyncio.get_running_loop()
-		self._stop_future = loop.create_future()
+		self.stop = loop.create_future()
 
 		for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
-			loop.add_signal_handler(sig, self._stop_future.set_result, sig.name)
+			loop.add_signal_handler(sig, self.stop.set_result, sig.name)
 
 		# TODO: add config options
 		ws_args = {
@@ -578,7 +578,7 @@ class EDDNWebsocketServer:
 
 		# run the server until stop condition
 		async with server:
-			stop_signal = await self._stop_future
+			stop_signal = await self.stop
 			self._relay_stop()
 			self._logger.info(f"received '{stop_signal}', stopping websocket server")
 			# TODO: explicitly close all websocket connections before asyncio does it on exit?
@@ -606,6 +606,8 @@ if __name__ == "__main__":
 		# TODO: clarify help string? it actually de-creases the log level which makes it more verbose
 		parser.add_argument("-v", "--verbose", action="count", dest="verbosity", help=f"increase log level")
 
+		parser.add_argument("--ping-path", metavar="PATH", dest="ping_path", help=f"respond to health-checks if set (default: {defaults.ping_path})")
+
 		group = parser.add_argument_group("ZMQ options")
 		group.add_argument("-u", "--url", metavar="URL", dest="zmq_url", help=f"EDDN ZMQ URL (default: {defaults.zmq_url})")
 		# TODO: -d is usually "debug", use another letter?
@@ -614,15 +616,15 @@ if __name__ == "__main__":
 		group.add_argument("--zmq-HEARTBEAT_IVL", metavar="SECONDS", dest="zmq_HEARTBEAT_IVL", type=float, help=f"set ZMQ ping interval, 0 to disable (default: {defaults.zmq_HEARTBEAT_IVL})")
 		group.add_argument("--zmq-HEARTBEAT_TIMEOUT", metavar="SECONDS", dest="zmq_HEARTBEAT_TIMEOUT", type=float, help=f"set ZMQ ping timeout (default: {defaults.zmq_HEARTBEAT_TIMEOUT})")
 		group.add_argument("--zmq-RECONNECT_IVL_MAX", metavar="SECONDS", dest="zmq_RECONNECT_IVL_MAX", type=float, help=f"set maximum reconnection interval (default: {defaults.zmq_RECONNECT_IVL_MAX})")
-		# group.add_argument("--zmq-RCVTIMEO", metavar="SECONDS", dest="zmq_RCVTIMEO", type=float, help=f"set ZMQ receive timeout (default: {defaults.zmq_RCVTIMEO})")
 		group.add_argument("--zmq-RCVHWM", metavar="NUM", dest="zmq_RCVHWM", type=int, help=f"set ZMQ message backlog limit, 0 to disable (default: {defaults.zmq_RCVHWM})")
 
 		group = parser.add_argument_group("Websocket options")
 		group.add_argument("-s", "--socket", metavar="PATH", dest="listen_path", help=f"listen on Unix socket if set (default: {defaults.listen_path})")
 		group.add_argument("-a", "--addr", dest="listen_addr", help=f"listen on TCP address (default: {defaults.listen_addr})")
 		group.add_argument("-p", "--port", dest="listen_port", type=int, help=f"listen on TCP port (default: {defaults.listen_port})")
-		group.add_argument("--client-buffer-limit", metavar="BYTES", dest="client_buffer_limit", type=int, help=f"set per-client write buffer limit, 0 to disable (default: {defaults.client_buffer_limit})")
 		group.add_argument("--connection-limit", metavar="NUM", dest="connection_limit", type=int, help=f"set websocket connection count limit, 0 to disable (default: {defaults.connection_limit})")
+		group.add_argument("--client-buffer-limit", metavar="BYTES", dest="client_buffer_limit", type=int, help=f"set per-client write buffer limit, 0 to disable (default: {defaults.client_buffer_limit})")
+		group.add_argument("--client-check-interval", metavar="SECONDS", dest="client_check_interval", type=float, help=f"client write buffer check interval, 0 to disable (default: {defaults.client_check_interval})")
 
 		# TODO: add ws keepalive, timeouts, queue size/length
 

@@ -27,7 +27,7 @@ class Activity {
 		// base class does nothing here
 	}
 
-	// TODO: clears/sets timeouts with every update. use fixed loop?
+	// clears/sets timeouts with every update, should be cheap enough
 	#set(state, timeout = 0) {
 		if (this.#idleTimer) {
 			clearTimeout(this.#idleTimer);

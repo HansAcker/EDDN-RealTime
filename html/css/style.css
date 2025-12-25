@@ -126,18 +126,29 @@ tr.data:hover {
 	background-color: rgba(42, 42, 42, 0.9);
 	color: #fff;
 	border: 2px solid #555;
-	overflow: auto;
-	scrollbar-width: auto;
+
+	display: flex;
+	flex-direction: column;
+
+	overflow: visible;
 }
 
 .infobox__header {
-	position: sticky;
-	top: 0px;
+	flex-shrink: 0;
+	z-index: 20;
+
 	background-color: #aaa;
 	color: #000;
 	padding: 0.25em;
 }
 
+.infobox__contentbox {
+	flex: 1;
+	min-height: 0;
+
+	overflow: auto;
+	scrollbar-width: auto;
+}
 
 
 .infobox__button {

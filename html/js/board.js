@@ -32,10 +32,10 @@ const gameStats = new StatsBox(window.statsbody, {
 let maxrange = 0;
 
 
-// TODO: unverified assumption: faster access
+// TODO: unverified assumption: faster access by hoisting references from potentially megamorphic "data" into fixed properties
+// TODO: use lazy getters?
 class MessageRecord {
 	_data;
-	_gameType;
 
 	_schemaRef;
 	_header;
@@ -43,6 +43,8 @@ class MessageRecord {
 
 	_timestamp;
 	_event;
+
+	_gameType;
 
 	_isTaxi;
 	_isMulticrew;

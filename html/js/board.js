@@ -180,7 +180,7 @@ function updateSoftwareStats(messageRecord) {
 function handleMessage(messageRecord) {
 	if (messageRecord._event) {
 		eventStats.inc(messageRecord._event);
-		(EDDNEventHandlers[messageRecord._event] || eventIgnored)(messageRecord);
+		(EDDNEventHandlers[messageRecord._event] ?? eventIgnored)(messageRecord);
 	} else {
 		eventDefault(messageRecord);
 	}
@@ -249,8 +249,9 @@ function eventFSDJump(messageRecord) {
 
 	if (message.Population > 0 || message.SystemAllegiance) {
 		const tr = makeTr(messageRecord);
-		const faction = message.SystemFaction || {};
+		const faction = message.SystemFaction ?? {};
 		tr.append(makeTd(message.StarSystem),
+			// TODO: use Intl.NumberFormat?
 			makeTd(message.Population >= 1000000000 ? (message.Population / 1000000000).toFixed(2) + "G" :
 				message.Population >= 1000000 ? (message.Population / 1000000).toFixed(2) + "M" :
 				message.Population >= 1000 ? (message.Population / 1000).toFixed(2) + "k" :
@@ -258,15 +259,15 @@ function eventFSDJump(messageRecord) {
 				""
 			),
 			makeTd(message.SystemAllegiance),
-			makeTd(faction.Name || ""),
-			makeTd(faction.FactionState || ""));
+			makeTd(faction.Name ?? ""),
+			makeTd(faction.FactionState ?? ""));
 		addRow(window.visits, tr);
 	}
 }
 
 function eventNavRoute(messageRecord) {
 	const message = messageRecord._message;
-	const route = message.Route || [];
+	const route = message.Route ?? [];
 
 	if (route.length > 1) {
 		const tr = makeTr(messageRecord);
@@ -279,10 +280,12 @@ function eventNavRoute(messageRecord) {
 
 		if (route.length === 2) {
 			// single-jump route
+
 			dist = longest = distance3(route[0].StarPos, route[1].StarPos);
 			tr.append(makeTd(`${dist.toFixed(2)}ly`), makeTd(""));
 		} else {
 			// sum jump distances
+
 			let cur;
 			for (const wp of route) {
 				if (!cur) {
@@ -329,7 +332,7 @@ function eventLocation(messageRecord) {
 	const message = messageRecord._message;
 	const tr = makeTr(messageRecord);
 
-	tr.append(makeTd(message.StationName || ""), makeTd(message.StationType || ""), makeTd(message.StarSystem));
+	tr.append(makeTd(message.StationName ?? ""), makeTd(message.StationType ?? ""), makeTd(message.StarSystem));
 
 	addRow(window.docks, tr);
 }
@@ -348,7 +351,7 @@ function eventCodexEntry(messageRecord) {
 	const tr = makeTr(messageRecord);
 
 	tr.append(makeTd(message.System),
-		makeTd(trimPrefix(message.BodyName || "", message.System)), // strip system name from body name
+		makeTd(trimPrefix(message.BodyName ?? "", message.System)), // strip system name from body name
 		makeTd(message.SubCategory.replace(/^\$Codex_SubCategory_(.*);$/, "$1").replaceAll("_", " ")), // reformat keys
 		makeTd(message.Name.replace(/^\$Codex_Ent_(.*)_Name;$/, "$1").replaceAll("_", " ")),
 		makeTd(GalacticRegions[message.Region.replace(/^\$Codex_RegionName_(.*);$/, "$1")])); // look up region name from number

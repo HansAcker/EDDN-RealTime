@@ -1,23 +1,29 @@
 /**
+ * High-Performance Reconnecting WebSocket (Browser Exclusive)
+ *
  * A wrapper around the standard WebSocket API that handles automatic reconnection
  * with an exponential backoff algorithm.
  *
- * It extends EventTarget, allowing standard usage of addEventListener() and
- * removeEventListener(), while also providing standard "on[event]" property setters.
+ * Design Philosophy:
+ * - Read-Optimized: Focuses on maintaining a persistent connection for receiving data.
+ * - No Offline Buffer: Calls to send() throw immediately if disconnected. The application
+ * is responsible for queueing or handling state when the network is down.
+ * - Browser Exclusive: Hard-coded dependency on `window`, `navigator`, and `WebSocket`.
+ * Do not use in Node.js or Service Worker environments.
  *
  * Public Configuration Options (set these directly on the instance):
- * - maxReconnectAttempts (number): Maximum number of retries before giving up. Default: Infinity.
- * - baseReconnectInterval (number): Initial delay in ms before the first retry. Default: 1000.
+ * - maxReconnectAttempts (number): Maximum retries before giving up. Default: Infinity.
+ * - baseReconnectInterval (number): Initial delay in ms before first retry. Default: 1000.
  * - maxReconnectInterval (number): Maximum delay in ms between retries. Default: 30000.
- * - reconnectDecay (number): The rate of increase for the delay (exponential backoff). Default: 1.5.
+ * - reconnectDecay (number): Rate of increase for the delay (exponential backoff). Default: 1.5.
  * - jitterFactor (number): Randomization factor (0-1) to prevent thundering herd. Default: 0.2.
- * - connectionTimeout (number): Maximum time in ms to wait for a connection to open before failing and retrying. Default: 4000.
- * - maxBufferedMessages (number): Maximum number of messages to queue while disconnected. Default: 50.
+ * - connectionTimeout (number): Max time to wait for a connection before failing. Default: 4000.
  *
  * @extends EventTarget
  */
 class ReconnectingWebSocket extends EventTarget {
-	// Standard WebSocket constants exposed on the class
+	// Standard WebSocket constants exposed on the class.
+	// explicit dependency on the global WebSocket object.
 	static CONNECTING = WebSocket.CONNECTING;
 	static OPEN = WebSocket.OPEN;
 	static CLOSING = WebSocket.CLOSING;
@@ -61,19 +67,11 @@ class ReconnectingWebSocket extends EventTarget {
 
 	/**
 	 * Maximum time in ms to wait for a connection to open before closing and retrying.
-	 * Helps fail fast on hanging connections (e.g. firewalls dropping packets).
+	 * Helps fail fast on hanging connections (e.g. firewalls dropping packets without FIN).
 	 * @type {number}
 	 * @default 4000
 	 */
 	connectionTimeout = 4000;
-
-	/**
-	 * Maximum number of messages to queue when offline.
-	 * Oldest messages are dropped if limit is exceeded.
-	 * @type {number}
-	 * @default 50
-	 */
-	maxBufferedMessages = 50;
 
 	// Internal State
 	#url;
@@ -84,10 +82,12 @@ class ReconnectingWebSocket extends EventTarget {
 	#reconnectTimer = null;
 	#connectionTimeoutTimer = null;
 	#binaryType = "blob";
-	#messageQueue = [];
 
-	// Map to store "onX" handler functions for property setters
-	#onEventHandlers = new Map();
+	// Event Handler Backing Fields
+	#onopen = null;
+	#onmessage = null;
+	#onclose = null;
+	#onerror = null;
 
 	// Bound handlers for listener management (stored to allow explicit removal)
 	#onOnlineBound;
@@ -97,9 +97,9 @@ class ReconnectingWebSocket extends EventTarget {
 	 * Creates a new ReconnectingWebSocket.
 	 *
 	 * @param {string|URL} url - The URL to connect to.
-	 * @param {string|string[]} [protocols] - Either a single protocol string or an array of protocol strings.
+	 * @param {string|string[]} [protocols] - Protocol string or array of protocol strings.
 	 * @param {object} [options] - Configuration options to overwrite defaults.
-	 * @param {AbortSignal} [options.signal] - An optional AbortSignal to close and clean up the socket.
+	 * @param {AbortSignal} [options.signal] - An optional AbortSignal to close the socket.
 	 */
 	constructor(url, protocols = [], options = {}) {
 		super();
@@ -115,27 +115,12 @@ class ReconnectingWebSocket extends EventTarget {
 		}
 
 		// Handle browser offline/online state.
-		// We use a hybrid approach:
-		// 1. WeakRef ensures that if the user forgets to call close(), the global listener
-		//    won't keep this instance alive forever (preventing memory leaks).
-		// 2. We also store bound functions so close() can explicitly remove the listeners,
-		//    ensuring immediate cleanup without waiting for GC.
-		if (typeof window !== "undefined") {
-			const weakRef = new WeakRef(this);
+		// We bind these immediately to the window.
+		this.#onOnlineBound = () => this.#handleWindowOnline();
+		this.#onOfflineBound = () => {}; // No-op, present for symmetry and explicit cleanup.
 
-			this.#onOnlineBound = () => {
-				const instance = weakRef.deref();
-				if (instance) {
-					instance.#handleWindowOnline();
-				}
-				// If instance is gone, the listener is effectively dead until GC or manual cleanup.
-			};
-
-			this.#onOfflineBound = () => {}; // No-op, present for symmetry and potential future use.
-
-			window.addEventListener("online", this.#onOnlineBound);
-			window.addEventListener("offline", this.#onOfflineBound);
-		}
+		window.addEventListener("online", this.#onOnlineBound);
+		window.addEventListener("offline", this.#onOfflineBound);
 
 		this.#connect();
 	}
@@ -154,7 +139,8 @@ class ReconnectingWebSocket extends EventTarget {
 
 	/**
 	 * The current state of the connection.
-	 * Masquerades as CONNECTING (0) during the wait period between retries.
+	 * Masquerades as CONNECTING (0) during the wait period between retries to
+	 * prevent consumers from thinking the socket is dead when it is just recovering.
 	 * @returns {number} 0 (CONNECTING), 1 (OPEN), 2 (CLOSING), or 3 (CLOSED).
 	 */
 	get readyState() {
@@ -170,20 +156,6 @@ class ReconnectingWebSocket extends EventTarget {
 	 */
 	get url() {
 		return this.#url;
-	}
-
-	/**
-	 * Returns the number of bytes of data that have been queued using calls to send()
-	 * but not yet transmitted to the network.
-	 *
-	 * NOTE: Unlike standard WebSocket, this implementation ONLY reports the buffer
-	 * of the underlying active socket. It DOES NOT include the size of the offline
-	 * message queue, as calculating exact byte size for mixed data types is expensive.
-	 *
-	 * @returns {number}
-	 */
-	get bufferedAmount() {
-		return this.#socket?.bufferedAmount || 0;
 	}
 
 	/**
@@ -206,43 +178,61 @@ class ReconnectingWebSocket extends EventTarget {
 		}
 	}
 
-	// Property setters to mimic standard WebSocket API
+	// =========================================================================
+	// Event Handler Properties (onopen, onmessage, etc.)
+	// =========================================================================
+
 	/** @param {function} cb */
-	set onopen(cb) { this.#updateEventHandler("open", cb); }
+	set onopen(cb) { this.#updateHandler("open", cb); }
+	get onopen() { return this.#onopen; }
+
 	/** @param {function} cb */
-	set onmessage(cb) { this.#updateEventHandler("message", cb); }
+	set onmessage(cb) { this.#updateHandler("message", cb); }
+	get onmessage() { return this.#onmessage; }
+
 	/** @param {function} cb */
-	set onclose(cb) { this.#updateEventHandler("close", cb); }
+	set onclose(cb) { this.#updateHandler("close", cb); }
+	get onclose() { return this.#onclose; }
+
 	/** @param {function} cb */
-	set onerror(cb) { this.#updateEventHandler("error", cb); }
+	set onerror(cb) { this.#updateHandler("error", cb); }
+	get onerror() { return this.#onerror; }
+
+	/**
+	 * Helper to swap event handlers without memory leaks or Map lookups.
+	 * @private
+	 * @param {string} type - The event name (e.g., "open").
+	 * @param {function} newHandler - The new callback function.
+	 */
+	#updateHandler(type, newHandler) {
+		const propName = `#on${type}`;
+		// Remove previous listener if one existed to prevent duplicates
+		if (this[propName]) {
+			this.removeEventListener(type, this[propName]);
+		}
+		this[propName] = newHandler;
+		if (typeof newHandler === "function") {
+			this.addEventListener(type, newHandler);
+		}
+	}
 
 	// =========================================================================
 	// Public Methods
 	// =========================================================================
 
 	/**
-	 * Enqueues the specified data to be transmitted to the server.
-	 * If the socket is not open, the message is buffered (up to maxBufferedMessages).
+	 * Transmits data to the server.
 	 *
 	 * @param {string|ArrayBuffer|Blob|ArrayBufferView} data - The data to send.
-	 * @throws {DOMException} If the WebSocket has been explicitly closed (InvalidStateError).
+	 * @throws {DOMException} "InvalidStateError" if the socket is not strictly OPEN.
 	 */
 	send(data) {
-		if (this.#forcedClose) {
-			throw new DOMException("WebSocket is explicitly closed.", "InvalidStateError");
-		}
-
 		if (this.#socket && this.#socket.readyState === ReconnectingWebSocket.OPEN) {
-			try {
-				this.#socket.send(data);
-			} catch (error) {
-				// If the socket is theoretically OPEN but send() fails (e.g. network stack error),
-				// we catch it and queue the message to prevent data loss.
-				console.warn("ReconnectingWebSocket: Send failed, queuing message.", error);
-				this.#queueMessage(data);
-			}
+			this.#socket.send(data);
 		} else {
-			this.#queueMessage(data);
+			// Zero-tolerance policy: If it's not open, we crash the call.
+			// This forces the consumer to handle their own queueing or state management.
+			throw new DOMException("WebSocket is not open. Wait for 'open' event.", "InvalidStateError");
 		}
 	}
 
@@ -258,15 +248,16 @@ class ReconnectingWebSocket extends EventTarget {
 			throw new DOMException("Cannot reconnect a closed WebSocket.", "InvalidStateError");
 		}
 
-		this.#retryCount = 0;
+		console.debug("ReconnectingWebSocket: Manual reconnect requested.");
 
 		if (this.#socket) {
 			this.#removeSocketListeners(this.#socket);
-			// Force close. No events will fire because listeners are removed.
+			// 1000: Normal Closure. indicating that the purpose for which the connection was established has been fulfilled.
 			this.#socket.close(1000, "Manual Reconnect");
 			this.#socket = null;
 		}
 
+		this.#retryCount = 0;
 		this.#connect();
 	}
 
@@ -280,7 +271,6 @@ class ReconnectingWebSocket extends EventTarget {
 	close(code = 1000, reason) {
 		this.#forcedClose = true;
 		this.#clearInternalTimers();
-		this.#messageQueue = [];
 
 		if (this.#socket) {
 			this.#removeSocketListeners(this.#socket);
@@ -290,10 +280,8 @@ class ReconnectingWebSocket extends EventTarget {
 
 		// Explicit cleanup of global listeners.
 		// This prevents "dead" instances from lingering in memory if the GC is lazy.
-		if (typeof window !== "undefined") {
-			window.removeEventListener("online", this.#onOnlineBound);
-			window.removeEventListener("offline", this.#onOfflineBound);
-		}
+		window.removeEventListener("online", this.#onOnlineBound);
+		window.removeEventListener("offline", this.#onOfflineBound);
 
 		this.dispatchEvent(new CloseEvent("close", { code, reason, wasClean: true }));
 	}
@@ -306,20 +294,18 @@ class ReconnectingWebSocket extends EventTarget {
 	#connect() {
 		if (this.#forcedClose) return;
 
-		// If we are offline, do not attempt to connect (save resources).
-		if (typeof navigator !== "undefined" && !navigator.onLine) {
-			return;
-		}
+		// Save resources: Do not attempt to connect if the browser is offline.
+		if (!navigator.onLine) return;
 
 		// Prevent multiple simultaneous connection attempts.
 		if (this.#socket && this.#socket.readyState === ReconnectingWebSocket.CONNECTING) return;
 
 		try {
-			// Local reference ensures thread safety if #socket changes rapidly.
 			const ws = new WebSocket(this.#url, this.#protocols);
 			this.#socket = ws;
 			ws.binaryType = this.#binaryType;
 
+			// Attach standard event listeners
 			ws.onopen = (event) => this.#handleOpen(event);
 			ws.onclose = (event) => this.#handleClose(event);
 			ws.onmessage = (event) => this.#handleMessage(event);
@@ -330,7 +316,20 @@ class ReconnectingWebSocket extends EventTarget {
 			// (e.g. firewall dropping packets silently) and force a close/retry cycle.
 			this.#connectionTimeoutTimer = setTimeout(() => {
 				if (this.#socket === ws) {
-					ws.close(); // Triggers handleClose -> retry
+					// 1. "Disown" the socket immediately to prevent "Phantom Opens".
+					// This prevents ANY events from this instance triggering methods on our class.
+					this.#removeSocketListeners(ws);
+
+					// 2. Kill the socket at the network level.
+					ws.close();
+
+					// 3. Manually trigger the cleanup/retry logic since we removed the listeners.
+					this.#handleClose({
+						target: ws,
+						code: 4008,
+						reason: "Connection Timeout",
+						wasClean: false
+					});
 				}
 			}, this.connectionTimeout);
 
@@ -341,8 +340,16 @@ class ReconnectingWebSocket extends EventTarget {
 
 	/** @private */
 	#handleWindowOnline() {
-		// Immediately attempt to reconnect if we are currently disconnected.
-		if (!this.#socket || this.#socket.readyState === WebSocket.CLOSED) {
+		// Optimization: If we are in the middle of a backoff wait, interrupt it.
+		// There is no point waiting 30s if the user just reconnected their wifi.
+		if (this.#reconnectTimer) {
+			clearTimeout(this.#reconnectTimer);
+			this.#reconnectTimer = null;
+			this.#retryCount = 0; // Reset backoff since we have a fresh signal
+			this.#connect();
+		}
+		// Otherwise, if we are strictly closed (and not processing a connect), go now.
+		else if (!this.#socket || this.#socket.readyState === ReconnectingWebSocket.CLOSED) {
 			this.#retryCount = 0;
 			this.#connect();
 		}
@@ -350,13 +357,14 @@ class ReconnectingWebSocket extends EventTarget {
 
 	/** @private */
 	#handleOpen(event) {
+		// Verify ownership to prevent race conditions from timed-out sockets
 		if (event.target !== this.#socket) return;
 
 		clearTimeout(this.#connectionTimeoutTimer);
 		this.#retryCount = 0;
 
-		// Flush offline buffer before dispatching open so consumer receives messages in order.
-		this.#flushMessageQueue();
+		// Critical Sequencing: Dispatch OPEN first.
+		// This allows the consumer to immediately call send() in their listener.
 		this.dispatchEvent(new Event("open"));
 	}
 
@@ -374,6 +382,7 @@ class ReconnectingWebSocket extends EventTarget {
 
 	/** @private */
 	#handleClose(event) {
+		// Verify this close event is from the current active socket.
 		if (event.target !== this.#socket) return;
 
 		clearTimeout(this.#connectionTimeoutTimer);
@@ -404,7 +413,7 @@ class ReconnectingWebSocket extends EventTarget {
 			return;
 		}
 
-		// Exponential Backoff
+		// Exponential Backoff Calculation
 		let delay = this.baseReconnectInterval * Math.pow(this.reconnectDecay, this.#retryCount);
 		delay = Math.min(delay, this.maxReconnectInterval);
 
@@ -421,42 +430,6 @@ class ReconnectingWebSocket extends EventTarget {
 			this.#retryCount++;
 			this.#connect();
 		}, delay);
-	}
-
-	/** @private */
-	#queueMessage(data) {
-		this.#messageQueue.push(data);
-		while (this.#messageQueue.length > this.maxBufferedMessages) {
-			this.#messageQueue.shift();
-			console.warn("ReconnectingWebSocket: Buffer full, dropping oldest message.");
-		}
-	}
-
-	/** @private */
-	#flushMessageQueue() {
-		while (this.#messageQueue.length > 0 && this.#socket?.readyState === ReconnectingWebSocket.OPEN) {
-			const data = this.#messageQueue.shift();
-			try {
-				this.#socket.send(data);
-			} catch (e) {
-				// If send fails immediately (rare but possible), put it back and stop flushing.
-				this.#messageQueue.unshift(data);
-				break;
-			}
-		}
-	}
-
-	/** @private */
-	#updateEventHandler(type, callback) {
-		if (this.#onEventHandlers.has(type)) {
-			this.removeEventListener(type, this.#onEventHandlers.get(type));
-		}
-		if (typeof callback === "function") {
-			this.#onEventHandlers.set(type, callback);
-			this.addEventListener(type, callback);
-		} else {
-			this.#onEventHandlers.delete(type);
-		}
 	}
 
 	/** @private */

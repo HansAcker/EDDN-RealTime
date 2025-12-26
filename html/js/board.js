@@ -375,7 +375,7 @@ window.board.addEventListener("click", (ev) => {
 (function watchdog() {
 	if (ws.readyState === WebSocket.OPEN && Date.now() - lastEvent > resetTimeout) {
 		console.log("Receive timeout. Resetting connection.");
-		ws.refresh();
+		ws.reconnect();
 	}
 
 	const nextWake = ~~(60000 + Math.random() * 42000);

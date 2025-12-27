@@ -36,6 +36,7 @@ class EDDNReceiver:
 				If 0, no limit is applied.
 			ignore_decode_errors (bool): If True, decoding exceptions (zlib/json) are logged and the
 				stream continues. If False, exceptions are raised.
+			offload_threshold (int): Run decoder in default executor for ZMQ messages larger than this.
 
 			zmq_CONNECT_TIMEOUT (float): ZMQ_CONNECT_TIMEOUT in seconds.
 			zmq_HEARTBEAT_IVL (float): ZMQ_HEARTBEAT_IVL in seconds.
@@ -48,6 +49,7 @@ class EDDNReceiver:
 
 		msg_size_limit: int = 0 # decompressed JSON size limit (bytes) if > 0
 		ignore_decode_errors: bool = True # ignore decoding errors and continue
+		offload_threshold: int = 10 * 1024 # max. compressed message size to decode on main thread
 
 		zmq_CONNECT_TIMEOUT: float = 0
 		zmq_HEARTBEAT_IVL: float = 180
@@ -79,7 +81,7 @@ class EDDNReceiver:
 		The main generator loop. Connects on start, disconnects on exit/cancellation.
 
 		Yields:
-			bytes: The decompressed, normalized (canonical JSON) payload.
+			bytes: The decompressed, normalized JSON payload.
 		
 		Raises:
 			zmq.ZMQError: If a ZMQ error occurs.
@@ -99,8 +101,10 @@ class EDDNReceiver:
 				try:
 					zmq_msg = await socket.recv()
 					# TODO: profile live - most messages are small. enough that decoding is faster than a context switch?
-					# yield self._decode_msg(zmq_msg, self.options.msg_size_limit)
-					yield await loop.run_in_executor(None, self._decode_msg, zmq_msg, self.options.msg_size_limit)
+					if len(zmq_msg) <= self.options.offload_threshold:
+						yield self._decode_msg(zmq_msg, self.options.msg_size_limit)
+					else:
+						yield await loop.run_in_executor(None, self._decode_msg, zmq_msg, self.options.msg_size_limit)
 
 				except Exception as e:
 					self._logger.error(f"Stream error: {e}")

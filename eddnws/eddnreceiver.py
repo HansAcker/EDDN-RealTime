@@ -88,8 +88,7 @@ class EDDNReceiver:
 			see _decode_msg(): If ignore_decode_errors is False.
 		"""
 
-		socket = self._ctx.socket(zmq.SUB)
-		self._configure_socket(socket)
+		socket = self._create_socket()
 		
 		self._logger.info(f"Connecting to ZMQ: {self.options.zmq_url}")
 		socket.connect(self.options.zmq_url)
@@ -125,13 +124,13 @@ class EDDNReceiver:
 			socket.close(linger=0)
 
 
-	def _configure_socket(self, socket: zmq.asyncio.Socket) -> None:
+	def _create_socket(self) -> None:
 		"""
-		Apply ZMQ socket options based on the configuration.
+		Returns a new zmq.SUB socket.
+		Applies ZMQ socket options based on the configuration.
+		"""
+		socket = self._ctx.socket(zmq.SUB)
 
-		Args:
-			socket (zmq.asyncio.Socket): The socket instance to configure.
-		"""
 		socket.setsockopt(zmq.SUBSCRIBE, b"") # EDDN does not have topics
 		socket.setsockopt(zmq.IPV6, True)
 		socket.setsockopt(zmq.CONNECT_TIMEOUT, int(self.options.zmq_CONNECT_TIMEOUT * 1000))
@@ -141,6 +140,8 @@ class EDDNReceiver:
 		socket.setsockopt(zmq.MAXMSGSIZE, int(self.options.zmq_MAXMSGSIZE))
 		socket.setsockopt(zmq.RCVHWM, int(self.options.zmq_RCVHWM))
 		socket.setsockopt(zmq.RCVTIMEO, -1) # no timeout in recv(), never raise zmq.Again
+
+		return socket
 
 
 	@staticmethod

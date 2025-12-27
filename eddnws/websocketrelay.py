@@ -55,6 +55,7 @@ class WebsocketRelay:
 			**kwargs: Keyword arguments matching keys in WebsocketRelay.Options.
 		"""
 		self._iter_factory = iter_factory
+		self._iter: Optional[AsyncIterable[bytes]] = None
 
 		self.options = WebsocketRelay.Options(**kwargs)
 
@@ -144,7 +145,7 @@ class WebsocketRelay:
 			(self._relay_task is not None and not self._relay_task.done()) or
 			(self._monitor_task is not None and not self._monitor_task.done())
 		):
-			warnings.warn("relay tasks not done", RuntimeWarning)
+			warnings.warn("Relay tasks not done", RuntimeWarning)
 			return
 
 		self._iter = self._iter_factory()
@@ -205,6 +206,10 @@ class WebsocketRelay:
 		"""
 		The "hot loop" that consumes the upstream iterator and broadcasts to clients.
 		"""
+		if not self._iter:
+			warnings.warn("Uninitalized Iterator", RuntimeWarning)
+			return
+
 		try:
 			async for data in self._iter:
 				try:
@@ -304,7 +309,7 @@ class WebsocketRelay:
 			self.stop = stop_future
 
 		# Configuration for the websockets library
-		ws_args = {
+		ws_args: Dict[str, Any] = {
 			# Hook to handle HTTP requests (e.g. /ping) before WebSocket upgrade
 			"process_request": self._process_request_legacy if self.options.ping_path else None,
 

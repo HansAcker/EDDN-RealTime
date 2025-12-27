@@ -69,9 +69,7 @@ class EDDNReceiver:
 		"""
 		self.options = EDDNReceiver.Options(**kwargs)
 
-		if logger is None:
-			logger = logging.getLogger(__name__)
-		self._logger = logger
+		self._logger = logger or logging.getLogger(__name__)
 
 		self._ctx: zmq.asyncio.Context = zmq.asyncio.Context.instance()
 
@@ -191,7 +189,7 @@ class EDDNReceiver:
 
 
 if __name__ == "__main__":
-	async def main():
+	async def main() -> None:
 		async for _ in EDDNReceiver():
 			print(_.decode("utf-8"))
 

@@ -59,9 +59,7 @@ class WebsocketRelay:
 
 		self.options = WebsocketRelay.Options(**kwargs)
 
-		if logger is None:
-			logger = logging.getLogger(__name__)
-		self._logger = logger
+		self._logger = logger or logging.getLogger(__name__)
 
 		# set this future to exit serve()
 		self.stop: Optional[asyncio.Future] = None
@@ -302,10 +300,7 @@ class WebsocketRelay:
 
 		loop = asyncio.get_running_loop()
 
-		if stop_future is None:
-			self.stop = loop.create_future()
-		else:
-			self.stop = stop_future
+		self.stop = stop_future or loop.create_future()
 
 		# Configuration for the websockets library
 		ws_args: Dict[str, Any] = {

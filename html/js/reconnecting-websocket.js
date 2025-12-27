@@ -248,7 +248,7 @@ class ReconnectingWebSocket extends EventTarget {
 			throw new DOMException("Cannot reconnect a closed WebSocket.", "InvalidStateError");
 		}
 
-		console.debug("ReconnectingWebSocket: Manual reconnect requested.");
+		// console.debug("ReconnectingWebSocket: Manual reconnect requested.");
 
 		if (this.#socket) {
 			this.#removeSocketListeners(this.#socket);
@@ -334,6 +334,15 @@ class ReconnectingWebSocket extends EventTarget {
 			}, this.connectionTimeout);
 
 		} catch (e) {
+			// stop retrying if the URL is malformed.
+			if (e instanceof SyntaxError) {
+				console.error("ReconnectingWebSocket: Fatal error (Invalid URL), stopping retries.", e);
+				// Permanently close the socket to prevent the retry loop.
+				this.close(1006, "Fatal Syntax Error");
+				this.dispatchEvent(new Event("error"));
+				return;
+			}
+
 			this.#handleConnectionFailure();
 		}
 	}

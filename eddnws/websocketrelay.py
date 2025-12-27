@@ -34,7 +34,7 @@ class WebsocketRelay:
 		listen_path: Optional[str] = None # listen on socket path instead of TCP, e.g. "/run/eddn/eddnws.sock"
 
 		close_delay: float = 3.3
-		ping_path: Optional[str] = "/ping" # respond to health-checks if set
+		ping_path: Optional[str] = None # respond to health-checks if set, e.g. "/ping"
 
 		# default safety limits
 		connection_limit: int = 1000 # max. number of active websockets accepted by ws_handler

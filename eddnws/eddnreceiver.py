@@ -60,17 +60,15 @@ class EDDNReceiver:
 		# TODO: set ZMQ_LINGER = 0?
 
 
-	def __init__(self, options: Optional[Dict[str, Any]] = None, *, logger: Optional[logging.Logger] = None) -> None:
+	def __init__(self, *, logger: Optional[logging.Logger] = None, **kwargs) -> None:
 		"""
 		Initialize the EDDNReceiver.
 
 		Args:
-			options (dict, optional): Dictionary matching keys in EDDNReceiver.Options.
 			logger (logging.Logger, optional): Custom logger instance. Defaults to __name__.
+			**kwargs: Keyword arguments matching keys in EDDNReceiver.Options.
 		"""
-		if options is None:
-			options = {}
-		self.options = EDDNReceiver.Options(**options)
+		self.options = EDDNReceiver.Options(**kwargs)
 
 		if logger is None:
 			logger = logging.getLogger(__name__)

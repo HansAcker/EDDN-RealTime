@@ -43,7 +43,7 @@ class WebsocketRelay:
 		client_check_interval: int = 1 # client buffer limit check interval
 
 
-	def __init__(self, iter_factory: Callable[[], AsyncIterable[bytes]], *, options: Optional[Dict[str, Any]] = None, logger: Optional[logging.Logger] = None) -> None:
+	def __init__(self, iter_factory: Callable[[], AsyncIterable[bytes]], *, logger: Optional[logging.Logger] = None, **kwargs) -> None:
 		"""
 		Initialize the WebsocketRelay.
 
@@ -51,14 +51,12 @@ class WebsocketRelay:
 			iter_factory: A callable that returns an AsyncIterable[bytes].
 				This factory is called to create a new upstream iterator whenever
 				the first client connects (or reconnects after a full shutdown).
-			options: Dictionary matching keys in WebsocketRelay.Options.
 			logger: Custom logger instance. Defaults to __name__.
+			**kwargs: Keyword arguments matching keys in WebsocketRelay.Options.
 		"""
 		self._iter_factory = iter_factory
 
-		if options is None:
-			options = {}
-		self.options = WebsocketRelay.Options(**options)
+		self.options = WebsocketRelay.Options(**kwargs)
 
 		if logger is None:
 			logger = logging.getLogger(__name__)

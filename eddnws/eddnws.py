@@ -28,8 +28,8 @@ def filter_options(target_cls: Type[Any], args: Dict[str, Any]) -> Dict[str, Any
 
 
 async def start_server(server_args: Optional[Dict[str, Any]] = None, receiver_args: Optional[Dict[str, Any]] = None) -> None:
-	iter_factory = partial(EDDNReceiver, options=receiver_args)
-	websocket_server = WebsocketRelay(iter_factory, options=server_args)
+	iter_factory = partial(EDDNReceiver, **(receiver_args or {}))
+	websocket_server = WebsocketRelay(iter_factory, **(server_args or {}))
 
 	loop = asyncio.get_running_loop()
 	stop_future = loop.create_future()

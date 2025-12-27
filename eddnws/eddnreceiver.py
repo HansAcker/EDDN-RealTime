@@ -180,6 +180,9 @@ class EDDNReceiver:
 		if dobj.unconsumed_tail:
 			raise ValueError("Size limit exceeded")
 
+		if dobj.unused_data:
+			raise ValueError("Trailing garbage")
+
 		if not (json_text and dobj.eof):
 			raise ValueError("Truncated payload")
 

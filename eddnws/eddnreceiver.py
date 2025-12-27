@@ -99,13 +99,13 @@ class EDDNReceiver:
 		try:
 			while True:
 				try:
-					# TODO: profile live
 					zmq_msg = await socket.recv()
-					yield self._decode_msg(zmq_msg, self.options.msg_size_limit)
-					#yield await loop.run_in_executor(None, self._decode_msg, zmq_msg, self.options.msg_size_limit)
+					# TODO: profile live - most messages are small. enough that decoding is faster than a context switch?
+					# yield self._decode_msg(zmq_msg, self.options.msg_size_limit)
+					yield await loop.run_in_executor(None, self._decode_msg, zmq_msg, self.options.msg_size_limit)
 
 				except Exception as e:
-					self._logger.error(f"Stream error")
+					self._logger.error(f"Stream error: {e}")
 
 					# Raise ZMQ Errors immediately as they might indicate connection issues
 					if isinstance(e, zmq.ZMQError):

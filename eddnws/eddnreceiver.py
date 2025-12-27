@@ -16,8 +16,7 @@ class EDDNReceiver:
 	A ZMQ subscriber that yields normalized EDDN messages as bytes.
 
 	This class handles the connection to the EDDN ZMQ relay, manages the
-	socket lifecycle, handles automatic reconnection, and performs
-	CPU-bound decompression and JSON parsing off the main event loop.
+	socket lifecycle, handles automatic reconnection
 
 	Usage:
 		receiver = EDDNReceiver([options])
@@ -86,8 +85,7 @@ class EDDNReceiver:
 		
 		Raises:
 			zmq.ZMQError: If a ZMQ error occurs.
-			zlib.error: If decompression fails (unless ignored via options).
-			orjson.JSONDecodeError: If JSON parsing fails (unless ignored via options).
+			see _decode_msg(): If ignore_decode_errors is False.
 		"""
 
 		socket = self._ctx.socket(zmq.SUB)
@@ -101,24 +99,13 @@ class EDDNReceiver:
 		try:
 			while True:
 				try:
+					# TODO: profile live
 					zmq_msg = await socket.recv()
-
-					# Offload CPU-bound decompression and JSON parsing
-					json_bytes = await loop.run_in_executor(
-						None,
-						self._decode_msg,
-						zmq_msg,
-						self.options.msg_size_limit
-					)
-					
-					yield json_bytes
-
-				except zmq.Again:
-					# zmq.RCVTIMEO time-out
-					await asyncio.sleep(0.1)
+					yield self._decode_msg(zmq_msg, self.options.msg_size_limit)
+					#yield await loop.run_in_executor(None, self._decode_msg, zmq_msg, self.options.msg_size_limit)
 
 				except Exception as e:
-					self._logger.error(f"Stream error: {e}")
+					self._logger.error(f"Stream error")
 
 					# Raise ZMQ Errors immediately as they might indicate connection issues
 					if isinstance(e, zmq.ZMQError):
@@ -143,7 +130,7 @@ class EDDNReceiver:
 		Args:
 			socket (zmq.asyncio.Socket): The socket instance to configure.
 		"""
-		socket.setsockopt(zmq.SUBSCRIBE, b"") # Subscribe to all topics
+		socket.setsockopt(zmq.SUBSCRIBE, b"") # EDDN does not have topics
 		socket.setsockopt(zmq.IPV6, True)
 		socket.setsockopt(zmq.CONNECT_TIMEOUT, int(self.options.zmq_CONNECT_TIMEOUT * 1000))
 		socket.setsockopt(zmq.HEARTBEAT_IVL, int(self.options.zmq_HEARTBEAT_IVL * 1000))
@@ -151,14 +138,13 @@ class EDDNReceiver:
 		socket.setsockopt(zmq.RECONNECT_IVL_MAX, int(self.options.zmq_RECONNECT_IVL_MAX * 1000))
 		socket.setsockopt(zmq.MAXMSGSIZE, int(self.options.zmq_MAXMSGSIZE))
 		socket.setsockopt(zmq.RCVHWM, int(self.options.zmq_RCVHWM))
+		socket.setsockopt(zmq.RCVTIMEO, -1) # no timeout in recv(), never raise zmq.Again
 
 
 	@staticmethod
 	def _decode_msg(zmq_msg: bytes, size_limit: int) -> bytes:
 		"""
 		Decompresses and validates the ZMQ payload.
-		
-		Static method to ensure it is picklable if necessary
 		
 		Args:
 			zmq_msg (bytes): The compressed ZMQ payload.
@@ -168,14 +154,15 @@ class EDDNReceiver:
 			bytes: Canonicalized JSON bytes.
 
 		Raises:
-			ValueError: If zlib/JSON payload does not pass validation
+			ValueError: If zlib/JSON payload does not pass validation.
 			zlib.error: If decompression fails.
 			orjson.JSONDecodeError: If JSON parsing fails.
 		"""
 		dobj = zlib.decompressobj()
 		json_text = dobj.decompress(zmq_msg, size_limit)
 		
-		# contains at minimum the CRC bytes if decompression is not done
+        # If max_length is reached, zlib pauses before consuming the stream footer (CRC/Adler32).
+        # These unverified bytes remain in unconsumed_tail, ensuring it is non-empty if the limit is hit.
 		if dobj.unconsumed_tail:
 			raise ValueError("Size limit exceeded")
 

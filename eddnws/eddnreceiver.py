@@ -107,11 +107,11 @@ class EDDNReceiver:
 				except Exception as e:
 					self._logger.error(f"Stream error: {e}")
 
-					# Raise ZMQ Errors immediately as they might indicate connection issues
+					# Raise ZMQ Errors as they might indicate connection issues
 					if isinstance(e, zmq.ZMQError):
 						raise
 
-					# If configured, skip malformed payloads (zlib/json errors) to keep the stream alive
+					# Skip malformed payloads (zlib/json errors) if configured
 					if self.options.ignore_decode_errors:
 						continue
 
@@ -142,13 +142,13 @@ class EDDNReceiver:
 
 
 	@staticmethod
-	def _decode_msg(zmq_msg: bytes, size_limit: int) -> bytes:
+	def _decode_msg(msg: bytes, size_limit: int = 0) -> bytes:
 		"""
-		Decompresses and validates the ZMQ payload.
+		Decompresses and validates the received payload.
 		
 		Args:
-			zmq_msg (bytes): The compressed ZMQ payload.
-			size_limit (int): Maximum allowable decompressed size.
+			msg (bytes): The compressed payload.
+			size_limit (int): Maximum allowable decompressed size, 0 for unlimited.
 
 		Returns:
 			bytes: Canonicalized JSON bytes.
@@ -158,8 +158,12 @@ class EDDNReceiver:
 			zlib.error: If decompression fails.
 			orjson.JSONDecodeError: If JSON parsing fails.
 		"""
+
+		if not msg:
+			raise ValueError("Empty payload")
+
 		dobj = zlib.decompressobj()
-		json_text = dobj.decompress(zmq_msg, size_limit)
+		json_text = dobj.decompress(msg, size_limit)
 		
         # If max_length is reached, zlib pauses before consuming the stream footer (CRC/Adler32).
         # These unverified bytes remain in unconsumed_tail, ensuring it is non-empty if the limit is hit.
@@ -169,8 +173,11 @@ class EDDNReceiver:
 		if dobj.unused_data:
 			raise ValueError("Trailing garbage")
 
-		if not (json_text and dobj.eof):
+		if not dobj.eof:
 			raise ValueError("Truncated payload")
+
+		if not json_text:
+			raise ValueError("Empty message")
 
 		data = orjson.loads(json_text)
 		

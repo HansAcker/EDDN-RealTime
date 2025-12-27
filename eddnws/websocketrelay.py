@@ -262,7 +262,7 @@ class WebsocketRelay:
 			await websocket.wait_closed()
 
 		except Exception as e:
-			self._logger.warning(f"websocket error {websocket.id}:", e)
+			self._logger.warning(f"websocket error {websocket.id}: {e}")
 
 		finally:
 			self._ws_conns.discard(websocket)

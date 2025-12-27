@@ -74,6 +74,8 @@ class EDDNReceiver:
 			logger = logging.getLogger(__name__)
 		self._logger = logger
 
+		self._ctx: zmq.asyncio.Context = zmq.asyncio.Context.instance()
+
 
 	async def __aiter__(self) -> AsyncGenerator[bytes, None]:
 		"""
@@ -88,10 +90,7 @@ class EDDNReceiver:
 			orjson.JSONDecodeError: If JSON parsing fails (unless ignored via options).
 		"""
 
-		# Create a fresh context/socket for every iteration loop to ensure clean state on restarts
-		ctx = zmq.asyncio.Context()
-
-		socket = ctx.socket(zmq.SUB)
+		socket = self._ctx.socket(zmq.SUB)
 		self._configure_socket(socket)
 		
 		self._logger.info(f"Connecting to ZMQ: {self.options.zmq_url}")
@@ -135,7 +134,6 @@ class EDDNReceiver:
 			# Clean up when the consumer stops or cancels the task
 			self._logger.info("Closing ZMQ socket")
 			socket.close(linger=0)
-			ctx.term()
 
 
 	def _configure_socket(self, socket: zmq.asyncio.Socket) -> None:
@@ -170,13 +168,14 @@ class EDDNReceiver:
 			bytes: Canonicalized JSON bytes.
 
 		Raises:
-			ValueError: If payload is empty, exceeds size limit, or lacks required schema fields.
+			ValueError: If zlib/JSON payload does not pass validation
 			zlib.error: If decompression fails.
 			orjson.JSONDecodeError: If JSON parsing fails.
 		"""
 		dobj = zlib.decompressobj()
 		json_text = dobj.decompress(zmq_msg, size_limit)
 		
+		# contains at minimum the CRC bytes if decompression is not done
 		if dobj.unconsumed_tail:
 			raise ValueError("Size limit exceeded")
 

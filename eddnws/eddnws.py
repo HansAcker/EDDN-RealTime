@@ -18,12 +18,14 @@ from typing import Any, Coroutine, Dict, Set, Tuple, Optional
 
 # TODO: possibly
 # - improve arg parser
-# - configure logging properly
-#   - use a different log level for websocket's logger
-#   - set proper name
+#   - log level is configured in main
+#   - passed unused "verbosity" into constructor
 # - rework for websockets >=14
 #   - ws_handler() should cope with the argument type change (DeprecationWarning), could be adapted for type-checking
 #   - process_request() needs to be changed - support both with version switch?
+#   - the text=True argument to send() would allow a custom broadcast function
+#     - pass bytes from orjson.dumps() without .decode().encode() overhead
+#     - that would also give direct control over slow client buffers without the monitor task
 # - split EDDNReceiver and WebsocketRelay modules again, with an iterator or Queue between them?
 #   - generic WebsocketRelay would read str from iterator, broadcast to clients
 #   - EDDNReceiver would read from ZMQ, parse, validate, normalize, yield
@@ -55,9 +57,12 @@ class EDDNWebsocketServer:
 
 	@dataclass
 	class ServerOptions:
-		"""Configuration options for the EDDN Websocket Server."""
+		"""
+		Configuration options for the EDDN Websocket Server.
+		"""
 
-		verbosity: int = 0 # translates to log level
+		# currently unused. kept to prevent TypeError when unpacking **options from argparse
+		verbosity: int = 0
 
 		listen_addr: str = "127.0.0.1"
 		listen_port: int = 8081
@@ -90,8 +95,10 @@ class EDDNWebsocketServer:
 		Initialize the EDDN Websocket Server instance.
 
 		Args:
-			options (Dict[str, Any]): A dictionary of configuration options to override defaults.
+			options (dict, optional): A dictionary of configuration options to override defaults.
 									  Merged into self.options.
+			logger (logging.Logger, optional): A custom logger instance. If None, uses the
+											   module-level logger.
 
 		Returns:
 			None
@@ -125,6 +132,16 @@ class EDDNWebsocketServer:
 
 
 	def _create_task(self, coro: Coroutine[Any, Any, Any]) -> None:
+		"""
+		Schedule a background task and maintain a strong reference to it.
+
+		This prevents the task from being garbage collected during execution,
+		which is a known risk with simple asyncio.create_task() calls in
+		fire-and-forget scenarios.
+
+		Args:
+			coro (Coroutine): The coroutine to schedule.
+		"""
 		task : asyncio.Task = asyncio.create_task(coro)
 		self._background_tasks.add(task)
 		task.add_done_callback(self._background_tasks.discard)
@@ -591,9 +608,8 @@ if __name__ == "__main__":
 	try:
 		import uvloop
 		uvloop.install()
-	except ImportError as e:
+	except ImportError:
 		pass
-
 
 	def parse_args() -> Dict[str, Any]:
 		parser = argparse.ArgumentParser(
@@ -603,14 +619,12 @@ if __name__ == "__main__":
 
 		defaults = EDDNWebsocketServer.ServerOptions()
 
-		# TODO: clarify help string? it actually de-creases the log level which makes it more verbose
-		parser.add_argument("-v", "--verbose", action="count", dest="verbosity", help=f"increase log level")
+		parser.add_argument("-v", "--verbose", action="count", dest="verbosity", help="Increase log level (default: WARNING, -v: INFO, -vv: DEBUG)")
 
 		parser.add_argument("--ping-path", metavar="PATH", dest="ping_path", help=f"respond to health-checks if set (default: {defaults.ping_path})")
 
 		group = parser.add_argument_group("ZMQ options")
 		group.add_argument("-u", "--url", metavar="URL", dest="zmq_url", help=f"EDDN ZMQ URL (default: {defaults.zmq_url})")
-		# TODO: -d is usually "debug", use another letter?
 		group.add_argument("-d", "--zmq-close-delay", metavar="SECONDS", dest="zmq_close_delay", type=float, help=f"delay closing ZMQ connection after the last websocket client leaves (default: {defaults.zmq_close_delay})")
 		group.add_argument("--size-limit", metavar="BYTES", dest="msg_size_limit", type=int, help=f"set decompressed JSON size limit (default: {defaults.msg_size_limit})")
 		group.add_argument("--zmq-HEARTBEAT_IVL", metavar="SECONDS", dest="zmq_HEARTBEAT_IVL", type=float, help=f"set ZMQ ping interval, 0 to disable (default: {defaults.zmq_HEARTBEAT_IVL})")
@@ -630,8 +644,22 @@ if __name__ == "__main__":
 
 		return vars(parser.parse_args())
 
-	# TODO: rework logger
-	logging.basicConfig(format="%(levelname)s: %(message)s - %(module)s.%(funcName)s()", level=logging.INFO)
-	logging.getLogger("websockets").setLevel(logging.WARNING)
+	args = parse_args()
 
-	asyncio.run(EDDNWebsocketServer(parse_args()).serve())
+	# WARNING(30) - (verbosity * 10). Clamped at DEBUG(10).
+	verbosity = args.get("verbosity", 0)
+	log_level = max(logging.DEBUG, logging.WARNING - (verbosity * 10))
+
+	# configure global logger
+	logging.basicConfig(format="%(levelname)s: %(message)s - %(module)s.%(funcName)s()", level=log_level)
+
+	# Only enable noisy websockets/asyncio logs if we are strictly in DEBUG mode
+	if log_level > logging.DEBUG:
+		logging.getLogger("websockets").setLevel(logging.WARNING)
+		logging.getLogger("asyncio").setLevel(logging.WARNING)
+	else:
+		# If the user asked for -vv, they get the firehose
+		logging.getLogger("websockets").setLevel(logging.DEBUG)
+		logging.getLogger("asyncio").setLevel(logging.DEBUG)
+
+	asyncio.run(EDDNWebsocketServer(args).serve())

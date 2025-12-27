@@ -125,7 +125,6 @@ class WebsocketRelay:
 		if "Upgrade" in request_headers and request_headers["Upgrade"] == "websocket":
 			if self.options.connection_limit > 0 and len(self._ws_conns) >= self.options.connection_limit:
 				self._logger.info(f"client rejected, connection limit reached ({len(self._ws_conns)} active)")
-				# Return 503 Service Unavailable
 				return (503, [("Content-Type", "text/plain")], b"Connection limit reached\n")
 
 		return None
@@ -216,12 +215,12 @@ class WebsocketRelay:
 					# stream compression runs on the main thread
 					websockets.broadcast(self._ws_conns, data.decode("utf-8"))
 				except Exception as e:
-					self._logger.exception("websockets relay error:", e)
+					self._logger.exception("websockets relay error")
 
 		except Exception as e:
 			# If the upstream iterator fails, terminate the server process,
 			# let the external init system restart it.
-			self._logger.exception("Iterator error, relay task exiting:", e)
+			self._logger.exception("Iterator error, relay task exiting")
 
 			assert self.stop is not None, "Server not initialized"
 			if not self.stop.done():

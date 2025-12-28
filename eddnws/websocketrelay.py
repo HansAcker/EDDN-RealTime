@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import socket
 import warnings
 import zlib
 
@@ -43,7 +44,7 @@ class WebsocketRelay:
 		client_check_interval: int = 1 # client buffer limit check interval
 
 
-	def __init__(self, iter_factory: Callable[[], AsyncIterable[bytes]], *, logger: Optional[logging.Logger] = None, **kwargs) -> None:
+	def __init__(self, iter_factory: Callable[[], AsyncIterable[bytes]], *, logger: Optional[logging.Logger] = None, sock: Optional[socket.socket] = None, **kwargs) -> None:
 		"""
 		Initialize the WebsocketRelay.
 
@@ -54,15 +55,17 @@ class WebsocketRelay:
 			logger: Custom logger instance. Defaults to __name__.
 			**kwargs: Keyword arguments matching keys in WebsocketRelay.Options.
 		"""
-		self._iter_factory = iter_factory
-		self._iter: Optional[AsyncIterable[bytes]] = None
+		# set this future to exit serve()
+		self.stop: Optional[asyncio.Future] = None
 
 		self.options = WebsocketRelay.Options(**kwargs)
 
+		self._iter_factory = iter_factory
+		self._iter: Optional[AsyncIterable[bytes]] = None
+
 		self._logger = logger or logging.getLogger(__name__)
 
-		# set this future to exit serve()
-		self.stop: Optional[asyncio.Future] = None
+		self._sock: Optional[socket.socket] = sock
 
 		# active websocket connections
 		self._ws_conns: Set[websockets.WebSocketServerProtocol] = set()
@@ -326,11 +329,16 @@ class WebsocketRelay:
 			],
 		}
 
-		if self.options.listen_path:
+		if self._sock:
+			self._logger.info(f"Using socket: {self._sock.getsockname()}")
+			server = websockets.serve(self._ws_handler, sock=self._sock, **ws_args)
+
+		elif self.options.listen_path:
 			self._logger.info(f"socket path: {self.options.listen_path}")
 			# TODO: set umask for socket permissions
 			# TODO: remove stale socket file?
 			server = websockets.unix_serve(self._ws_handler, self.options.listen_path, **ws_args)
+
 		else:
 			self._logger.info(f"TCP address: {self.options.listen_addr}:{self.options.listen_port}")
 			server = websockets.serve(self._ws_handler, self.options.listen_addr, self.options.listen_port, **ws_args)

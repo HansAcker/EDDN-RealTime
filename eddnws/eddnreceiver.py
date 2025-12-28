@@ -58,7 +58,6 @@ class EDDNReceiver:
 
 		zmq_MAXMSGSIZE: int = -1 # compressed ZMQ message size limit if >= 0
 		zmq_RCVHWM: int = 1000 # TODO: should this be called msg_backlog_limit?
-		# TODO: set ZMQ_LINGER = 0?
 
 
 	def __init__(self, *, logger: Optional[logging.Logger] = None, **kwargs) -> None:
@@ -122,7 +121,7 @@ class EDDNReceiver:
 		finally:
 			# Clean up when the consumer stops or cancels the task
 			self._logger.info("Closing ZMQ socket")
-			socket.close(linger=0)
+			socket.close()
 
 
 	def _create_socket(self) -> zmq.asyncio.Socket:
@@ -134,6 +133,7 @@ class EDDNReceiver:
 
 		socket.setsockopt(zmq.SUBSCRIBE, b"") # EDDN does not have topics
 		socket.setsockopt(zmq.IPV6, True)
+		socket.setsockopt(zmq.LINGER, 0)
 		socket.setsockopt(zmq.CONNECT_TIMEOUT, int(self.options.zmq_CONNECT_TIMEOUT * 1000))
 		socket.setsockopt(zmq.HEARTBEAT_IVL, int(self.options.zmq_HEARTBEAT_IVL * 1000))
 		socket.setsockopt(zmq.HEARTBEAT_TIMEOUT, int(self.options.zmq_HEARTBEAT_TIMEOUT * 1000))

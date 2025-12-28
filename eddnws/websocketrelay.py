@@ -115,7 +115,7 @@ class WebsocketRelay:
 				Returns None to let the WebSocket handshake proceed normally.
 		"""
 		# Answer health checks with a hardcoded HTTP 200 response
-		if path == self.options.ping_path:
+		if self.options.ping_path and path == self.options.ping_path:
 			return (200, [("Content-Type", "text/plain")], b"OK\n")
 
 		# Enforce connection limits strictly at the HTTP Upgrade level
@@ -309,7 +309,7 @@ class WebsocketRelay:
 		# Configuration for the websockets library
 		ws_args: Dict[str, Any] = {
 			# Hook to handle HTTP requests (e.g. /ping) before WebSocket upgrade
-			"process_request": self._process_request_legacy if self.options.ping_path else None,
+			"process_request": self._process_request_legacy,
 
 			# TODO: make origin check configurable (currently allows all origins)
 			"origins": None,

@@ -99,7 +99,8 @@ class EDDNReceiver:
 			while True:
 				try:
 					zmq_msg = await socket.recv()
-					# TODO: profile live - most messages are small. enough that decoding is faster than a context switch?
+					# TODO: profile live - most messages are small enough that decoding is faster than a context switch
+					#       - affects only zlib decompress, orjson needs to hold the GIL anyway
 					if len(zmq_msg) <= self.options.offload_threshold:
 						yield self._decode_msg(zmq_msg, self.options.msg_size_limit)
 					else:

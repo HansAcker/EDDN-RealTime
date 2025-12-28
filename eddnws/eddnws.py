@@ -2,7 +2,9 @@ import argparse
 import asyncio
 import dataclasses
 import logging
+import os
 import signal
+import socket
 
 from functools import partial
 from typing import Any, Dict, Optional, Type
@@ -21,6 +23,7 @@ def parse_args() -> Dict[str, Any]:
 	relay_defaults = WebsocketRelay.Options()
 
 	parser.add_argument("-v", "--verbose", action="count", dest="verbosity", help="Increase log level (default: WARNING, -v: INFO, -vv: DEBUG)")
+	parser.add_argument('--systemd', action='store_true', dest="systemd", help="Enable socket activation if LISTEN_PID and LISTEN_FDS are set (default: False)")
 
 	parser.add_argument("--ping-path", metavar="PATH", dest="ping_path", help=f"respond to health-checks if set (default: {relay_defaults.ping_path})")
 
@@ -47,6 +50,29 @@ def parse_args() -> Dict[str, Any]:
 	return vars(parser.parse_args())
 
 
+def get_systemd_socket() -> Optional[socket.socket]:
+	"""
+	Detects if the process is launched by systemd with socket activation.
+	Returns a socket object wrapping the first passed file descriptor (FD 3).
+	"""
+	listen_pid = os.environ.get("LISTEN_PID")
+	listen_fds = os.environ.get("LISTEN_FDS")
+
+	if not listen_pid or not listen_fds:
+		return None
+
+	try:
+		# Check if we are the intended recipient and have at least one socket
+		if int(listen_pid) != os.getpid() or int(listen_fds) < 1:
+			return None
+
+		# FD 3 is SD_LISTEN_FDS_START in systemd
+		# Passing fileno causes Python to auto-detect family/type/proto
+		return socket.socket(fileno=3)
+	except ValueError:
+		return None
+
+
 def _filter_options(target_cls: Type[Any], args: Dict[str, Any]) -> Dict[str, Any]:
 	"""
 	Extracts keys from `args` that match the fields of `target_cls`.
@@ -63,8 +89,12 @@ async def start_server(args: Optional[Dict[str, Any]] = None) -> None:
 	server_args = _filter_options(WebsocketRelay.Options, args)
 	receiver_args = _filter_options(EDDNReceiver.Options, args)
 
+	sock = None
+	if args.get("systemd", False):
+		sock = get_systemd_socket()
+
 	iter_factory = partial(EDDNReceiver, **receiver_args)
-	websocket_server = WebsocketRelay(iter_factory, **server_args)
+	websocket_server = WebsocketRelay(iter_factory, sock=sock, **server_args)
 
 	loop = asyncio.get_running_loop()
 	stop_future = loop.create_future()

@@ -11,36 +11,6 @@ from eddnreceiver import EDDNReceiver
 from websocketrelay import WebsocketRelay
 
 
-# use uvloop if available
-try:
-	import uvloop
-	uvloop.install()
-except ImportError:
-	pass
-
-
-def filter_options(target_cls: Type[Any], args: Dict[str, Any]) -> Dict[str, Any]:
-	"""
-	Extracts keys from `args` that match the fields of `target_cls`.
-	"""
-	valid_keys = {f.name for f in dataclasses.fields(target_cls)}
-	return {k: v for k, v in args.items() if k in valid_keys}
-
-
-async def start_server(server_args: Optional[Dict[str, Any]] = None, receiver_args: Optional[Dict[str, Any]] = None) -> None:
-	iter_factory = partial(EDDNReceiver, options=receiver_args)
-	websocket_server = WebsocketRelay(iter_factory, options=server_args)
-
-	loop = asyncio.get_running_loop()
-	stop_future = loop.create_future()
-
-	# stop server on these signals
-	for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
-		loop.add_signal_handler(sig, stop_future.set_result, sig.name)
-
-	await websocket_server.serve(stop_future)
-
-
 def parse_args() -> Dict[str, Any]:
 	parser = argparse.ArgumentParser(
 				description="Relay EDDN messages to websocket clients",
@@ -77,17 +47,53 @@ def parse_args() -> Dict[str, Any]:
 	return vars(parser.parse_args())
 
 
+def _filter_options(target_cls: Type[Any], args: Dict[str, Any]) -> Dict[str, Any]:
+	"""
+	Extracts keys from `args` that match the fields of `target_cls`.
+	"""
+	valid_keys = {f.name for f in dataclasses.fields(target_cls)}
+	return {k: v for k, v in args.items() if k in valid_keys}
+
+
+async def start_server(args: Optional[Dict[str, Any]] = None) -> None:
+	if args is None:
+		args = {}
+
+	# Filter arguments into specific configuration dicts
+	server_args = _filter_options(WebsocketRelay.Options, args)
+	receiver_args = _filter_options(EDDNReceiver.Options, args)
+
+	iter_factory = partial(EDDNReceiver, **receiver_args)
+	websocket_server = WebsocketRelay(iter_factory, **server_args)
+
+	loop = asyncio.get_running_loop()
+	stop_future = loop.create_future()
+
+	# stop server on these signals
+	for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
+		loop.add_signal_handler(sig, stop_future.set_result, sig.name)
+
+	await websocket_server.serve(stop_future)
+
+
 if __name__ == "__main__":
+	# use uvloop if available
+	try:
+		import uvloop
+		uvloop.install()
+	except ImportError:
+		pass
+
 	args = parse_args()
 
-	# WARNING(30) - (verbosity * 10). Clamped at DEBUG(10).
+	# Log Level: WARNING(30) - (verbosity * 10). Clamped at DEBUG(10).
 	verbosity = args.get("verbosity", 0)
 	log_level = max(logging.DEBUG, logging.WARNING - (verbosity * 10))
 
 	# configure global logger
 	logging.basicConfig(format="%(levelname)s: %(message)s - %(module)s.%(funcName)s()", level=log_level)
 
-	# Only enable websockets/asyncio logs if we are in DEBUG mode
+	# Only enable websockets/asyncio logs in DEBUG mode
 	if log_level > logging.DEBUG:
 		logging.getLogger("websockets").setLevel(logging.WARNING)
 		logging.getLogger("asyncio").setLevel(logging.WARNING)
@@ -95,8 +101,4 @@ if __name__ == "__main__":
 		logging.getLogger("websockets").setLevel(logging.DEBUG)
 		logging.getLogger("asyncio").setLevel(logging.DEBUG)
 
-	# Filter flat arguments into specific configuration dicts
-	server_args = filter_options(WebsocketRelay.Options, args)
-	receiver_args = filter_options(EDDNReceiver.Options, args)
-
-	asyncio.run(start_server(server_args, receiver_args))
+	asyncio.run(start_server(args))

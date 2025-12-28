@@ -1,4 +1,5 @@
 # TODO: possibly
+# - type-safe constructor args instead of **kwargs
 # - rework for websockets >=14
 #   - ws_handler() should cope with the argument type change (DeprecationWarning), could be adapted for type-checking
 #   - process_request() needs to be changed - support both with version switch?

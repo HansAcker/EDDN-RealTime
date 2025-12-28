@@ -34,7 +34,7 @@ class WebsocketRelay:
 		listen_path: Optional[str] = None # listen on socket path instead of TCP, e.g. "/run/eddn/eddnws.sock"
 
 		close_delay: float = 3.3
-		ping_path: Optional[str] = "/ping" # respond to health-checks if set
+		ping_path: Optional[str] = None # respond to health-checks if set, e.g. "/ping"
 
 		# default safety limits
 		connection_limit: int = 1000 # max. number of active websockets accepted by ws_handler
@@ -43,7 +43,7 @@ class WebsocketRelay:
 		client_check_interval: int = 1 # client buffer limit check interval
 
 
-	def __init__(self, iter_factory: Callable[[], AsyncIterable[bytes]], *, options: Optional[Dict[str, Any]] = None, logger: Optional[logging.Logger] = None) -> None:
+	def __init__(self, iter_factory: Callable[[], AsyncIterable[bytes]], *, logger: Optional[logging.Logger] = None, **kwargs) -> None:
 		"""
 		Initialize the WebsocketRelay.
 
@@ -51,18 +51,15 @@ class WebsocketRelay:
 			iter_factory: A callable that returns an AsyncIterable[bytes].
 				This factory is called to create a new upstream iterator whenever
 				the first client connects (or reconnects after a full shutdown).
-			options: Dictionary matching keys in WebsocketRelay.Options.
 			logger: Custom logger instance. Defaults to __name__.
+			**kwargs: Keyword arguments matching keys in WebsocketRelay.Options.
 		"""
 		self._iter_factory = iter_factory
+		self._iter: Optional[AsyncIterable[bytes]] = None
 
-		if options is None:
-			options = {}
-		self.options = WebsocketRelay.Options(**options)
+		self.options = WebsocketRelay.Options(**kwargs)
 
-		if logger is None:
-			logger = logging.getLogger(__name__)
-		self._logger = logger
+		self._logger = logger or logging.getLogger(__name__)
 
 		# set this future to exit serve()
 		self.stop: Optional[asyncio.Future] = None
@@ -126,7 +123,6 @@ class WebsocketRelay:
 		if "Upgrade" in request_headers and request_headers["Upgrade"] == "websocket":
 			if self.options.connection_limit > 0 and len(self._ws_conns) >= self.options.connection_limit:
 				self._logger.info(f"client rejected, connection limit reached ({len(self._ws_conns)} active)")
-				# Return 503 Service Unavailable
 				return (503, [("Content-Type", "text/plain")], b"Connection limit reached\n")
 
 		return None
@@ -146,7 +142,7 @@ class WebsocketRelay:
 			(self._relay_task is not None and not self._relay_task.done()) or
 			(self._monitor_task is not None and not self._monitor_task.done())
 		):
-			warnings.warn("relay tasks not done", RuntimeWarning)
+			warnings.warn("Relay tasks not done", RuntimeWarning)
 			return
 
 		self._iter = self._iter_factory()
@@ -207,18 +203,22 @@ class WebsocketRelay:
 		"""
 		The "hot loop" that consumes the upstream iterator and broadcasts to clients.
 		"""
+		if not self._iter:
+			warnings.warn("Uninitalized Iterator", RuntimeWarning)
+			return
+
 		try:
 			async for data in self._iter:
 				try:
 					# stream compression runs on the main thread
 					websockets.broadcast(self._ws_conns, data.decode("utf-8"))
 				except Exception as e:
-					self._logger.exception("websockets relay error:", e)
+					self._logger.exception("websockets relay error")
 
 		except Exception as e:
 			# If the upstream iterator fails, terminate the server process,
 			# let the external init system restart it.
-			self._logger.exception("Iterator error, relay task exiting:", e)
+			self._logger.exception("Iterator error, relay task exiting")
 
 			assert self.stop is not None, "Server not initialized"
 			if not self.stop.done():
@@ -245,9 +245,6 @@ class WebsocketRelay:
 			await websocket.close(1013, "Connection limit reached")
 			return
 
-		self._ws_conns.add(websocket)
-		self._logger.info(f"client connected: {websocket.id} {websocket.remote_address} ({len(self._ws_conns)} active)")
-
 		# Client connected: Cancel any pending shutdown of the upstream source
 		self._relay_close_cancel()
 
@@ -257,10 +254,13 @@ class WebsocketRelay:
 
 		# Wait until client disconnects
 		try:
+			self._ws_conns.add(websocket)
+			self._logger.info(f"client connected: {websocket.id} {websocket.remote_address} ({len(self._ws_conns)} active)")
+
 			await websocket.wait_closed()
 
 		except Exception as e:
-			self._logger.warning(f"websocket error {websocket.id}:", e)
+			self._logger.warning(f"websocket error {websocket.id}: {e}")
 
 		finally:
 			self._ws_conns.discard(websocket)
@@ -300,13 +300,10 @@ class WebsocketRelay:
 
 		loop = asyncio.get_running_loop()
 
-		if stop_future is None:
-			self.stop = loop.create_future()
-		else:
-			self.stop = stop_future
+		self.stop = stop_future or loop.create_future()
 
 		# Configuration for the websockets library
-		ws_args = {
+		ws_args: Dict[str, Any] = {
 			# Hook to handle HTTP requests (e.g. /ping) before WebSocket upgrade
 			"process_request": self._process_request_legacy if self.options.ping_path else None,
 

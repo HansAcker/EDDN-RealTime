@@ -5,7 +5,7 @@ import zlib
 from dataclasses import dataclass
 
 # TODO: python >=3.9 supports dict, set, tuple
-from typing import Any, AsyncGenerator, Dict, Optional
+from typing import AsyncGenerator, Optional
 
 import orjson
 import zmq.asyncio
@@ -16,8 +16,7 @@ class EDDNReceiver:
 	A ZMQ subscriber that yields normalized EDDN messages as bytes.
 
 	This class handles the connection to the EDDN ZMQ relay, manages the
-	socket lifecycle, handles automatic reconnection, and performs
-	CPU-bound decompression and JSON parsing off the main event loop.
+	socket lifecycle, handles automatic reconnection
 
 	Usage:
 		receiver = EDDNReceiver([options])
@@ -37,6 +36,7 @@ class EDDNReceiver:
 				If 0, no limit is applied.
 			ignore_decode_errors (bool): If True, decoding exceptions (zlib/json) are logged and the
 				stream continues. If False, exceptions are raised.
+			offload_threshold (int): Run decoder in default executor for ZMQ messages larger than this.
 
 			zmq_CONNECT_TIMEOUT (float): ZMQ_CONNECT_TIMEOUT in seconds.
 			zmq_HEARTBEAT_IVL (float): ZMQ_HEARTBEAT_IVL in seconds.
@@ -49,6 +49,7 @@ class EDDNReceiver:
 
 		msg_size_limit: int = 0 # decompressed JSON size limit (bytes) if > 0
 		ignore_decode_errors: bool = True # ignore decoding errors and continue
+		offload_threshold: int = 10 * 1024 # max. compressed message size to decode on main thread
 
 		zmq_CONNECT_TIMEOUT: float = 0
 		zmq_HEARTBEAT_IVL: float = 180
@@ -60,21 +61,19 @@ class EDDNReceiver:
 		# TODO: set ZMQ_LINGER = 0?
 
 
-	def __init__(self, options: Optional[Dict[str, Any]] = None, *, logger: Optional[logging.Logger] = None) -> None:
+	def __init__(self, *, logger: Optional[logging.Logger] = None, **kwargs) -> None:
 		"""
 		Initialize the EDDNReceiver.
 
 		Args:
-			options (dict, optional): Dictionary matching keys in EDDNReceiver.Options.
 			logger (logging.Logger, optional): Custom logger instance. Defaults to __name__.
+			**kwargs: Keyword arguments matching keys in EDDNReceiver.Options.
 		"""
-		if options is None:
-			options = {}
-		self.options = EDDNReceiver.Options(**options)
+		self.options = EDDNReceiver.Options(**kwargs)
 
-		if logger is None:
-			logger = logging.getLogger(__name__)
-		self._logger = logger
+		self._logger = logger or logging.getLogger(__name__)
+
+		self._ctx: zmq.asyncio.Context = zmq.asyncio.Context.instance()
 
 
 	async def __aiter__(self) -> AsyncGenerator[bytes, None]:
@@ -82,19 +81,14 @@ class EDDNReceiver:
 		The main generator loop. Connects on start, disconnects on exit/cancellation.
 
 		Yields:
-			bytes: The decompressed, normalized (canonical JSON) payload.
+			bytes: The decompressed, normalized JSON payload.
 		
 		Raises:
 			zmq.ZMQError: If a ZMQ error occurs.
-			zlib.error: If decompression fails (unless ignored via options).
-			orjson.JSONDecodeError: If JSON parsing fails (unless ignored via options).
+			see _decode_msg(): If ignore_decode_errors is False.
 		"""
 
-		# Create a fresh context/socket for every iteration loop to ensure clean state on restarts
-		ctx = zmq.asyncio.Context()
-
-		socket = ctx.socket(zmq.SUB)
-		self._configure_socket(socket)
+		socket = self._create_socket()
 		
 		self._logger.info(f"Connecting to ZMQ: {self.options.zmq_url}")
 		socket.connect(self.options.zmq_url)
@@ -105,29 +99,20 @@ class EDDNReceiver:
 			while True:
 				try:
 					zmq_msg = await socket.recv()
-
-					# Offload CPU-bound decompression and JSON parsing
-					json_bytes = await loop.run_in_executor(
-						None,
-						self._decode_msg,
-						zmq_msg,
-						self.options.msg_size_limit
-					)
-					
-					yield json_bytes
-
-				except zmq.Again:
-					# zmq.RCVTIMEO time-out
-					await asyncio.sleep(0.1)
+					# TODO: profile live - most messages are small. enough that decoding is faster than a context switch?
+					if len(zmq_msg) <= self.options.offload_threshold:
+						yield self._decode_msg(zmq_msg, self.options.msg_size_limit)
+					else:
+						yield await loop.run_in_executor(None, self._decode_msg, zmq_msg, self.options.msg_size_limit)
 
 				except Exception as e:
 					self._logger.error(f"Stream error: {e}")
 
-					# Raise ZMQ Errors immediately as they might indicate connection issues
+					# Raise ZMQ Errors as they might indicate connection issues
 					if isinstance(e, zmq.ZMQError):
 						raise
 
-					# If configured, skip malformed payloads (zlib/json errors) to keep the stream alive
+					# Skip malformed payloads (zlib/json errors) if configured
 					if self.options.ignore_decode_errors:
 						continue
 
@@ -137,53 +122,65 @@ class EDDNReceiver:
 			# Clean up when the consumer stops or cancels the task
 			self._logger.info("Closing ZMQ socket")
 			socket.close(linger=0)
-			ctx.term()
 
 
-	def _configure_socket(self, socket: zmq.asyncio.Socket) -> None:
+	def _create_socket(self) -> zmq.asyncio.Socket:
 		"""
-		Apply ZMQ socket options based on the configuration.
-
-		Args:
-			socket (zmq.asyncio.Socket): The socket instance to configure.
+		Returns a new zmq.SUB socket.
+		Applies ZMQ socket options based on the configuration.
 		"""
-		socket.setsockopt(zmq.SUBSCRIBE, b"") # Subscribe to all topics
+		socket = self._ctx.socket(zmq.SUB)
+
+		socket.setsockopt(zmq.SUBSCRIBE, b"") # EDDN does not have topics
 		socket.setsockopt(zmq.IPV6, True)
 		socket.setsockopt(zmq.CONNECT_TIMEOUT, int(self.options.zmq_CONNECT_TIMEOUT * 1000))
 		socket.setsockopt(zmq.HEARTBEAT_IVL, int(self.options.zmq_HEARTBEAT_IVL * 1000))
 		socket.setsockopt(zmq.HEARTBEAT_TIMEOUT, int(self.options.zmq_HEARTBEAT_TIMEOUT * 1000))
 		socket.setsockopt(zmq.RECONNECT_IVL_MAX, int(self.options.zmq_RECONNECT_IVL_MAX * 1000))
-		socket.setsockopt(zmq.MAXMSGSIZE, int(self.options.zmq_MAXMSGSIZE))
-		socket.setsockopt(zmq.RCVHWM, int(self.options.zmq_RCVHWM))
+		socket.setsockopt(zmq.MAXMSGSIZE, self.options.zmq_MAXMSGSIZE)
+		socket.setsockopt(zmq.RCVHWM, self.options.zmq_RCVHWM)
+		socket.setsockopt(zmq.RCVTIMEO, -1) # no timeout in recv(), never raise zmq.Again
+
+		return socket
 
 
 	@staticmethod
-	def _decode_msg(zmq_msg: bytes, size_limit: int) -> bytes:
+	def _decode_msg(msg: bytes, size_limit: int = 0) -> bytes:
 		"""
-		Decompresses and validates the ZMQ payload.
-		
-		Static method to ensure it is picklable if necessary
+		Decompresses and validates the received payload.
 		
 		Args:
-			zmq_msg (bytes): The compressed ZMQ payload.
-			size_limit (int): Maximum allowable decompressed size.
+			msg (bytes): The compressed payload.
+			size_limit (int): Maximum allowable decompressed size, 0 for unlimited.
 
 		Returns:
 			bytes: Canonicalized JSON bytes.
 
 		Raises:
-			ValueError: If payload is empty, exceeds size limit, or lacks required schema fields.
+			ValueError: If zlib/JSON payload does not pass validation.
 			zlib.error: If decompression fails.
 			orjson.JSONDecodeError: If JSON parsing fails.
 		"""
+
+		if not msg:
+			raise ValueError("Empty payload")
+
 		dobj = zlib.decompressobj()
-		json_text = dobj.decompress(zmq_msg, size_limit)
+		json_text = dobj.decompress(msg, size_limit)
 		
+        # If max_length is reached, zlib pauses before consuming the stream footer (CRC/Adler32).
+        # These unverified bytes remain in unconsumed_tail, ensuring it is non-empty if the limit is hit.
 		if dobj.unconsumed_tail:
 			raise ValueError("Size limit exceeded")
 
-		if not (json_text and dobj.eof):
+		if dobj.unused_data:
+			raise ValueError("Trailing garbage")
+
+		if not dobj.eof:
 			raise ValueError("Truncated payload")
+
+		if not json_text:
+			raise ValueError("Empty message")
 
 		data = orjson.loads(json_text)
 		
@@ -197,7 +194,7 @@ class EDDNReceiver:
 
 
 if __name__ == "__main__":
-	async def main():
+	async def main() -> None:
 		async for _ in EDDNReceiver():
 			print(_.decode("utf-8"))
 

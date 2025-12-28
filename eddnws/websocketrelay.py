@@ -224,11 +224,9 @@ class WebsocketRelay:
 			# let the external init system restart it.
 			self._logger.exception("Iterator error, relay task exiting")
 
-			if not self.stop.done():
-				self.stop.set_result("Iterator Error")
-
-		if not self.stop.done():
-			self.stop.set_result("Iterator EOF")
+		finally:
+			if self._relay_task and not self.stop.done():
+				self.stop.set_result("Iterator EOF")
 
 
 	async def _ws_handler(self, websocket: websockets.WebSocketServerProtocol) -> None:

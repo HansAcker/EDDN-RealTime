@@ -80,9 +80,7 @@ class WebsocketRelay:
 		"""
 		Schedule a background task and maintain a strong reference to it.
 
-		This prevents the task from being garbage collected during execution,
-		which is a known risk with simple asyncio.create_task() calls in
-		fire-and-forget scenarios.
+		This prevents the task from being garbage collected during execution.
 
 		Args:
 			coro (Coroutine): The coroutine to schedule.
@@ -115,7 +113,7 @@ class WebsocketRelay:
 				Returns None to let the WebSocket handshake proceed normally.
 		"""
 		# Answer health checks with a hardcoded HTTP 200 response
-		if path == self.options.ping_path:
+		if self.options.ping_path and path == self.options.ping_path:
 			return (200, [("Content-Type", "text/plain")], b"OK\n")
 
 		# Enforce connection limits strictly at the HTTP Upgrade level
@@ -135,6 +133,8 @@ class WebsocketRelay:
 		This is called when the first client connects. It initializes the
 		upstream iterator using the factory provided in __init__.
 		"""
+
+		self._logger.info("starting relay task")
 
 		# Sanity check: ensure we don't start duplicate tasks
 		# TODO: just move the relay_task check from ws_handler here?
@@ -160,6 +160,9 @@ class WebsocketRelay:
 		This cancels the running tasks and clears references, effectively
 		pausing the relay until the next client connects.
 		"""
+
+		self._logger.info("stopping relay task")
+
 		if self._relay_close_handler is not None:
 			self._relay_close_handler.cancel()
 			self._relay_close_handler = None
@@ -203,9 +206,8 @@ class WebsocketRelay:
 		"""
 		The "hot loop" that consumes the upstream iterator and broadcasts to clients.
 		"""
-		if not self._iter:
-			warnings.warn("Uninitalized Iterator", RuntimeWarning)
-			return
+		assert self.stop is not None, "Server not initialized"
+		assert self._iter is not None, "Iterator not initialized"
 
 		try:
 			async for data in self._iter:
@@ -220,9 +222,9 @@ class WebsocketRelay:
 			# let the external init system restart it.
 			self._logger.exception("Iterator error, relay task exiting")
 
-			assert self.stop is not None, "Server not initialized"
-			if not self.stop.done():
-				self.stop.set_result("Iterator Error")
+		finally:
+			if self._relay_task and not self.stop.done():
+				self.stop.set_result("Iterator EOF")
 
 
 	async def _ws_handler(self, websocket: websockets.WebSocketServerProtocol) -> None:
@@ -288,7 +290,7 @@ class WebsocketRelay:
 			await asyncio.sleep(self.options.client_check_interval)
 
 
-	async def serve(self, stop_future: Optional[asyncio.Future]) -> None:
+	async def serve(self, stop_future: Optional[asyncio.Future] = None) -> None:
 		"""
 		Start the WebSocket server and run until `stop_future` is set.
 
@@ -305,7 +307,7 @@ class WebsocketRelay:
 		# Configuration for the websockets library
 		ws_args: Dict[str, Any] = {
 			# Hook to handle HTTP requests (e.g. /ping) before WebSocket upgrade
-			"process_request": self._process_request_legacy if self.options.ping_path else None,
+			"process_request": self._process_request_legacy,
 
 			# TODO: make origin check configurable (currently allows all origins)
 			"origins": None,

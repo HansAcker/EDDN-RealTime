@@ -194,6 +194,13 @@ class EDDNReceiver:
 
 
 if __name__ == "__main__":
+	# use uvloop if available
+	try:
+		import uvloop
+		uvloop.install()
+	except ImportError:
+		pass
+
 	async def main() -> None:
 		async for _ in EDDNReceiver():
 			print(_.decode("utf-8"))

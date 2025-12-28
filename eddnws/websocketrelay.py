@@ -208,9 +208,8 @@ class WebsocketRelay:
 		"""
 		The "hot loop" that consumes the upstream iterator and broadcasts to clients.
 		"""
-		if not self._iter:
-			warnings.warn("Uninitalized Iterator", RuntimeWarning)
-			return
+		assert self.stop is not None, "Server not initialized"
+		assert self._iter is not None, "Iterator not initialized"
 
 		try:
 			async for data in self._iter:
@@ -225,11 +224,9 @@ class WebsocketRelay:
 			# let the external init system restart it.
 			self._logger.exception("Iterator error, relay task exiting")
 
-			assert self.stop is not None, "Server not initialized"
 			if not self.stop.done():
 				self.stop.set_result("Iterator Error")
 
-		assert self.stop is not None, "Server not initialized"
 		if not self.stop.done():
 			self.stop.set_result("Iterator EOF")
 

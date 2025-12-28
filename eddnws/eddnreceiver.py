@@ -5,7 +5,7 @@ import zlib
 from dataclasses import dataclass
 
 # TODO: python >=3.9 supports dict, set, tuple
-from typing import Any, AsyncGenerator, Dict, Optional
+from typing import AsyncGenerator, Optional
 
 import orjson
 import zmq.asyncio
@@ -124,7 +124,7 @@ class EDDNReceiver:
 			socket.close(linger=0)
 
 
-	def _create_socket(self) -> None:
+	def _create_socket(self) -> zmq.asyncio.Socket:
 		"""
 		Returns a new zmq.SUB socket.
 		Applies ZMQ socket options based on the configuration.
@@ -137,8 +137,8 @@ class EDDNReceiver:
 		socket.setsockopt(zmq.HEARTBEAT_IVL, int(self.options.zmq_HEARTBEAT_IVL * 1000))
 		socket.setsockopt(zmq.HEARTBEAT_TIMEOUT, int(self.options.zmq_HEARTBEAT_TIMEOUT * 1000))
 		socket.setsockopt(zmq.RECONNECT_IVL_MAX, int(self.options.zmq_RECONNECT_IVL_MAX * 1000))
-		socket.setsockopt(zmq.MAXMSGSIZE, int(self.options.zmq_MAXMSGSIZE))
-		socket.setsockopt(zmq.RCVHWM, int(self.options.zmq_RCVHWM))
+		socket.setsockopt(zmq.MAXMSGSIZE, self.options.zmq_MAXMSGSIZE)
+		socket.setsockopt(zmq.RCVHWM, self.options.zmq_RCVHWM)
 		socket.setsockopt(zmq.RCVTIMEO, -1) # no timeout in recv(), never raise zmq.Again
 
 		return socket

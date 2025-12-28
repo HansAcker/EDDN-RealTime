@@ -6,7 +6,6 @@
 #   - the text=True argument to send() would allow a custom broadcast function
 #     - pass bytes from orjson.dumps() without .decode().encode() overhead
 #     - that would also give direct control over slow client buffers without the monitor task
-# - pass optional ZMQ context in constructor
 # - support external socket passing
 # - handle/discard incoming client messages
 #   - the current client should not send anything and would just get itself disconnected for missing pongs

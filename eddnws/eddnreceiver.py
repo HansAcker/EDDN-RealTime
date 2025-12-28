@@ -60,19 +60,18 @@ class EDDNReceiver:
 		zmq_RCVHWM: int = 1000 # TODO: should this be called msg_backlog_limit?
 
 
-	def __init__(self, *, logger: Optional[logging.Logger] = None, **kwargs) -> None:
+	def __init__(self, *, logger: Optional[logging.Logger] = None, zmq_ctx: Optional[zmq.asyncio.Context] = None, **kwargs) -> None:
 		"""
 		Initialize the EDDNReceiver.
 
 		Args:
 			logger (logging.Logger, optional): Custom logger instance. Defaults to __name__.
+			zmq_ctx (zmq.asyncio.Context, optional): Custom ZMQ context. Defaults to zmq.asyncio.Context.instance().
 			**kwargs: Keyword arguments matching keys in EDDNReceiver.Options.
 		"""
 		self.options = EDDNReceiver.Options(**kwargs)
-
 		self._logger = logger or logging.getLogger(__name__)
-
-		self._ctx: zmq.asyncio.Context = zmq.asyncio.Context.instance()
+		self._zmq_ctx: zmq.asyncio.Context = zmq_ctx or zmq.asyncio.Context.instance()
 
 
 	async def __aiter__(self) -> AsyncGenerator[bytes, None]:
@@ -129,7 +128,7 @@ class EDDNReceiver:
 		Returns a new zmq.SUB socket.
 		Applies ZMQ socket options based on the configuration.
 		"""
-		socket = self._ctx.socket(zmq.SUB)
+		socket = self._zmq_ctx.socket(zmq.SUB)
 
 		socket.setsockopt(zmq.SUBSCRIBE, b"") # EDDN does not have topics
 		socket.setsockopt(zmq.IPV6, True)

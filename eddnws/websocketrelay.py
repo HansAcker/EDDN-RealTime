@@ -136,6 +136,8 @@ class WebsocketRelay:
 		upstream iterator using the factory provided in __init__.
 		"""
 
+		self._logger.info("starting relay task")
+
 		# Sanity check: ensure we don't start duplicate tasks
 		# TODO: just move the relay_task check from ws_handler here?
 		if (
@@ -160,6 +162,9 @@ class WebsocketRelay:
 		This cancels the running tasks and clears references, effectively
 		pausing the relay until the next client connects.
 		"""
+
+		self._logger.info("stopping relay task")
+
 		if self._relay_close_handler is not None:
 			self._relay_close_handler.cancel()
 			self._relay_close_handler = None
@@ -223,6 +228,10 @@ class WebsocketRelay:
 			assert self.stop is not None, "Server not initialized"
 			if not self.stop.done():
 				self.stop.set_result("Iterator Error")
+
+		assert self.stop is not None, "Server not initialized"
+		if not self.stop.done():
+			self.stop.set_result("Iterator EOF")
 
 
 	async def _ws_handler(self, websocket: websockets.WebSocketServerProtocol) -> None:

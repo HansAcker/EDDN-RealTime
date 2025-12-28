@@ -80,9 +80,7 @@ class WebsocketRelay:
 		"""
 		Schedule a background task and maintain a strong reference to it.
 
-		This prevents the task from being garbage collected during execution,
-		which is a known risk with simple asyncio.create_task() calls in
-		fire-and-forget scenarios.
+		This prevents the task from being garbage collected during execution.
 
 		Args:
 			coro (Coroutine): The coroutine to schedule.

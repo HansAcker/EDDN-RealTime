@@ -245,9 +245,6 @@ class WebsocketRelay:
 			await websocket.close(1013, "Connection limit reached")
 			return
 
-		self._ws_conns.add(websocket)
-		self._logger.info(f"client connected: {websocket.id} {websocket.remote_address} ({len(self._ws_conns)} active)")
-
 		# Client connected: Cancel any pending shutdown of the upstream source
 		self._relay_close_cancel()
 
@@ -257,6 +254,9 @@ class WebsocketRelay:
 
 		# Wait until client disconnects
 		try:
+			self._ws_conns.add(websocket)
+			self._logger.info(f"client connected: {websocket.id} {websocket.remote_address} ({len(self._ws_conns)} active)")
+
 			await websocket.wait_closed()
 
 		except Exception as e:

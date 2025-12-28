@@ -297,7 +297,7 @@ class WebsocketRelay:
 			await asyncio.sleep(self.options.client_check_interval)
 
 
-	async def serve(self, stop_future: Optional[asyncio.Future]) -> None:
+	async def serve(self, stop_future: Optional[asyncio.Future] = None) -> None:
 		"""
 		Start the WebSocket server and run until `stop_future` is set.
 

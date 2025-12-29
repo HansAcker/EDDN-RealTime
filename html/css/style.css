@@ -73,7 +73,7 @@ body {
 }
 
 .thead .cell {
-    padding: 0.25em 0;
+	padding: 0.25em 0;
 }
 
 .tbody {
@@ -81,10 +81,9 @@ body {
 	text-align: end;
 
 	/* Make the body a flex container to support 'gap' between rows */
-    display: flex;
-    flex-direction: column;
-    gap: 2px; /* This puts 2px space between every row */
-
+	display: flex;
+	flex-direction: column;
+	gap: 2px; /* This puts 2px space between every row */
 }
 
 .cell {

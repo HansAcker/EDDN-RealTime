@@ -1,4 +1,4 @@
-import DashboardModule from "DashboardModule";
+import { DashboardModule} from "DashboardModule";
 
 
 export class FSDJumpModule extends DashboardModule {

@@ -1,10 +1,12 @@
+import { ReconnectingWebSocket } from "ReconnectingWebSocket";
+
 import { PageIconActivity } from "ui/activity_icon.js";
 import { InfoBox } from "ui/infobox.js";
 
 import { EDDNClient } from "EDDNClient";
 import { EDDNEvent } from "EDDNEvent";
 
-import DashboardModule from "modules/DashboardModule.js";
+//import { DashboardModule, DataTableModule } from "modules/DashboardModule.js";
 import FSDJumpModule from "modules/FSDJumpModule.js";
 import NavRouteModule from "modules/NavRouteModule.js";
 import ScanModule from "modules/ScanModule.js";
@@ -27,7 +29,7 @@ window.board.addEventListener("click", (ev) => {
 
 
 // The EDDN event bus
-const client = new EDDNClient("wss://ws.eddn-realtime.space/eddn");
+const client = new EDDNClient("wss://ws.eddn-realtime.space/eddn", { WebSocketClass: ReconnectingWebSocket });
 
 
 // Reflect websocket activity in page icon
@@ -63,7 +65,9 @@ const modules =
 	"Codex": new CodexEntryModule(client, window.board.querySelector(".dashboard__module--codex .dashboard__table--tbody"), infobox),
 	"Updates": new UpdatesModule(client, window.board.querySelector(".dashboard__module--updates .dashboard__table--tbody"), infobox),
 	"Approach": new ApproachModule(client, window.board.querySelector(".dashboard__module--asett .dashboard__table--tbody"), infobox),
-	"EventStats": new EventStatsModule(client, window.board.querySelector(".dashboard__module--events .dashboard__table--tbody"), infobox),
+
+	// no infobox
+	"EventStats": new EventStatsModule(client, window.board.querySelector(".dashboard__module--events .dashboard__table--tbody")),
 };
 
 

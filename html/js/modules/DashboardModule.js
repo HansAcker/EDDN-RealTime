@@ -9,7 +9,7 @@ export class DashboardModule {
 		Object.assign(this, options);
 
 		this._eddnClient = eddnClient;
-		this._container = container;
+		this._container = this._setupContainer(container);
 		this._infobox = infobox;
 
 		for (const topic of topics) {
@@ -17,45 +17,50 @@ export class DashboardModule {
 		}
 	}
 
+	_setupContainer(container) {
+		// base class
+		return container;
+	}
+
 	_handleEvent(event) {
 		// base class
-		console.log(event.type, event.timestamp);
+		console.log(event.type, event.eventType, event.timestamp);
 	}
 
-	makeCell(textContent) {
-		const div = document.createElement("div");
-		div.classList.add("dashboard__table--cell");
-		div.setAttribute("role", "cell");
-		div.textContent = div.title = textContent;
-		return div;
+	makeCell(textContent, elementType = "div") {
+		const element = document.createElement(elementType);
+		element.classList.add("dashboard__table--cell");
+		element.setAttribute("role", "cell");
+		element.textContent = element.title = textContent;
+		return element;
 	}
 
-	makeRow(event) {
-		const div = document.createElement("div");
-		div.classList.add("dashboard__table--row");
-		div.setAttribute("role", "row");
-		div.classList.add("data");
+	makeRow(event, elementType = "div") {
+		const element = document.createElement(elementType);
+		element.classList.add("dashboard__table--row");
+		element.setAttribute("role", "row");
+		element.classList.add("data");
 
-        div.classList.add(event.gameType);
+        element.classList.add(event.gameType);
 
 		if (event.isTaxi) {
-			div.classList.add("taxi");
+			element.classList.add("taxi");
 		}
 
 		if (event.isMulticrew) {
-			div.classList.add("multicrew");
+			element.classList.add("multicrew");
 		}
 
 		if (event.isOld) {
-			div.classList.add("old");
+			element.classList.add("old");
 		} else if (event.isNew) {
-			div.classList.add("new");
+			element.classList.add("new");
 		}
 
 		// key data by weak ref to table row, used in click event
-		this._infobox?.set(div, event.data);
+		this._infobox?.set(element, event.data);
 
-		return div;
+		return element;
 	}
 
 	addRow(row) {
@@ -64,6 +69,26 @@ export class DashboardModule {
 		}
 
 		this._container.prepend(row);
+	}
+}
+
+
+export class DataTableModule extends DashboardModule {
+	_setupContainer(container) {
+		// insert table into container
+		const table = document.createElement("table");
+		// TODO: add classes, attributres, make it a web component, etc.
+		container.replaceChildren(table);
+		// TODO: fill with listLength?
+		return table;
+	}
+
+	makeCell(textContent, elementType = "td") {
+		return super.makeCell(textContent, elementType);
+	}
+
+	makeRow(event, elementType = "div") {
+		return super.makeRow(event, elementType);
 	}
 }
 

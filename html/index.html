@@ -3,12 +3,6 @@
 <meta charset="UTF-8">
 <link rel="icon" sizes="any" href="img/activity-icon/activity-icon--state-off.svg" id="icon">
 <link rel="preload" href="fonts/orbitron/orbitron-light-webfont.woff" as="font" type="font/woff" crossorigin>
-<link rel="modulepreload" href="js/reconnecting-websocket.js">
-<link rel="modulepreload" href="js/activity_icon.js">
-<link rel="modulepreload" href="js/statsbox.js">
-<link rel="modulepreload" href="js/infobox.js">
-<link rel="modulepreload" href="js/utils.js">
-<link rel="modulepreload" href="js/board.js">
 <link rel="stylesheet" href="css/style.css">
 
 <!-- https://github.com/HansAcker/EDDN-RealTime -->
@@ -16,158 +10,162 @@
 <meta name="description" content="Live Events from the Elite Dangerous Data Network">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<div id="board">
+<div id="board" class="dashboard">
 
-<div class="table narrow table-jumps">
-	<div class="caption">FSD Jumps</div>
-	<div class="thead"><div class="cell">FSD Jump</div></div>
-	<div class="tbody" id="jumps"></div>
+<div class="dashboard__table narrow dashboard__module--jumps" role="table" aria-labelledby="dashboard__table--caption-jumps">
+	<div class="dashboard__table--caption" role="caption" id="dashboard__table--caption-jumps">FSD Jumps</div>
+	<div class="dashboard__table--thead" role="row"><div class="dashboard__table--cell" role="columnheader">FSD Jump</div></div>
+	<div class="dashboard__table--tbody" role="rowgroup"></div>
 </div>
 
-<div class="table wide table-routes">
-	<div class="caption">Routes Plotted</div>
-	<div class="thead">
-		<div class="cell">Route From</div>
-		<div class="cell">To</div>
-		<div class="cell">Jumps</div>
-		<div class="cell">Distance</div>
-		<div class="cell">Total</div>
-		<div class="cell">Max</div>
+<div class="dashboard__table wide dashboard__module--routes" role="table" aria-labelledby="dashboard__table--caption-routes">
+	<div class="dashboard__table--caption" role="caption" id="dashboard__table--caption-routes">Routes Plotted</div>
+	<div class="dashboard__table--thead" role="row">
+		<div class="dashboard__table--cell" role="columnheader">Route From</div>
+		<div class="dashboard__table--cell" role="columnheader">To</div>
+		<div class="dashboard__table--cell" role="columnheader">Jumps</div>
+		<div class="dashboard__table--cell" role="columnheader">Distance</div>
+		<div class="dashboard__table--cell" role="columnheader">Total</div>
+		<div class="dashboard__table--cell" role="columnheader">Max</div>
 	</div>
-	<div class="tbody" id="routes"></div>
+	<div class="dashboard__table--tbody" role="rowgroup"></div>
 </div>
 
-<div class="table narrow table-newstars">
-	<div class="caption">Stars discovered</div>
-	<div class="thead">
-		<div class="cell">Discovered Star</div>
-		<div class="cell">Class</div>
+<div class="dashboard__table narrow dashboard__module--newstars" role="table" aria-labelledby="dashboard__table--caption-newstars">
+	<div class="dashboard__table--caption" role="caption" id="dashboard__table--caption-newstars">Stars discovered</div>
+	<div class="dashboard__table--thead" role="row">
+		<div class="dashboard__table--cell" role="columnheader">Discovered Star</div>
+		<div class="dashboard__table--cell" role="columnheader">Class</div>
 	</div>
-	<div class="tbody" id="newstars"></div>
+	<div class="dashboard__table--tbody" role="rowgroup"></div>
 </div>
 
-<div class="table wide table-newplanets">
-	<div class="caption">Planets discovered</div>
-	<div class="thead">
-		<div class="cell">Discovered Body</div>
-		<div class="cell">Class</div>
-		<div class="cell">Atmosphere</div>
-		<div class="cell">Landable</div>
+<div class="dashboard__table wide dashboard__module--newplanets" role="table" aria-labelledby="dashboard__table--caption-newplanets">
+	<div class="dashboard__table--caption" role="caption" id="dashboard__table--caption-newplanets">Planets discovered</div>
+	<div class="dashboard__table--thead" role="row">
+		<div class="dashboard__table--cell" role="columnheader">Discovered Body</div>
+		<div class="dashboard__table--cell" role="columnheader">Class</div>
+		<div class="dashboard__table--cell" role="columnheader">Atmosphere</div>
+		<div class="dashboard__table--cell" role="columnheader">Landable</div>
 	</div>
-	<div class="tbody" id="newplanets"></div>
+	<div class="dashboard__table--tbody" role="rowgroup"></div>
 </div>
 
-<div class="table table-scanbods">
-	<div class="caption">Scanned Bodies</div>
-	<div class="thead">
-		<div class="cell">Scanned Body</div>
-		<div class="cell">Scan Type</div>
+<div class="dashboard__table dashboard__module--scanbods" role="table" aria-labelledby="dashboard__table--caption-scanbods">
+	<div class="dashboard__table--caption" role="caption" id="dashboard__table--caption-scanbods">Scanned Bodies</div>
+	<div class="dashboard__table--thead" role="row">
+		<div class="dashboard__table--cell" role="columnheader">Scanned Body</div>
+		<div class="dashboard__table--cell" role="columnheader">Scan Type</div>
 	</div>
-	<div class="tbody" id="scanbods"></div>
+	<div class="dashboard__table--tbody" role="rowgroup"></div>
 </div>
 
-<div class="table table-asett">
-	<div class="caption">Settlement Approach</div>
-	<div class="thead">
-		<div class="cell">Settlement Approach</div>
-		<div class="cell">System</div>
+<div class="dashboard__table dashboard__module--asett" role="table" aria-labelledby="dashboard__table--caption-asett">
+	<div class="dashboard__table--caption" role="caption" id="dashboard__table--caption-asett">Settlement Approach</div>
+	<div class="dashboard__table--thead" role="row">
+		<div class="dashboard__table--cell" role="columnheader">Settlement Approach</div>
+		<div class="dashboard__table--cell" role="columnheader">System</div>
 	</div>
-	<div class="tbody" id="asett"></div>
+	<div class="dashboard__table--tbody" role="rowgroup"></div>
 </div>
 
-<div class="table table-docks">
-	<div class="caption">Docking and Locations</div>
-	<div class="thead">
-		<div class="cell">Docked At</div>
-		<div class="cell">Type</div>
-		<div class="cell">System</div>
+<div class="dashboard__table dashboard__module--locations" role="table" aria-labelledby="dashboard__table--caption-locations">
+	<div class="dashboard__table--caption" role="caption" id="dashboard__table--caption-locations">Docking and Locations</div>
+	<div class="dashboard__table--thead" role="row">
+		<div class="dashboard__table--cell" role="columnheader">Docked At</div>
+		<div class="dashboard__table--cell" role="columnheader">Type</div>
+		<div class="dashboard__table--cell" role="columnheader">System</div>
 	</div>
-	<div class="tbody" id="docks"></div>
+	<div class="dashboard__table--tbody" role="rowgroup"></div>
 </div>
 
-<div class="table table-updates">
-	<div class="caption">Tables updated</div>
-	<div class="thead">
-		<div class="cell">Updated</div>
-		<div class="cell">Station</div>
-		<div class="cell">System</div>
+<div class="dashboard__table dashboard__module--updates" role="table" aria-labelledby="dashboard__table--caption-updates">
+	<div class="dashboard__table--caption" role="caption" id="dashboard__table--caption-updates">Tables updated</div>
+	<div class="dashboard__table--thead" role="row">
+		<div class="dashboard__table--cell" role="columnheader">Updated</div>
+		<div class="dashboard__table--cell" role="columnheader">Station</div>
+		<div class="dashboard__table--cell" role="columnheader">System</div>
 	</div>
-	<div class="tbody" id="updates"></div>
+	<div class="dashboard__table--tbody" role="rowgroup"></div>
 </div>
 
-<div class="table wider table-visits">
-	<div class="caption">Jumps to inhabited systems</div>
-	<div class="thead">
-		<div class="cell">System Visited</div>
-		<div class="cell">Population</div>
-		<div class="cell">Allegiance</div>
-		<div class="cell">Faction</div>
-		<div class="cell">State</div>
+<div class="dashboard__table wider dashboard__module--visits" role="table" aria-labelledby="dashboard__table--caption-visits">
+	<div class="dashboard__table--caption" role="caption" id="dashboard__table--caption-visits">Jumps to inhabited systems</div>
+	<div class="dashboard__table--thead" role="row">
+		<div class="dashboard__table--cell" role="columnheader">System Visited</div>
+		<div class="dashboard__table--cell" role="columnheader">Population</div>
+		<div class="dashboard__table--cell" role="columnheader">Allegiance</div>
+		<div class="dashboard__table--cell" role="columnheader">Faction</div>
+		<div class="dashboard__table--cell" role="columnheader">State</div>
 	</div>
-	<div class="tbody" id="visits"></div>
+	<div class="dashboard__table--tbody" role="rowgroup"></div>
 </div>
 
-<div class="table wider table-codex">
-	<div class="caption">Codex Discoveries</div>
-	<div class="thead">
-		<div class="cell">System</div>
-		<div class="cell">Body</div>
-		<div class="cell">Codex Category</div>
-		<div class="cell">Type</div>
-		<div class="cell">Region</div>
+<div class="dashboard__table wider dashboard__module--codex" role="table" aria-labelledby="dashboard__table--caption-codex">
+	<div class="dashboard__table--caption" role="caption" id="dashboard__table--caption-codex">Codex Discoveries</div>
+	<div class="dashboard__table--thead" role="row">
+		<div class="dashboard__table--cell" role="columnheader">System</div>
+		<div class="dashboard__table--cell" role="columnheader">Body</div>
+		<div class="dashboard__table--cell" role="columnheader">Codex Category</div>
+		<div class="dashboard__table--cell" role="columnheader">Type</div>
+		<div class="dashboard__table--cell" role="columnheader">Region</div>
 	</div>
-	<div class="tbody" id="codex"></div>
+	<div class="dashboard__table--tbody" role="rowgroup"></div>
 </div>
 
-<div class="table table-stats">
-	<div class="caption">Stats</div>
-	<div class="thead">
-		<div class="cell">Stats</div>
-		<div class="cell">Count</div>
+
+<div class="dashboard__table dashboard__module--stats" role="table" aria-labelledby="dashboard__table--caption-stats">
+	<div class="dashboard__table--caption" role="caption" id="dashboard__table--caption-stats">Stats</div>
+	<div class="dashboard__table--thead" role="row">
+		<div class="dashboard__table--cell" role="columnheader">Stats</div>
+		<div class="dashboard__table--cell" role="columnheader">Count</div>
 	</div>
-	<div class="tbody" id="statsbody"></div>
+	<div class="dashboard__table--tbody" role="rowgroup"></div>
 </div>
 
-<div class="table table-events">
-	<div class="caption">Event Stats</div>
-	<div class="thead">
-		<div class="cell">Event</div>
-		<div class="cell">Count</div>
+<div class="dashboard__table dashboard__module--events" role="table" aria-labelledby="dashboard__table--caption-events">
+	<div class="dashboard__table--caption" role="caption" id="dashboard__table--caption-events">Event Stats</div>
+	<div class="dashboard__table--thead" role="row">
+		<div class="dashboard__table--cell" role="columnheader">Event</div>
+		<div class="dashboard__table--cell" role="columnheader">Count</div>
 	</div>
-	<div class="tbody" id="eventsbody"></div>
+	<div class="dashboard__table--tbody" role="rowgroup"></div>
 </div>
 
-<div class="table table-events">
-	<div class="caption">Software Stats</div>
-	<div class="thead">
-		<div class="cell">Software</div>
-		<div class="cell">Count</div>
+<div class="dashboard__table dashboard__module--softwares" role="table" aria-labelledby="dashboard__table--caption-softwares">
+	<div class="dashboard__table--caption" role="caption" id="dashboard__table--caption-softwares">Software Stats</div>
+	<div class="dashboard__table--thead" role="row">
+		<div class="dashboard__table--cell" role="columnheader">Software</div>
+		<div class="dashboard__table--cell" role="columnheader">Count</div>
 	</div>
-	<div class="tbody" id="softbody"></div>
+	<div class="dashboard__table--tbody" role="rowgroup"></div>
 </div>
 
-<div class="table table-legend">
-	<div class="caption">Legend</div>
-	<div class="thead">
-		<div class="cell">Legend</div>
+
+<div class="dashboard__table dashboard__module--legend" role="table" aria-labelledby="dashboard__table--caption-legend">
+	<div class="dashboard__table--caption" role="caption" id="dashboard__table--caption-legend">Legend</div>
+	<div class="dashboard__table--thead" role="row">
+		<div class="dashboard__table--cell" role="columnheader">Legend</div>
 	</div>
-	<div class="tbody">
-		<div class="row Odyssey"><div class="cell">Odyssey</div></div>
-		<div class="row Horizons"><div class="cell">Horizons</div></div>
-		<div class="row Legacy"><div class="cell">Legacy</div></div>
-		<div class="row Base"><div class="cell">A bug (Live but not Horizons)</div></div>
-		<div class="row Unknown"><div class="cell">Unknown</div></div>
-		<div class="row Odyssey taxi"><div class="cell">Taxi (Apex/Frontline)</div></div>
-		<div class="row Odyssey old"><div class="cell">Older than 1h</div></div>
-		<div class="row Odyssey new"><div class="cell">In the future</div></div>
+	<div class="dashboard__table--tbody">
+		<div class="dashboard__table--row Odyssey" role="row"><div class="dashboard__table--cell">Odyssey</div></div>
+		<div class="dashboard__table--row Horizons" role="row"><div class="dashboard__table--cell">Horizons</div></div>
+		<div class="dashboard__table--row Legacy" role="row"><div class="dashboard__table--cell">Legacy</div></div>
+		<div class="dashboard__table--row Base" role="row"><div class="dashboard__table--cell">A bug (Live but not Horizons)</div></div>
+		<div class="dashboard__table--row Unknown" role="row"><div class="dashboard__table--cell">Unknown</div></div>
+		<div class="dashboard__table--row Odyssey taxi" role="row"><div class="dashboard__table--cell">Taxi (Apex/Frontline)</div></div>
+		<div class="dashboard__table--row Odyssey old" role="row"><div class="dashboard__table--cell">Older than 1h</div></div>
+		<div class="dashboard__table--row Odyssey new" role="row"><div class="dashboard__table--cell">In the future</div></div>
 	</div>
 </div>
 
 </div>
 
+
+<!-- InfoBox window template -->
 <template id="infotemplate">
-<div class="infobox">
-	<div class="infobox__header">
+<div class="infobox" role="dialog">
+	<div class="infobox__header" role="toolbar">
 		<button class="infobox__button infobox__button--copy-msg" data-infobox__action="copy-msg">Copy message</button>
 		<button class="infobox__button infobox__button--copy-gts" data-infobox__action="copy-gts">Copy gateway timestamp</button>
 		<button class="infobox__button infobox__button--copy-uid" data-infobox__action="copy-uid">Copy uploader ID</button>
@@ -179,29 +177,44 @@
 </div>
 </template>
 
+
+<script type="importmap">
+{
+        
+	"imports": {
+		"ReconnectingWebSocket": "/js/ReconnectingWebSocket.js",
+		"GalacticRegions.json": "/js/GalacticRegions.json",
+		"EDDNEvent": "/js/EDDNEvent.js",
+		"EDDNClient": "/js/EDDNClient.js",
+		"DashboardModule": "/js/modules/DashboardModule.js",
+
+		"ui/": "/js/ui/",
+		"modules/": "/js/modules/",
+
+		"ajv": "https://esm.sh/ajv",
+		"ajv-formats": "https://esm.sh/ajv-formats"
+	}
+}
+</script>
+
 <script>
 "use strict";
 
-const socketUrl = "wss://ws.eddn-realtime.space/eddn";
-const listLength = 20;
-
-const idleTimeout = 2300;
-const resetTimeout = 300000;
-
-// set th title attributes
-for (const cell of window.board.querySelectorAll(".thead .cell")) {
+// set header title attributes
+for (const cell of window.board.querySelectorAll(".dashboard__table--thead .dashboard__table--cell")) {
 	cell.title = cell.textContent;
 }
 
 // fill tables with listLength * empty rows
+const listLength = 20;
 // TODO: use style?
 {
-	const tbHTML = '<div class="row"><div class="cell">&nbsp;</div></div>'.repeat(listLength);
-	for (const tb of window.board.querySelectorAll(".tbody")) {
+	const tbHTML = '<div class="dashboard__table--row"><div class="dashboard__table--cell">&nbsp;</div></div>'.repeat(listLength);
+	for (const tb of window.board.querySelectorAll(".dashboard__table--tbody")) {
 		if (!tb.childElementCount) {
 			tb.innerHTML = tbHTML;
 		}
 	}
 }
 </script>
-<script type="module" src="js/board.js"></script>
+<script type="module" src="js/main.js"></script>

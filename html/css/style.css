@@ -1,4 +1,3 @@
-/* html/css/style.css */
 @font-face {
 	/* https://www.theleagueofmoveabletype.com/orbitron */
 	font-family: 'orbitron';
@@ -6,6 +5,8 @@
 	font-weight: normal;
 	font-style: normal;
 }
+
+/* html { scrollbar-width: none; } */
 
 body {
 	margin: 0;
@@ -22,71 +23,79 @@ body {
 	align-items: flex-start;
 }
 
-/* Base table-like box */
-.table {
+.dashboard__table {
 	--tabs: 4;
+}
+
+/* @media screen and (min-width: 2201px) {dashboard__table { --tabs: 5; }} */
+/* @media screen and (max-width: 2200px) {dashboard__table { --tabs: 4; }} */
+/*
+@media screen and (max-width: 1300px) {dashboard__table { --tabs: 3; }}
+@media screen and (max-width: 800px) {dashboard__table { --tabs: 2; }}
+@media screen and (max-width: 450px) {dashboard__table { --tabs: 1; }}
+*/
+
+.dashboard__table {
+	display: flex;
+	flex-direction: column;
 
 	--baseWidth: calc(100% / var(--tabs));
 	flex: 0 1 var(--baseWidth);
 	max-width: 100%;
-	border: 1px solid #f94;
 	box-sizing: border-box;
 
-	display: flex;
-	flex-direction: column;
+	border: 1px solid #f94;
 
 	/* experimental */
-	content-visibility: auto;
+	content-visibility: auto; /* the page is probably too short for this to have an effect */
 	contain-intrinsic-size: auto;
-	will-change: transform;
+	will-change: transform; /* quirk to force compositing, repaint tables individually */
 }
 
 /* Sizing modifiers */
-.table.narrow {
+.dashboard__table.narrow {
 	flex: 0 1 calc(var(--baseWidth) * 0.6);
 }
 
-.table.wide {
+.dashboard__table.wide {
 	flex: 0 1 calc(var(--baseWidth) * 1.4);
 }
 
-.table.wider {
+.dashboard__table.wider {
 	flex: 0 1 calc(var(--baseWidth) * 2);
 }
 
-.caption {
+.dashboard__table--caption {
 	display: none;
 }
 
 /* Header and Row Grid Layout */
-.thead, .row {
+.dashboard__table--thead, .dashboard__table--row {
 	display: grid;
 	gap: 2px;
 }
 
-.thead {
+.dashboard__table--thead {
 	font-family: orbitron, sans-serif;
 	color: #f94;
-/*	border-bottom: 1px solid #555; */
-	font-weight: bold;
+/*	font-weight: bold; */
 	text-align: center;
 }
 
-.thead .cell {
+.dashboard__table--thead .dashboard__table--cell {
 	padding: 0.25em 0;
 }
 
-.tbody {
+.dashboard__table--tbody {
 	font-size: 80%;
 	text-align: end;
 
-	/* Make the body a flex container to support 'gap' between rows */
 	display: flex;
 	flex-direction: column;
-	gap: 2px; /* This puts 2px space between every row */
+	gap: 2px;
 }
 
-.cell {
+.dashboard__table--cell {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -95,65 +104,65 @@ body {
 
 /* Table-specific Grid Definitions */
 /* 1 column */
-.table-jumps .thead, .table-jumps .row { grid-template-columns: 1fr; }
+.dashboard__module--jumps .dashboard__table--thead, .dashboard__module--jumps .dashboard__table--row { grid-template-columns: 1fr; }
 
 /* Route From, To, Jumps, Distance, Total, Max */
-.table-routes .thead, .table-routes .row { grid-template-columns: 25% 1fr 10% 14% 14% 12%; }
+.dashboard__module--routes .dashboard__table--thead, .dashboard__module--routes .dashboard__table--row { grid-template-columns: 25% 1fr 10% 14% 14% 12%; }
 
 /* Discovered Star, Class */
-.table-newstars .thead, .table-newstars .row { grid-template-columns: 1fr 20%; }
+.dashboard__module--newstars .dashboard__table--thead, .dashboard__module--newstars .dashboard__table--row { grid-template-columns: 1fr 20%; }
 
 /* Discovered Body, Class, Atmosphere, Landable */
-.table-newplanets .thead, .table-newplanets .row { grid-template-columns: 1fr 25% 20% 15%; }
+.dashboard__module--newplanets .dashboard__table--thead, .dashboard__module--newplanets .dashboard__table--row { grid-template-columns: 1fr 25% 20% 15%; }
 
 /* Scanned Body, Scan Type */
-.table-scanbods .thead, .table-scanbods .row { grid-template-columns: 1fr 30%; }
+.dashboard__module--scanbods .dashboard__table--thead, .dashboard__module--scanbods .dashboard__table--row { grid-template-columns: 1fr 30%; }
 
 /* Settlement Approach, System */
-.table-asett .thead, .table-asett .row { grid-template-columns: 50% 1fr; }
+.dashboard__module--asett .dashboard__table--thead, .dashboard__module--asett .dashboard__table--row { grid-template-columns: 50% 1fr; }
 
 /* Docked At, Type, System */
-.table-docks .thead, .table-docks .row { grid-template-columns: 40% 25% 1fr; }
+.dashboard__module--locations .dashboard__table--thead, .dashboard__module--locations .dashboard__table--row { grid-template-columns: 40% 25% 1fr; }
 
 /* Updated, Station, System */
-.table-updates .thead, .table-updates .row { grid-template-columns: 25% 40% 1fr; }
+.dashboard__module--updates .dashboard__table--thead, .dashboard__module--updates .dashboard__table--row { grid-template-columns: 25% 40% 1fr; }
 
 /* System Visited, Population, Allegiance, Faction, State */
-.table-visits .thead, .table-visits .row { grid-template-columns: 25% 15% 15% 1fr 10%; }
+.dashboard__module--visits .dashboard__table--thead, .dashboard__module--visits .dashboard__table--row { grid-template-columns: 25% 15% 15% 1fr 10%; }
 
 /* System, Body, Codex Category, Type, Region */
-.table-codex .thead, .table-codex .row { grid-template-columns: 1fr 10% 20% 25% 20%; }
+.dashboard__module--codex .dashboard__table--thead, .dashboard__module--codex .dashboard__table--row { grid-template-columns: 1fr 10% 20% 25% 20%; }
 
 /* Stats, Count */
-.table-stats .thead, .table-stats .row { grid-template-columns: 1fr 1fr; }
-
-/* Event, Count / Software, Count */
-.table-events .thead, .table-events .row { grid-template-columns: 1fr 25%; }
+.dashboard__module--stats .dashboard__table--thead, .dashboard__module--stats .dashboard__table--row { grid-template-columns: 1fr 1fr; }
+.dashboard__module--events .dashboard__table--thead, .dashboard__module--events .dashboard__table--row { grid-template-columns: 1fr 25%; }
+.dashboard__module--softwares .dashboard__table--thead, .dashboard__module--softwares .dashboard__table--row { grid-template-columns: 1fr 25%; }
 
 /* Legend */
-.table-legend .thead, .table-legend .row { grid-template-columns: 1fr; }
+.dashboard__module--legend .dashboard__table--thead, .dashboard__module--legend .dashboard__table--row { grid-template-columns: 1fr; }
 
 
 /* Colors */
-.Odyssey .cell { background-color: #05b; }
-.Horizons .cell { background-color: #b50; }
-.Base .cell { background-color: #555; }
-.Legacy .cell { background-color: #333; }
+.Odyssey .dashboard__table--cell { background-color: #05b; }
+.Horizons .dashboard__table--cell { background-color: #b50; }
+.Base .dashboard__table--cell { background-color: #555; }
+.Legacy .dashboard__table--cell { background-color: #333; }
 
 .taxi { color: yellow; font-weight: bold; }
 .old { color: #aaa; }
 .new { color: #a00; }
 .longjump { font-weight: bold; }
 
-.row.data:hover {
+.dashboard__table--row.data:hover {
 	outline: 2px solid yellow;
 }
 
-/* Legend Table Specifics */
-.table-legend .tbody {
+.dashboard__module--legend .dashboard__table--tbody {
 	text-align: center;
 }
-/* Infobox (Unchanged largely, just context) */
+
+
+/* InfoBox window */
 .infobox {
 	position: fixed;
 	top: 20%;
@@ -186,7 +195,6 @@ body {
 	overflow: auto;
 	scrollbar-width: auto;
 }
-
 
 .infobox__button {
 	position: relative;

@@ -1,7 +1,9 @@
 
 // counts and displays named events or other information
 
-import { makeCell } from "./utils.js";
+//import { makeCell } from "./utils.js";
+
+const makeCell = (textContent) => { const div = document.createElement("div"); div.classList.add("dashboard__table--cell"); div.setAttribute("role", "cell"); div.textContent = div.title = textContent; return div; };
 
 class StatsRow {
 	// TODO: shape-morphism optimization? #value is always a number except for two stats where it's a string
@@ -18,7 +20,7 @@ class StatsRow {
 		this.#cell = vcell;
 
 		const row = document.createElement("div");
-		row.classList.add("row");
+		row.classList.add("dashboard__table--row");
 		row.append(kcell, vcell);
 		this._row = row;
 

@@ -2,7 +2,7 @@
  * Manages the display of message contents in a popup/overlay box.
  * Maps UI elements (rows) to their underlying data objects.
  */
-class InfoBox {
+export class InfoBox {
 	#container; // new InfoBox appended here
 	#template; // InfoBox <template> element
 	#infoMap = new WeakMap(); // only keep data while the key object exists
@@ -130,5 +130,3 @@ class InfoBox {
 		});
 	}
 }
-
-export { InfoBox };

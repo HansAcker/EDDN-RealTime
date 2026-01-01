@@ -6,10 +6,10 @@ import { EDDNEvent } from "EDDNEvent";
 
 export class EDDNClient extends EventTarget {
 	#WebSocketClass; // the WebSocket class prototype used to create a new connection, defaults to WebSocket
-	#handlers = {}; // socket event handler references
+	#abortController = null; // event handler decoupler
 
 	#lastEvent; // timestamp of last valid message from socket
-	#watchdogTimer;
+	#watchdogTimer = null;
 
 	url;
 	socket = null;
@@ -33,32 +33,29 @@ export class EDDNClient extends EventTarget {
 
 		// close websocket on abort signal
 		signal?.addEventListener("abort", () => this.close());
-
-		// pre-bind event handlers to maintain 'this' and stable references
-		// TODO: use AbortController to detach handlers instead?
-		this.#handlers = {
-			open: this.#handleOpen.bind(this),
-			close: this.#handleClose.bind(this),
-			error: this.#handleError.bind(this),
-			message: this.#handleMessage.bind(this)
-		};
-
 	}
 
 
 	connect() {
 		// close and clear old socket on reconnect
-		// TODO: should this wait (with timeout?) for the close to happen?
 		if (this.socket) {
 			this.close();
 		}
 
-		this.socket = new this.#WebSocketClass(this.url, this.protocol);
-		this.#attachEventHandlers(this.socket);
+		console.debug("EDDNClient: connecting");
+
+		// signal method to close the socket and detach all handlers
+		this.#abortController = new AbortController();
+		const signal = this.#abortController.signal;
+
+		this.socket = new this.#WebSocketClass(this.url, this.protocol, { signal });
+		this.#attachEventHandlers(this.socket, signal);
 	}
 
 
 	close() {
+		console.debug("EDDNClient: closing");
+
  		// cleanup any old watchdog and socket
 		// TODO: handle async close / reconnect properly
 		//       - `close` event is never fired after explicit .close()
@@ -68,14 +65,16 @@ export class EDDNClient extends EventTarget {
 		this.#watchdogTimer = null;
 		this.#lastEvent = null;
 
+		// cleanup listeners immediately
+		this.#abortController?.abort();
+		this.#abortController = null;
+
 		const socket = this.socket;
 		this.socket = null;
 
-		if (socket) {
-			this.#detachEventHandlers(socket);
-			if (socket.readyState !== WebSocket.CLOSED) {
-				socket.close();
-			}
+		if (socket && socket.readyState !== WebSocket.CLOSED) {
+			// TODO: possibly dispatch a CloseEvent right here
+			socket.close();
 		}
 	}
 
@@ -84,7 +83,6 @@ export class EDDNClient extends EventTarget {
 		// TODO: re-think multiple deliveries in reconnect case. close this socket?
 		if (this.socket !== originalEvent.target) {
 			console.warn("EDDNClient: spurious `message` from unknown socket:", originalEvent);
-			this.#detachEventHandlers(originalEvent.target);
 			return;
 		}
 
@@ -136,7 +134,6 @@ export class EDDNClient extends EventTarget {
 		// TODO: an unexpected open should not happen. close()?
 		if (this.socket !== originalEvent.target) {
 			console.warn("EDDNClient: spurious `open` from unknown socket:", originalEvent);
-			this.#detachEventHandlers(originalEvent.target);
 			return;
 		}
 
@@ -158,10 +155,9 @@ export class EDDNClient extends EventTarget {
 
 	// TODO: should this class automatically reconnect on close or leave that to its user?
 	#handleClose(originalEvent) {
-		// TODO: handle async close / reconnect properly
+		// TODO: esnure that the old socket is closed?
 		if (this.socket !== originalEvent.target) {
 			console.warn("EDDNClient: spurious `close` from unknown socket:", originalEvent);
-			this.#detachEventHandlers(originalEvent.target);
 			return;
 		}
 
@@ -193,7 +189,6 @@ export class EDDNClient extends EventTarget {
 	#handleError(originalEvent) {
 		if (this.socket !== originalEvent.target) {
 			console.warn("EDDNClient: spurious `error` from unknown socket:", originalEvent);
-			this.#detachEventHandlers(originalEvent.target);
 			return;
 		}
 
@@ -202,18 +197,11 @@ export class EDDNClient extends EventTarget {
 	}
 
 
-	#attachEventHandlers(target) {
-		target.addEventListener("open", this.#handlers.open);
-		target.addEventListener("close", this.#handlers.close);
-		target.addEventListener("error", this.#handlers.error);
-		target.addEventListener("message", this.#handlers.message);
-	}
-
-	#detachEventHandlers(target) {
-		target.removeEventListener("open", this.#handlers.open);
-		target.removeEventListener("close", this.#handlers.close);
-		target.removeEventListener("error", this.#handlers.error);
-		target.removeEventListener("message", this.#handlers.message);
+	#attachEventHandlers(target, signal) {
+		target.addEventListener("open", (e) => this.#handleOpen(e), { signal });
+		target.addEventListener("close", (e) => this.#handleClose(e), { signal });
+		target.addEventListener("error", (e) => this.#handleError(e), { signal });
+		target.addEventListener("message", (e) => this.#handleMessage(e), { signal });
 	}
 
 

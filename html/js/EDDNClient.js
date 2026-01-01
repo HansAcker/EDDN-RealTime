@@ -69,13 +69,10 @@ export class EDDNClient extends EventTarget {
 		this.#abortController?.abort();
 		this.#abortController = null;
 
-		const socket = this.socket;
+		this.socket?.close();
 		this.socket = null;
 
-		if (socket && socket.readyState !== WebSocket.CLOSED) {
-			// TODO: possibly dispatch a CloseEvent right here
-			socket.close();
-		}
+		// TODO: possibly dispatch a CloseEvent to clients here
 	}
 
 

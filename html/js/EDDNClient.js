@@ -106,10 +106,9 @@ export class EDDNClient extends EventTarget {
 				payload = JSON.parse(rawData);
 			}
 
-			// binary blob
+			// binary Blob
 			else {
-				this.dispatchEvent(new ErrorEvent("eddn:error", { message: "Unexpected message format" }));
-				return;
+				throw new Error(`Unexpected message format (${typeof rawData})`);
 			}
 		} catch (e) {
 			this.dispatchEvent(new ErrorEvent("eddn:error", { message: "Parse error", error: e }));
@@ -137,13 +136,14 @@ export class EDDNClient extends EventTarget {
 		// TODO: why not pass on `payload` instead?
 		//       - this normalizes the top level, ignoring additional properties
 		//       - the clients could want additional properties if EDDN ever defines them
+		//       - EDDNEvent already extracts these properties
 		const eventData = {
 			$schemaRef: payload.$schemaRef,
 			header: payload.header,
 			message: payload.message
 		};
 
-		// listeners on `eddn:filter` can call `preventDefault()` to filter a mesasge
+		// ignore message if any listener on `eddn:filter` calls `preventDefault()`
 		if (this.dispatchEvent(new EDDNEvent("eddn:filter", eventData))) {
 			// the catch-all event
 			this.dispatchEvent(new EDDNEvent("eddn:message", eventData));

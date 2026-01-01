@@ -13,21 +13,26 @@ export class EDDNClient extends EventTarget {
 	#watchdogTimer = null;
 
 	#textDecoder = new TextDecoder("utf-8"); // decodes JSON bytes to string
+	#filterFunction = () => true; // accept all messages
 
 	url;
-	resetTimeout = 300000; // idle timeout (ms) before watchdog reconnects the socket, 0 to disable watchdog
+	resetTimeout = 0; // idle timeout (ms) before watchdog reconnects the socket, 0 to disable watchdog
 	protocol = ["v2.ws.eddn-realtime.space", "v1.ws.eddn-realtime.space"]; // currently unused
 
 
 	constructor(url = "ws://127.0.0.1:8081", options = {}) {
 		super();
 
-		const { resetTimeout, WebSocketClass, signal } = options;
+		const { resetTimeout, filter, WebSocketClass, signal } = options;
 
 		this.url = url;
 
 		if (Number.isInteger(resetTimeout)) {
 			this.resetTimeout = resetTimeout;
+		}
+
+		if (typeof filter === "function") {
+			this.#filterFunction = filter;
 		}
 
 		this.#WebSocketClass = WebSocketClass ?? WebSocket;
@@ -111,22 +116,23 @@ export class EDDNClient extends EventTarget {
 				throw new Error(`Unexpected message format (${typeof rawData})`);
 			}
 		} catch (e) {
-			this.dispatchEvent(new ErrorEvent("eddn:error", { message: "Parse error", error: e }));
+			this.dispatchEvent(new ErrorEvent("eddn:error", { message: "Message parse error", error: e }));
 			return;
 		}
 
 		// TODO: if validation fails, pass on the received data as a field on a custom EDDNErrorEvent
 
-		if (!(payload.$schemaRef && payload.header && payload.message)) {
-			this.dispatchEvent(new ErrorEvent("eddn:error", { message: "Missing required properties" }));
-			return;
-		}
+		try {
+			if (!payload.$schemaRef || !payload.header || !payload.message) {
+				throw new Error("Missing required properties");
+			}
 
-		// get client event type from schema or journal event
-		const eventType = EDDNEvent.getEventType(payload);
-
-		if (!eventType) {
-			this.dispatchEvent(new ErrorEvent("eddn:error", { message: "Unknown event type" }));
+			// get game event type from schema or journal event
+			if (!EDDNEvent.getEventType(payload)) {
+				throw new Error("Unknown event type");
+			}
+		} catch (e) {
+			this.dispatchEvent(new ErrorEvent("eddn:error", { message: "Message content error", error: e }));
 			return;
 		}
 
@@ -143,13 +149,8 @@ export class EDDNClient extends EventTarget {
 			message: payload.message
 		};
 
-		// ignore message if any listener on `eddn:filter` calls `preventDefault()`
-		if (this.dispatchEvent(new EDDNEvent("eddn:filter", eventData))) {
-			// the catch-all event
+		if (this.#filterFunction(eventData)) {
 			this.dispatchEvent(new EDDNEvent("eddn:message", eventData));
-
-			// schema-specific events
-			this.dispatchEvent(new EDDNEvent(eventType, eventData));
 		}
 	}
 
@@ -179,7 +180,6 @@ export class EDDNClient extends EventTarget {
 	}
 
 
-	// TODO: should this class automatically reconnect on close or leave that to its user?
 	#handleClose(originalEvent) {
 		if (this.#socket !== originalEvent.target) {
 			console.warn("EDDNClient: spurious `close` from unknown socket:", originalEvent);
@@ -204,17 +204,14 @@ export class EDDNClient extends EventTarget {
 		}
 
 		// Create a new CloseEvent to forward specific close codes/reasons to the UI
-		const event = new CloseEvent("close", {
+		this.dispatchEvent(new CloseEvent("close", {
 			code: originalEvent.code,
 			reason: originalEvent.reason,
 			wasClean: originalEvent.wasClean
-		});
-
-		this.dispatchEvent(event);
+		}));
 	}
 
 
-	// TODO: what else to do for a WebSocket error event? it should be followed by a final "close" event
 	#handleError(originalEvent) {
 		if (this.#socket !== originalEvent.target) {
 			console.warn("EDDNClient: spurious `error` from unknown socket:", originalEvent);
@@ -227,10 +224,10 @@ export class EDDNClient extends EventTarget {
 
 
 	#attachEventHandlers(target, signal) {
-		target.addEventListener("open", (e) => this.#handleOpen(e), { signal });
-		target.addEventListener("close", (e) => this.#handleClose(e), { signal });
-		target.addEventListener("error", (e) => this.#handleError(e), { signal });
-		target.addEventListener("message", (e) => this.#handleMessage(e), { signal });
+		target.addEventListener("open", (ev) => this.#handleOpen(ev), { signal });
+		target.addEventListener("close", (ev) => this.#handleClose(ev), { signal });
+		target.addEventListener("error", (ev) => this.#handleError(ev), { signal });
+		target.addEventListener("message", (ev) => this.#handleMessage(ev), { signal });
 	}
 
 

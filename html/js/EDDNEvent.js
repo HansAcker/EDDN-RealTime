@@ -30,33 +30,31 @@ export class EDDNEvent extends Event {
 		this.message = data?.message;
 		this.data = data;
 
-		this.#eventType = EDDNEvent.getEventType(data);
-		this.#gameType = EDDNEvent.whatGame(data);
+		const now = Date.now();
+		this.receiveTimestamp = new Date(now);
 
-		this.#timestamp = new Date(data?.message?.timestamp ?? Date.now());
-		this.#timediff = new Date(data?.header?.gatewayTimestamp ?? Date.now()) - this.#timestamp;
+		// TODO: throw Error if no (gateway)timestamp? Using `now` is misleading
+		this.#timestamp = new Date(data?.message?.timestamp ?? now);
+		this.#timediff = new Date(data?.header?.gatewayTimestamp ?? now) - this.#timestamp;
 
 		this.#isOld = this.#timediff > 3600 * 1000;
 		this.#isNew = this.#timediff < 180 * -1000;
-
-		this.#isTaxi = !!data?.message?.Taxi;
-		this.#isMulticrew = !!data?.message?.Multicrew;
 	}
 
 	get eventType() {
-		return this.#eventType;
+		return this.#eventType ?? (this.#eventType = EDDNEvent.getEventType(this.data));
 	}
 
 	get gameType() {
-		return this.#gameType;
+		return this.#gameType ?? (this.#gameType = EDDNEvent.whatGame(this.data));
 	}
 
 	get isTaxi() {
-		return this.#isTaxi;
+		return this.#isTaxi ?? (this.#isTaxi = !!this.message?.Taxi);
 	}
 
 	get isMulticrew() {
-		return this.#isMulticrew;
+		return this.#isMulticrew ?? (this.#isMulticrew = !!this.message?.Multicrew);
 	}
 
 	get isOld() {
@@ -75,11 +73,11 @@ export class EDDNEvent extends Event {
 	 * TODO: return "outfitting/2/test" etc. with -test suffix?
 	 */
 	static getEventType(data) {
-		let eventType = data.$schemaRef?.match(/\/schemas\/([^/]+)\/(\d+)(\/test)?$/)?.[1] ?? "";
+		let eventType = data?.$schemaRef?.match(/\/schemas\/([^/]+)\/(\d+)(\/test)?$/)?.[1] ?? "";
 
 		// If it's a journal schema, append the specific game event
 		// Journal events (FSDJump, Docked) are defined inside the 'message.event' property
-		if (eventType === "journal" && data.message?.event) {
+		if (eventType === "journal" && data?.message?.event) {
 			eventType = `journal:${data.message.event}`;
 		}
 
@@ -99,7 +97,7 @@ export class EDDNEvent extends Event {
 			// https://github.com/EDCD/EDDN/blob/live/docs/Developers.md#horizons-and-odyssey-flags
 			const msg = data.message;
 			return msg.odyssey ? "Odyssey" : msg.horizons ? "Horizons" : msg.horizons === false ? "Base" : "Unknown";
-		} catch(error) {
+		} catch (error) {
 			console.error("gameversion error:", error);
 			return "Unknown";
 		}

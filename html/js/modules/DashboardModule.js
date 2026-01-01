@@ -60,9 +60,9 @@ export class DashboardModule {
 			element.classList.add("multicrew");
 		}
 
-		if (event.isOld) {
+		if (event.age > 3600 * 1000) {
 			element.classList.add("old");
-		} else if (event.isNew) {
+		} else if (event.age < 180 * -1000) {
 			element.classList.add("new");
 		}
 

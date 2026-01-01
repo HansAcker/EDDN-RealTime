@@ -13,8 +13,6 @@ export class EDDNEvent extends Event {
 	timestamp; // game clock timestamp
 
 	age; // difference between gatewayTimestamp and timestamp
-	isOld; // timestamp more than 1h before gatewayTimestamp
-	isNew; // timestamp more than 3 minutes after gatewayTimestamp
 
 	#eventType; // derived from schema/message.event. set by get eventType()
 	#gameType; // Odyssey, Horizons. set by get gameType()
@@ -31,7 +29,7 @@ export class EDDNEvent extends Event {
 	 * @param {Object} data.message - The actual game data
 	 */
 	constructor(type, data) {
-		super(type, { cancelable: true, bubbles: false });
+		super(type);
 
 		const { $schemaRef, header, message } = data;
 
@@ -47,10 +45,7 @@ export class EDDNEvent extends Event {
 		this.timestamp = new Date(message?.timestamp ?? now);
 		this.gatewayTimestamp = new Date(header?.gatewayTimestamp ?? now);
 
-		const age = this.gatewayTimestamp - this.timestamp;
-		this.age = age;
-		this.isOld = age > 3600 * 1000;
-		this.isNew = age < 180 * -1000;
+		this.age = this.gatewayTimestamp - this.timestamp;
 	}
 
 	get eventType() {

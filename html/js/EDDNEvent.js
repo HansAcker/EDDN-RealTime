@@ -3,21 +3,29 @@
  * This carries the raw payload, the header, and normalized metadata.
  */
 export class EDDNEvent extends Event {
-	#eventType;
-	#gameType;
+	$schemaRef;
+	header;
+	message;
+	data; // event data { $schemaRef, header, message } for easier reference
 
-	#timestamp;
-	#timediff;
+	receiveTimestamp; // local clock timestamp of event creation
+	gatewayTimestamp; // gateway clock timestamp
+	timestamp; // game clock timestamp
 
-	#isOld;
-	#isNew;
+	age; // difference between gatewayTimestamp and timestamp
+	isOld; // timestamp more than 1h before gatewayTimestamp
+	isNew; // timestamp more than 3 minutes after gatewayTimestamp
+
+	#eventType; // derived from schema/message.event. set by get eventType()
+	#gameType; // Odyssey, Horizons. set by get gameType()
 
 	#isTaxi;
 	#isMulticrew;
 
+
 	/**
-	 * @param {string} type - The specific event type (e.g., "journal:FSDJump", "commodity")
-	 * @param {Object} data - The destructured payload
+	 * @param {string} type - The event type ("eddn:message")
+	 * @param {Object} data - The structured payload
 	 * @param {string} data.$schemaRef - The original schema URL
 	 * @param {Object} data.header - The EDDN header (uploaderID, softwareName, etc.)
 	 * @param {Object} data.message - The actual game data
@@ -25,20 +33,24 @@ export class EDDNEvent extends Event {
 	constructor(type, data) {
 		super(type, { cancelable: true, bubbles: false });
 
-		this.$schemaRef = data?.$schemaRef;
-		this.header = data?.header;
-		this.message = data?.message;
+		const { $schemaRef, header, message } = data;
+
+		this.$schemaRef = $schemaRef;
+		this.header = header;
+		this.message = message;
 		this.data = data;
 
 		const now = Date.now();
 		this.receiveTimestamp = new Date(now);
 
 		// TODO: throw Error if no (gateway)timestamp? Using `now` is misleading
-		this.#timestamp = new Date(data?.message?.timestamp ?? now);
-		this.#timediff = new Date(data?.header?.gatewayTimestamp ?? now) - this.#timestamp;
+		this.timestamp = new Date(message?.timestamp ?? now);
+		this.gatewayTimestamp = new Date(header?.gatewayTimestamp ?? now);
 
-		this.#isOld = this.#timediff > 3600 * 1000;
-		this.#isNew = this.#timediff < 180 * -1000;
+		const age = this.gatewayTimestamp - this.timestamp;
+		this.age = age;
+		this.isOld = age > 3600 * 1000;
+		this.isNew = age < 180 * -1000;
 	}
 
 	get eventType() {
@@ -57,13 +69,6 @@ export class EDDNEvent extends Event {
 		return this.#isMulticrew ?? (this.#isMulticrew = !!this.message?.Multicrew);
 	}
 
-	get isOld() {
-		return this.#isOld;
-	}
-
-	get isNew() {
-		return this.#isNew;
-	}
 
 	/**
 	 * Normalizes the schema URL into a clean event string.

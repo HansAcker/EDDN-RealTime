@@ -24,8 +24,8 @@ export class EDDNClient extends EventTarget {
 
 		this.url = url;
 
-		if (!isNaN(parseInt(resetTimeout))) {
-			this.resetTimeout = parseInt(resetTimeout);
+		if (Number.isInteger(resetTimeout)) {
+			this.resetTimeout = resetTimeout;
 		}
 
 		this.#WebSocketClass = WebSocketClass ?? WebSocket;
@@ -47,7 +47,9 @@ export class EDDNClient extends EventTarget {
 		this.#abortController = new AbortController();
 		const signal = this.#abortController.signal;
 
+		// pass abort signal into WebSocket class if it supports it
 		this.socket = new this.#WebSocketClass(this.url, this.protocol, { signal });
+
 		this.#attachEventHandlers(this.socket, signal);
 	}
 

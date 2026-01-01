@@ -7,14 +7,16 @@ import { EDDNEvent } from "EDDNEvent";
 export class EDDNClient extends EventTarget {
 	#WebSocketClass; // the WebSocket class prototype used to create a new connection, defaults to WebSocket
 	#abortController = null; // event handler decoupler
+	#socket = null;
+
+	#textDecoder = new TextDecoder("utf-8");
 
 	#lastEvent; // timestamp of last valid message from socket
 	#watchdogTimer = null;
 
 	url;
-	socket = null;
 	resetTimeout = 300000; // idle timeout (ms) before watchdog reconnects the socket, 0 to disable watchdog
-	protocol = "v1.ws.eddn-realtime.space"; // currently unused
+	protocol = ["v2.ws.eddn-realtime.space", "v1.ws.eddn-realtime.space"]; // currently unused
 
 
 	constructor(url = "ws://127.0.0.1:8081", options = {}) {
@@ -37,7 +39,7 @@ export class EDDNClient extends EventTarget {
 
 	connect() {
 		// close and clear old socket on reconnect
-		if (this.socket) {
+		if (this.#socket) {
 			this.close();
 		}
 
@@ -48,9 +50,10 @@ export class EDDNClient extends EventTarget {
 		const signal = this.#abortController.signal;
 
 		// pass abort signal into WebSocket class if it supports it
-		this.socket = new this.#WebSocketClass(this.url, this.protocol, { signal });
+		this.#socket = new this.#WebSocketClass(this.url, this.protocol, { signal });
+		this.#socket.binaryType = "arraybuffer";
 
-		this.#attachEventHandlers(this.socket, signal);
+		this.#attachEventHandlers(this.#socket, signal);
 	}
 
 
@@ -70,8 +73,8 @@ export class EDDNClient extends EventTarget {
 		this.#abortController?.abort();
 		this.#abortController = null;
 
-		this.socket?.close();
-		this.socket = null;
+		this.#socket?.close();
+		this.#socket = null;
 
 		// inform the client
 		this.dispatchEvent(new CloseEvent("close", {
@@ -83,21 +86,37 @@ export class EDDNClient extends EventTarget {
 
 
 	#handleMessage(originalEvent) {
-		if (this.socket !== originalEvent.target) {
+		if (this.#socket !== originalEvent.target) {
 			console.warn("EDDNClient: spurious `message` from unknown socket:", originalEvent);
 			return;
 		}
 
+		const rawData = originalEvent.data;
 		let payload;
 
-		// TODO: if validation fails, pass on the received EDDNEvent as a field on a custom EDDNErrorEvent
-
 		try {
-			payload = JSON.parse(originalEvent.data);
+			// ArrayBuffer binary frames
+			if (rawData instanceof ArrayBuffer) {
+				const jsonText = this.#textDecoder.decode(rawData);
+				payload = JSON.parse(jsonText);
+			}
+
+			// Text frames
+			else if (typeof rawData === "string") {
+				payload = JSON.parse(rawData);
+			}
+
+			// binary blob
+			else {
+				this.dispatchEvent(new ErrorEvent("eddn:error", { message: "Unexpected message format" }));
+				return;
+			}
 		} catch (e) {
-			this.dispatchEvent(new ErrorEvent("eddn:error", { message: "JSON parse error", error: e }));
+			this.dispatchEvent(new ErrorEvent("eddn:error", { message: "Parse error", error: e }));
 			return;
 		}
+
+		// TODO: if validation fails, pass on the received data as a field on a custom EDDNErrorEvent
 
 		if (!(payload.$schemaRef && payload.header && payload.message)) {
 			this.dispatchEvent(new ErrorEvent("eddn:error", { message: "Missing required properties" }));
@@ -137,12 +156,12 @@ export class EDDNClient extends EventTarget {
 
 	#handleOpen(originalEvent) {
 		// TODO: an unexpected open should not happen. close()?
-		if (this.socket !== originalEvent.target) {
+		if (this.#socket !== originalEvent.target) {
 			console.warn("EDDNClient: spurious `open` from unknown socket:", originalEvent);
 			return;
 		}
 
-		console.log("EDDNClient: WebSocket connected");
+		console.log("EDDNClient: WebSocket connected:", this.#socket.protocol);
 
 		// clear any previous timer
 		clearTimeout(this.#watchdogTimer);
@@ -162,7 +181,7 @@ export class EDDNClient extends EventTarget {
 
 	// TODO: should this class automatically reconnect on close or leave that to its user?
 	#handleClose(originalEvent) {
-		if (this.socket !== originalEvent.target) {
+		if (this.#socket !== originalEvent.target) {
 			console.warn("EDDNClient: spurious `close` from unknown socket:", originalEvent);
 			return;
 		}
@@ -180,8 +199,8 @@ export class EDDNClient extends EventTarget {
 		//       - duck-type it on the availability of `reconnect()` for now
 
 		// socket closed
-		if (typeof this.socket.reconnect !== "function") {
-			this.socket = null;
+		if (typeof this.#socket.reconnect !== "function") {
+			this.#socket = null;
 		}
 
 		// Create a new CloseEvent to forward specific close codes/reasons to the UI
@@ -197,7 +216,7 @@ export class EDDNClient extends EventTarget {
 
 	// TODO: what else to do for a WebSocket error event? it should be followed by a final "close" event
 	#handleError(originalEvent) {
-		if (this.socket !== originalEvent.target) {
+		if (this.#socket !== originalEvent.target) {
 			console.warn("EDDNClient: spurious `error` from unknown socket:", originalEvent);
 			return;
 		}
@@ -217,15 +236,15 @@ export class EDDNClient extends EventTarget {
 
 	#watchdog() {
 		// terminate watch when the socket is gone or resetTimeout changed to 0
-		if (!this.socket || this.resetTimeout <= 0) {
+		if (!this.#socket || this.resetTimeout <= 0) {
 			return;
 		}
 
-		if (this.#lastEvent && this.socket.readyState === this.#WebSocketClass.OPEN && (Date.now() - this.#lastEvent) > this.resetTimeout) {
+		if (this.#lastEvent && this.#socket.readyState === this.#WebSocketClass.OPEN && (Date.now() - this.#lastEvent) > this.resetTimeout) {
 			console.log("EDDNClient: Receive timeout. Resetting connection.");
 
 			// ReconnectingWebSocket has a .reconnect() method
-			typeof this.socket.reconnect === "function" ? this.socket.reconnect() : this.connect();
+			typeof this.#socket.reconnect === "function" ? this.#socket.reconnect() : this.connect();
 
 			// end this watchdog here - #handleOpen() should start a new one
 			return;

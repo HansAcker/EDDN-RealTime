@@ -1,44 +1,69 @@
 import { EDDNEvent } from "EDDNEvent";
 
 
-export class EDDNClient extends EventTarget {
-	#WebSocketClass;
+// TODO: current use-case never calls .close(), untested
 
-	#lastEvent;
+
+export class EDDNClient extends EventTarget {
+	#WebSocketClass; // the WebSocket class prototype used to create a new connection, defaults to WebSocket
+	#handlers = {}; // socket event handler references
+
+	#lastEvent; // timestamp of last valid message from socket
 	#watchdogTimer;
 
 	url;
 	socket = null;
-	resetTimeout = 300000;
-	protocol = "v1.ws.eddn-realtime.space";
+	resetTimeout = 300000; // idle timeout (ms) before watchdog reconnects the socket, 0 to disable watchdog
+	protocol = "v1.ws.eddn-realtime.space"; // currently unused
+
 
 	constructor(url = "ws://127.0.0.1:8081", options = {}) {
 		super();
 
+		const { signal, WebSocketClass, resetTimeout } = options;
+
 		this.url = url;
 
-		const { signal, WebSocketClass } = options;
-		// Object.assign(this, config);
-
+		// TODO: wrap bare `WebSocket`, eg. for testing under node.js?
 		this.#WebSocketClass = WebSocketClass ?? WebSocket;
+
+		if (!isNaN(parseInt(resetTimeout))) {
+			this.resetTimeout = parseInt(resetTimeout);
+		}
 
 		// close websocket on abort signal
 		signal?.addEventListener("abort", () => this.close());
+
+		// pre-bind event handlers to maintain 'this' and stable references
+		// TODO: use AbortController to detach handlers instead?
+		this.#handlers = {
+			open: this.#handleOpen.bind(this),
+			close: this.#handleClose.bind(this),
+			error: this.#handleError.bind(this),
+			message: this.#handleMessage.bind(this)
+		};
+
 	}
+
 
 	connect() {
-		this.close();
+		// close and clear old socket on reconnect
+		// TODO: should this wait (with timeout?) for the close to happen?
+		if (this.socket) {
+			this.close();
+		}
 
 		this.socket = new this.#WebSocketClass(this.url, this.protocol);
-
-		this.socket.addEventListener("open", (ev) => this.#handleOpen(ev));
-		this.socket.addEventListener("close", (ev) => this.#handleClose(ev));
-		this.socket.addEventListener("error", (ev) => this.#handleError(ev));
-		this.socket.addEventListener("message", (ev) => this.#handleMessage(ev));
+		this.#attachEventHandlers(this.socket);
 	}
+
 
 	close() {
  		// cleanup any old watchdog and socket
+		// TODO: handle async close / reconnect properly
+		//       - `close` event is never fired after explicit .close()
+		//       - on reconnect, a `close` of the old socket should not trigger after an `open` from the new one
+
 		clearTimeout(this.#watchdogTimer);
 		this.#watchdogTimer = null;
 		this.#lastEvent = null;
@@ -46,15 +71,22 @@ export class EDDNClient extends EventTarget {
 		const socket = this.socket;
 		this.socket = null;
 
-		if (!socket || socket.readyState === WebSocket.CLOSED) {
-			return;
+		if (socket) {
+			this.#detachEventHandlers(socket);
+			if (socket.readyState !== WebSocket.CLOSED) {
+				socket.close();
+			}
 		}
-
-		socket.close();
 	}
 
+
 	#handleMessage(originalEvent) {
-		if (this.socket !== originalEvent.target) return;
+		// TODO: re-think multiple deliveries in reconnect case. close this socket?
+		if (this.socket !== originalEvent.target) {
+			console.warn("EDDNClient: spurious `message` from unknown socket:", originalEvent);
+			this.#detachEventHandlers(originalEvent.target);
+			return;
+		}
 
 		let payload;
 
@@ -70,51 +102,81 @@ export class EDDNClient extends EventTarget {
 			return;
 		}
 
+		// get client event type from schema or journal event
 		const eventType = EDDNEvent.getEventType(payload);
 
+		// TODO: still dispatch eddn:filter and eddn:message?
 		if (!eventType) {
 			this.dispatchEvent(new ErrorEvent("eddn:error", { message: "Unknown event type" }));
 			return;
 		}
 
+		// update watchdog timestamp
 		this.#lastEvent = Date.now();
 
+		// TODO: why not just pass on `payload`?
 		const eventData = {
 			$schemaRef: payload.$schemaRef,
 			header: payload.header,
 			message: payload.message
 		};
 
+		// listeners on `eddn:filter` can call `preventDefault()` to filter a mesasge
 		if (this.dispatchEvent(new EDDNEvent("eddn:filter", eventData))) {
+			// the catch-all event
 			this.dispatchEvent(new EDDNEvent("eddn:message", eventData));
+
+			// schema-specific events
 			this.dispatchEvent(new EDDNEvent(eventType, eventData));
 		}
 	}
 
 
 	#handleOpen(originalEvent) {
-		if (this.socket !== originalEvent.target) return;
+		// TODO: an unexpected open should not happen. close()?
+		if (this.socket !== originalEvent.target) {
+			console.warn("EDDNClient: spurious `open` from unknown socket:", originalEvent);
+			this.#detachEventHandlers(originalEvent.target);
+			return;
+		}
 
-		console.log("EDDN Stream connected");
+		console.log("EDDNClient: WebSocket connected");
+
+		// clear any previous timer
+		clearTimeout(this.#watchdogTimer);
+		this.#lastEvent = Date.now();
 
 		// start watchdog timer
-		this.#lastEvent = Date.now();
-		this.#watchdog();
+		if (this.resetTimeout > 0) {
+			this.#watchdog();
+		}
 
-		// Dispatch a new Event so 'target' refers to this EDDNClient instance, not the internal WebSocket
+		// Dispatch a new Event so `target` refers to this EDDNClient instance, not the internal WebSocket
 		this.dispatchEvent(new Event("open"));
 	}
 
+
+	// TODO: should this class automatically reconnect on close or leave that to its user?
 	#handleClose(originalEvent) {
-		if (this.socket !== originalEvent.target) return;
+		// TODO: handle async close / reconnect properly
+		if (this.socket !== originalEvent.target) {
+			console.warn("EDDNClient: spurious `close` from unknown socket:", originalEvent);
+			this.#detachEventHandlers(originalEvent.target);
+			return;
+		}
 
 		// stop watchdog
 		clearTimeout(this.#watchdogTimer);
 		this.#watchdogTimer = null;
 		this.#lastEvent = null;
 
+		// TODO: a standard WebSocket is "dead" after CLOSED while ReconnectingWebSocket potentially continues
+		//       - ReconnectingWebSocket would need to pass `wasForced` or similar?
+		//       - duck-type it on the availability of `reconnect()` for now
 		// socket closed
-		this.socket = null;
+		if (typeof this.socket.reconnect !== "function") {
+			this.socket = null;
+		}
 
 		// Create a new CloseEvent to forward specific close codes/reasons to the UI
 		const event = new CloseEvent("close", {
@@ -126,23 +188,50 @@ export class EDDNClient extends EventTarget {
 		this.dispatchEvent(event);
 	}
 
+
+	// TODO: what else to do for a WebSocket error event? it should be followed by a final "close" event
 	#handleError(originalEvent) {
-		if (this.socket !== originalEvent.target) return;
-		console.error("EDDN Error received");
+		if (this.socket !== originalEvent.target) {
+			console.warn("EDDNClient: spurious `error` from unknown socket:", originalEvent);
+			this.#detachEventHandlers(originalEvent.target);
+			return;
+		}
+
+		console.error("EDDNClient: WebSocket Error received");
 		this.dispatchEvent(new Event("error"));
 	}
 
 
+	#attachEventHandlers(target) {
+		target.addEventListener("open", this.#handlers.open);
+		target.addEventListener("close", this.#handlers.close);
+		target.addEventListener("error", this.#handlers.error);
+		target.addEventListener("message", this.#handlers.message);
+	}
+
+	#detachEventHandlers(target) {
+		target.removeEventListener("open", this.#handlers.open);
+		target.removeEventListener("close", this.#handlers.close);
+		target.removeEventListener("error", this.#handlers.error);
+		target.removeEventListener("message", this.#handlers.message);
+	}
+
+
 	#watchdog() {
-		if (!this.socket) {
+		// TODO: ensure that only one watchdog runs
+		// terminate watch when the socket is gone
+		if (!this.socket || this.resetTimeout <= 0) {
 			return;
 		}
 
 		if (this.#lastEvent && this.socket.readyState === WebSocket.OPEN && (Date.now() - this.#lastEvent) > this.resetTimeout) {
-			console.log("Receive timeout. Resetting connection.");
+			console.log("EDDNClient: Receive timeout. Resetting connection.");
+
 			// ReconnectingWebSocket has a .reconnect() method
-			this.socket.reconnect ? this.socket.reconnect() : this.connect();
+			typeof this.socket.reconnect === "function" ? this.socket.reconnect() : this.connect();
+
 			// end this watchdog here - #handleOpen() should start a new one
+			// TODO: ReconnectingWebSocket should handle reconnections from here. keep watch on standard WebSocket?
 			return;
 		}
 

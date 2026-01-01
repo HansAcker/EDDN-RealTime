@@ -1,4 +1,6 @@
 export class DashboardModule {
+	#topics; // Set of subscribed topics
+
 	_container;
 	_infobox;
 
@@ -12,8 +14,15 @@ export class DashboardModule {
 		this._container = this._setupContainer(container);
 		this._infobox = infobox;
 
-		for (const topic of topics) {
-			this._eddnClient.addEventListener(topic, (event) => this._handleEvent(event));
+		this.#topics = new Set(topics);
+
+		this._eddnClient.addEventListener("eddn:message", (event) => this.#routeEvent(event));
+	}
+
+	#routeEvent(event) {
+		// TODO: move to a mediator that only executes the subscribed modules
+		if (this.#topics.has(event.eventType) || this.#topics.has("*")) {
+			this._handleEvent(event);
 		}
 	}
 

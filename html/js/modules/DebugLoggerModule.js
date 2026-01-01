@@ -4,7 +4,7 @@ import DashboardModule from "DashboardModule";
 export class DebugLoggerModule extends DashboardModule {
 	constructor(eddnClient) {
 		// Subscribe to the generic event to catch everything
-		super(eddnClient, ["eddn:message"]);
+		super(eddnClient, ["*"]);
 	}
 
 	_handleEvent(event) {

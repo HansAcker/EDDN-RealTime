@@ -6,7 +6,7 @@ export class EventStatsModule extends DashboardModule {
 	#statsBox;
 
 	constructor(eddnClient, container, infobox) {
-		super(eddnClient, ["eddn:message"], container, infobox);
+		super(eddnClient, ["*"], container, infobox);
 		this.#statsBox = new SortedStatsBox(container);
 	}
 

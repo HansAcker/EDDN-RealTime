@@ -121,6 +121,11 @@ class ReconnectingWebSocket extends EventTarget {
 		this.#connect();
 	}
 
+	// compatibility with older ReconnectingWebSocket class
+	refresh() {
+		this.reconnect();
+	}
+
 	close(code = 1000, reason) {
 		this.#forcedClose = true;
 		this.#clearInternalTimers();

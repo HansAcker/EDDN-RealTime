@@ -27,15 +27,23 @@ export class EDDNClient extends EventTarget {
 
 		this.url = url;
 
-		if (Number.isInteger(resetTimeout)) {
+		this.#WebSocketClass = WebSocketClass ?? WebSocket;
+
+		if (resetTimeout) {
+			if (!Number.isInteger(resetTimeout)) {
+				throw new Error("resetTimeout must be an integer");
+			}
+
 			this.resetTimeout = resetTimeout;
 		}
 
-		if (typeof filter === "function") {
+		if (filter) {
+			if (typeof filter !== "function") {
+				throw new Error("filter must be a function");
+			}
+
 			this.#filterFunction = filter;
 		}
-
-		this.#WebSocketClass = WebSocketClass ?? WebSocket;
 
 		// close connection on optional abort signal
 		signal?.addEventListener("abort", () => this.close());

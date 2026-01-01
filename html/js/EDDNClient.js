@@ -9,10 +9,10 @@ export class EDDNClient extends EventTarget {
 	#abortController = null; // event handler decoupler
 	#socket = null;
 
-	#textDecoder = new TextDecoder("utf-8");
-
 	#lastEvent; // timestamp of last valid message from socket
 	#watchdogTimer = null;
+
+	#textDecoder = new TextDecoder("utf-8"); // decodes JSON bytes to string
 
 	url;
 	resetTimeout = 300000; // idle timeout (ms) before watchdog reconnects the socket, 0 to disable watchdog
@@ -161,7 +161,7 @@ export class EDDNClient extends EventTarget {
 			return;
 		}
 
-		console.log("EDDNClient: WebSocket connected:", this.#socket.protocol);
+		console.log(`EDDNClient: WebSocket connected${this.#socket.protocol ? ` with protocol '${this.#socket.protocol}` : ""}`);
 
 		// clear any previous timer
 		clearTimeout(this.#watchdogTimer);

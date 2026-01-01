@@ -53,7 +53,7 @@ export class EDDNEvent extends Event {
 	}
 
 	get gameType() {
-		return this.#gameType ?? (this.#gameType = EDDNEvent.whatGame(this.data));
+		return this.#gameType ?? (this.#gameType = EDDNEvent.getGameType(this.data));
 	}
 
 	get isTaxi() {
@@ -85,7 +85,7 @@ export class EDDNEvent extends Event {
 		return eventType.toLowerCase();
 	}
 
-	static whatGame(data) {
+	static getGameType(data) {
 		try {
 			// no decision if gameversion is not set or set to CAPI-<endpoint>
 			// https://github.com/EDCD/EDDN/blob/live/docs/Developers.md#gameversions-and-gamebuild

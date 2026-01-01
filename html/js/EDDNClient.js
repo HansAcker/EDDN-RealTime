@@ -170,7 +170,7 @@ export class EDDNClient extends EventTarget {
 			return;
 		}
 
-		console.log(`EDDNClient: WebSocket connected${this.#socket.protocol ? ` with protocol '${this.#socket.protocol}` : ""}`);
+		console.log(`EDDNClient: WebSocket connected${this.#socket.protocol ? ` with protocol '${this.#socket.protocol}'` : ""}`);
 
 		// clear any previous timer
 		clearTimeout(this.#watchdogTimer);

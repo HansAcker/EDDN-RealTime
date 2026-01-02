@@ -151,14 +151,14 @@ export class EDDNClient extends EventTarget {
 		//       - this normalizes the top level, ignoring additional properties
 		//       - the clients could want additional properties if EDDN ever defines them
 		//       - EDDNEvent already extracts these properties
-		const eventData = {
+		const event = new EDDNEvent("eddn:message", {
 			$schemaRef: payload.$schemaRef,
 			header: payload.header,
 			message: payload.message
-		};
+		});
 
-		if (this.#filterFunction(eventData)) {
-			this.dispatchEvent(new EDDNEvent("eddn:message", eventData));
+		if (this.#filterFunction(event)) {
+			this.dispatchEvent(event);
 		}
 	}
 

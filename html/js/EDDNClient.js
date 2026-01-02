@@ -113,8 +113,7 @@ export class EDDNClient extends EventTarget {
 		try {
 			// ArrayBuffer binary frames
 			if (rawData instanceof ArrayBuffer) {
-				const jsonText = this.#textDecoder.decode(rawData);
-				payload = JSON.parse(jsonText);
+				payload = JSON.parse(this.#textDecoder.decode(rawData));
 			}
 
 			// Text frames
@@ -122,7 +121,6 @@ export class EDDNClient extends EventTarget {
 				payload = JSON.parse(rawData);
 			}
 
-			// binary Blob
 			else {
 				throw new Error(`Unexpected message format (${typeof rawData})`);
 			}
@@ -133,13 +131,22 @@ export class EDDNClient extends EventTarget {
 
 		// TODO: if validation fails, pass on the received data as a field on a custom EDDNErrorEvent
 
+		let event;
 		try {
-			if (!payload.$schemaRef || !payload.header || !payload.message) {
+			const { $schemaRef, header, message } = payload;
+
+			if (!$schemaRef || !header || !message) {
 				throw new Error("Missing required properties");
 			}
 
+			// TODO: why not pass on `payload` instead?
+			//       - this normalizes the top level, ignoring additional properties
+			//       - the clients could want additional properties if EDDN ever defines them
+			//       - EDDNEvent already extracts these properties
+			event = new EDDNEvent("eddn:message", { $schemaRef, header, message });
+
 			// get game event type from schema or journal event
-			if (!EDDNEvent.getEventType(payload)) {
+			if (!event.eventType) {
 				throw new Error("Unknown event type");
 			}
 		} catch (e) {
@@ -149,16 +156,6 @@ export class EDDNClient extends EventTarget {
 
 		// update watchdog timestamp
 		this.#lastEvent = Date.now();
-
-		// TODO: why not pass on `payload` instead?
-		//       - this normalizes the top level, ignoring additional properties
-		//       - the clients could want additional properties if EDDN ever defines them
-		//       - EDDNEvent already extracts these properties
-		const event = new EDDNEvent("eddn:message", {
-			$schemaRef: payload.$schemaRef,
-			header: payload.header,
-			message: payload.message
-		});
 
 		if (this.#filterFunction(event)) {
 			this.dispatchEvent(event);
@@ -186,7 +183,7 @@ export class EDDNClient extends EventTarget {
 			this.#watchdog();
 		}
 
-		// Dispatch a new Event so `target` refers to this EDDNClient instance, not the internal WebSocket
+		// Dispatch a new Event so `target` refers to this class instance, not the internal WebSocket
 		this.dispatchEvent(new Event("open"));
 	}
 

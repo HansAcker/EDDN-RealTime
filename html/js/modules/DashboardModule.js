@@ -96,7 +96,7 @@ export class DataTableModule extends DashboardModule {
 		return super.makeCell(textContent, elementType);
 	}
 
-	makeRow(event, elementType = "div") {
+	makeRow(event, elementType = "tr") {
 		return super.makeRow(event, elementType);
 	}
 }

@@ -11,7 +11,7 @@ export class EventStatsModule extends DashboardModule {
 	}
 
 	_handleEvent(event) {
-		this.#statsBox.inc(event.eventType.replace(/^journal:/, ""));
+		this.#statsBox.inc(event.message.event ?? event.eventType);
 	}
 }
 

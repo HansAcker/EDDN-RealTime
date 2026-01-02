@@ -9,10 +9,7 @@ export class EDDNEvent extends Event {
 	data; // event data { $schemaRef, header, message } for easier reference
 
 	receiveTimestamp; // local clock timestamp of event creation
-	gatewayTimestamp; // gateway clock timestamp
-	timestamp; // game clock timestamp
-
-	age; // difference between gatewayTimestamp and timestamp
+	#age; // difference between gatewayTimestamp and timestamp, set by get age()
 
 	#eventType; // derived from schema/message.event. set by get eventType()
 	#gameType; // Odyssey, Horizons. set by get gameType()
@@ -38,14 +35,12 @@ export class EDDNEvent extends Event {
 		this.message = message;
 		this.data = data;
 
-		const now = Date.now();
-		this.receiveTimestamp = new Date(now);
+		this.receiveTimestamp = new Date();
+	}
 
-		// TODO: throw Error if no (gateway)timestamp? Using `now` is misleading
-		this.timestamp = new Date(message?.timestamp ?? now);
-		this.gatewayTimestamp = new Date(header?.gatewayTimestamp ?? now);
 
-		this.age = this.gatewayTimestamp - this.timestamp;
+	get age() {
+		return this.#age ?? (this.#age = (new Date(this.header?.gatewayTimestamp) - new Date(this.message?.timestamp)));
 	}
 
 	get eventType() {

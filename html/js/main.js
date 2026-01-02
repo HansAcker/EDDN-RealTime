@@ -37,8 +37,9 @@ const client = new EDDNClient("wss://ws.eddn-realtime.space/eddn", {
 
 	// pass only a subset of messages to display modules
 	filter: (event) => {
-		return (event.message?.StarSystem ?? event.message?.systemName)?.startsWith("HIP ") ||
-				event.message?.Route?.some((wp) => wp?.StarSystem?.startsWith("HIP "))
+		return  (event.message?.StarSystem ?? event.message?.systemName)?.startsWith("HIP ") ||
+				(event.message?.Route?.some((wp) => wp?.StarSystem?.startsWith("HIP "))) ||
+				(event.age <= 0) || (event.isTaxi)
 	},
 });
 client.connect();

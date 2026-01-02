@@ -28,7 +28,9 @@ window.board.addEventListener("click", (ev) => {
 
 
 // The EDDN event bus
-const client = new EDDNClient("wss://ws.eddn-realtime.space/eddn", {
+const client = new EDDNClient({
+	url: "wss://ws.eddn-realtime.space/eddn",
+
 	// reset websocket connection after 5min without messages
 	resetTimeout: 300 * 1000,
 

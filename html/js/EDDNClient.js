@@ -15,18 +15,21 @@ export class EDDNClient extends EventTarget {
 	#textDecoder = new TextDecoder("utf-8"); // decodes JSON bytes to string
 	#filterFunction = () => true; // accept all messages
 
-	url;
+	url = "ws://127.0.0.1:8081";
+
 	resetTimeout = 0; // idle timeout (ms) before watchdog reconnects the socket, 0 to disable watchdog
 	protocol = ["v2.ws.eddn-realtime.space", "v1.ws.eddn-realtime.space"]; // currently unused
 
 
-	constructor(url = "ws://127.0.0.1:8081", options = {}) {
+	constructor(options = {}) {
 		super();
 
-		const { resetTimeout, filter, WebSocketClass, signal } = options;
+		const { url, resetTimeout, filter, WebSocketClass, signal } = options;
 
-		this.url = url;
+		// TODO: use URL() to validate?
+		this.url = url ?? this.url;
 
+		// TODO: verify interface, .prototype instanceof EventTarget && typeof .OPEN === "number"?
 		this.#WebSocketClass = WebSocketClass ?? WebSocket;
 
 		if (resetTimeout) {

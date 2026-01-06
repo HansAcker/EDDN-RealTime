@@ -61,9 +61,9 @@ class StatsBox {
 			this._rows[this._stats.get(key)]._value = value;
 		} else {
 			const stat = new StatsRow(key, value);
-			this.#statsbody.append(stat._row);
 			this._stats.set(key, this._rows.length);
 			this._rows.push(stat);
+			this.#statsbody.append(stat._row);
 		}
 	}
 
@@ -102,14 +102,14 @@ class SortedStatsBox extends StatsBox {
 
 		const stat = this._rows[idxOld];
 		const value = stat._value;
+		let idxNew = idxOld - 1;
 
 		// won't move
-		if (value <= this._rows[idxOld-1]._value) {
+		if (value <= this._rows[idxNew]._value) {
 			return;
 		}
 
 		// find new position in rows array
-		let idxNew = idxOld - 1;
 		while (idxNew > 0 && value > this._rows[idxNew-1]._value) {
 			idxNew--;
 		}

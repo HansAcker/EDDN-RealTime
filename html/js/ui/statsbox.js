@@ -108,12 +108,11 @@ class SortedStatsBox extends StatsBox {
 			return;
 		}
 
-		// TODO: verify gemini'd assumption that two loops (one read, one write) are better than a combined read/write loop
 		// find new position in rows array
-		let idxNew = idxOld;
-		do {
+		let idxNew = idxOld - 1;
+		while (idxNew > 0 && value > this._rows[idxNew-1]._value) {
 			idxNew--;
-		} while (idxNew > 0 && value > this._rows[idxNew-1]._value);
+		}
 
 		// update indices
 		for (let i = idxNew; i < idxOld; i++) {
@@ -122,13 +121,13 @@ class SortedStatsBox extends StatsBox {
 
 		this._stats.set(key, idxNew);
 
-		const oldRow = this._rows[idxNew]._row; // DOM element
+		const rowRef = this._rows[idxNew]._row; // DOM element
 
 		// update rows
 		this._rows.copyWithin(idxNew+1, idxNew, idxOld); // shift array back by one
 		this._rows[idxNew] = stat; // re-insert element
 
-		oldRow.before(stat._row); // update the DOM last
+		rowRef.before(stat._row); // update the DOM last
 	}
 }
 

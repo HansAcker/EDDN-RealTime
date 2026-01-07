@@ -6,26 +6,26 @@ class StatsRow {
 	#value = 0;
 	_key;
 
-	#td;
-	_tr;
+	#cell;
+	_row;
 
 	constructor(key, value) {
 		const ktd = document.createElement("td");
 		ktd.textContent = key;
 
 		const td = document.createElement("td");
-		this.#td = td;
+		this.#cell = td;
 
 		const tr = document.createElement("tr");
 		tr.append(ktd, td);
-		this._tr = tr;
+		this._row = tr;
 
 		this._key = key;
 		this._value = value;
 	}
 
 	set _value(newValue) {
-		this.#td.textContent = this.#value = newValue;
+		this.#cell.textContent = this.#value = newValue;
 	}
 
 	get _value() {
@@ -59,7 +59,7 @@ class StatsBox {
 			const stat = new StatsRow(key, value);
 			this._stats.set(key,  this._rows.length);
 			this._rows.push(stat);
-			this.#statsbody.append(stat._tr);
+			this.#statsbody.append(stat._row);
 		}
 	}
 
@@ -110,7 +110,7 @@ class SortedStatsBox extends StatsBox {
 			idxNew--;
 		}
 
-		const rowRef = this._rows[idxNew]._tr; // DOM element at this position
+		const rowRef = this._rows[idxNew]._row; // DOM element at this position
 
 		// one of those things that should never happen
 		if (!rowRef.parentNode) {
@@ -127,7 +127,7 @@ class SortedStatsBox extends StatsBox {
 		// update rows
 		this._rows.copyWithin(idxNew+1, idxNew, idxOld); // shift array back by one
 		this._rows[idxNew] = stat; // re-insert element
-		rowRef.before(stat._tr); // update the DOM last
+		rowRef.before(stat._row); // update the DOM last
 	}
 }
 

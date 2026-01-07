@@ -10,15 +10,15 @@ class StatsRow {
 	_row;
 
 	constructor(key, value) {
-		const ktd = document.createElement("td");
-		ktd.textContent = key;
+		const kcell = document.createElement("td");
+		kcell.textContent = key;
 
-		const td = document.createElement("td");
-		this.#cell = td;
+		const vcell = document.createElement("td");
+		this.#cell = vcell;
 
-		const tr = document.createElement("tr");
-		tr.append(ktd, td);
-		this._row = tr;
+		const row = document.createElement("tr");
+		row.append(kcell, vcell);
+		this._row = row;
 
 		this._key = key;
 		this._value = value;

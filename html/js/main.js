@@ -37,12 +37,14 @@ const client = new EDDNClient({
 	// ReconnectingWebSocket handles transient connection errors
 	WebSocketClass: ReconnectingWebSocket,
 
+/*
 	// pass only a subset of messages to display modules
 	filter: (event) => {
 		return  (event.message?.StarSystem ?? event.message?.systemName)?.startsWith("HIP ") ||
 				(event.message?.Route?.some((wp) => wp?.StarSystem?.startsWith("HIP "))) ||
 				(event.age <= 0) || (event.isTaxi)
 	},
+*/
 });
 client.connect();
 

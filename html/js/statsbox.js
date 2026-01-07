@@ -57,7 +57,7 @@ class StatsBox {
 			this._rows[this._stats.get(key)]._value = value;
 		} else {
 			const stat = new StatsRow(key, value);
-			this._stats.set(key,  this._rows.length);
+			this._stats.set(key, this._rows.length);
 			this._rows.push(stat);
 			this.#statsbody.append(stat._row);
 		}

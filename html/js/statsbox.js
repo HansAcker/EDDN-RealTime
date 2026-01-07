@@ -17,11 +17,12 @@ class StatsRow {
 		this.#cell = vcell;
 
 		const row = document.createElement("tr");
-		row.append(kcell, vcell);
 		this._row = row;
 
 		this._key = key;
 		this._value = value;
+
+		row.append(kcell, vcell);
 	}
 
 	set _value(newValue) {

@@ -122,9 +122,7 @@ class SortedStatsBox extends StatsBox {
 		this._rows.copyWithin(idxNew+1, idxNew, idxOld); // shift array back by one
 		this._rows[idxNew] = stat; // re-insert element
 
-		if (rowRef.parentNode) {
-			rowRef.before(stat._row); // update the DOM last
-		}
+		rowRef.before(stat._row); // update the DOM last
 	}
 }
 

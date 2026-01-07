@@ -111,11 +111,10 @@ class SortedStatsBox extends StatsBox {
 		}
 
 		// update indices
+		this._stats.set(key, idxNew);
 		for (let i = idxNew; i < idxOld; i++) {
 			this._stats.set(this._rows[i]._key, i+1);
 		}
-
-		this._stats.set(key, idxNew);
 
 		// update rows
 		const rowRef = this._rows[idxNew]._tr; // DOM element

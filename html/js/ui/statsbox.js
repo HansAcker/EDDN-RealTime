@@ -1,10 +1,10 @@
 
 // counts and displays named events or other information
 
-//import { makeCell } from "./utils.js";
 
-const makeCell = (textContent) => { const div = document.createElement("div"); div.classList.add("dashboard__table--cell"); div.setAttribute("role", "cell"); div.textContent = div.title = textContent ?? ""; return div; };
-const makeRow = (...children) => { const div = document.createElement("div"); div.classList.add("dashboard__table--row"); div.setAttribute("role", "row"); div.append(...children); return div; };
+const defaultRowFactory = (...children) => { const div = document.createElement("div"); div.classList.add("dashboard__table--row"); div.setAttribute("role", "row"); div.append(...children); return div; };
+const defaultCellFactory = (textContent) => { const div = document.createElement("div"); div.classList.add("dashboard__table--cell"); div.setAttribute("role", "cell"); div.textContent = div.title = textContent ?? ""; return div; };
+
 
 class StatsRow {
 	// TODO: shape-morphism optimization? #value is always a number except for two stats where it's a string
@@ -14,16 +14,16 @@ class StatsRow {
 	#cell;
 	_row;
 
-	constructor(key, value) {
-		const kcell = makeCell(key);
+	constructor(key, value, rowFactory, cellFactory) {
+		const kcell = cellFactory(key);
 
-		const vcell = makeCell();
+		const vcell = cellFactory();
 		this.#cell = vcell;
 
 		this._key = key;
 		this._value = value;
 
-		this._row = makeRow(kcell, vcell);
+		this._row = rowFactory(kcell, vcell);
 	}
 
 	set _value(newValue) {
@@ -37,13 +37,21 @@ class StatsRow {
 
 
 class StatsBox {
-	#statsbody;
 	_stats = new Map(); // indices into rows
 	_rows = []; // array of StatsRow
 
-	constructor(tbody, values = {}) {
+	#statsbody;
+	#cellFactory = (textContent) => defaultCellFactory(textContent);
+	#rowFactory = (...children) => defaultRowFactory(...children);
+
+	constructor(tbody, options = {}) {
 		tbody.replaceChildren(); // clear existing table content
 		this.#statsbody = tbody;
+
+		const { values, rowFactory, cellFactory } = options;
+
+		this.#rowFactory = rowFactory ?? this.#rowFactory;
+		this.#cellFactory = cellFactory ?? this.#cellFactory;
 
 		for (const key in values) {
 			this.set(key, values[key]);
@@ -58,7 +66,7 @@ class StatsBox {
 		if (this.has(key)) {
 			this._rows[this._stats.get(key)]._value = value;
 		} else {
-			const stat = new StatsRow(key, value);
+			const stat = new StatsRow(key, value, this.#rowFactory, this.#cellFactory);
 			this._stats.set(key, this._rows.length);
 			this._rows.push(stat);
 			this.#statsbody.append(stat._row);

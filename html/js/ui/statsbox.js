@@ -3,7 +3,8 @@
 
 //import { makeCell } from "./utils.js";
 
-const makeCell = (textContent) => { const div = document.createElement("div"); div.classList.add("dashboard__table--cell"); div.setAttribute("role", "cell"); div.textContent = div.title = textContent; return div; };
+const makeCell = (textContent) => { const div = document.createElement("div"); div.classList.add("dashboard__table--cell"); div.setAttribute("role", "cell"); div.textContent = div.title = textContent ?? ""; return div; };
+const makeRow = (...children) => { const div = document.createElement("div"); div.classList.add("dashboard__table--row"); div.setAttribute("role", "row"); div.append(...children); return div; };
 
 class StatsRow {
 	// TODO: shape-morphism optimization? #value is always a number except for two stats where it's a string
@@ -16,16 +17,13 @@ class StatsRow {
 	constructor(key, value) {
 		const kcell = makeCell(key);
 
-		const vcell = makeCell(value);
+		const vcell = makeCell();
 		this.#cell = vcell;
-
-		const row = document.createElement("div");
-		row.classList.add("dashboard__table--row");
-		row.append(kcell, vcell);
-		this._row = row;
 
 		this._key = key;
 		this._value = value;
+
+		this._row = makeRow(kcell, vcell);
 	}
 
 	set _value(newValue) {
@@ -114,8 +112,6 @@ class SortedStatsBox extends StatsBox {
 			idxNew--;
 		}
 
-		const rowRef = this._rows[idxNew]._row; // DOM element at this position
-
 		// update indices
 		this._stats.set(key, idxNew);
 		for (let i = idxNew; i < idxOld; i++) {
@@ -123,12 +119,10 @@ class SortedStatsBox extends StatsBox {
 		}
 
 		// update rows
+		const rowRef = this._rows[idxNew]._row; // DOM element at this position
 		this._rows.copyWithin(idxNew+1, idxNew, idxOld); // shift array back by one
 		this._rows[idxNew] = stat; // re-insert element
-
-		if (rowRef.parentNode) {
-			rowRef.before(stat._row); // update the DOM last
-		}
+		rowRef.before(stat._row); // update the DOM last
 	}
 }
 

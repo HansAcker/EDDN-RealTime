@@ -3,7 +3,7 @@
 
 class StatsRow {
 	// TODO: shape-morphism optimization? #value is always a number except for two stats where it's a string
-	#value;
+	#value = 0;
 	_key;
 
 	#td;
@@ -36,7 +36,7 @@ class StatsRow {
 
 class StatsBox {
 	#statsbody;
-	_stats = {}; // indices into rows
+	_stats = new Map(); // indices into rows
 	_rows = []; // array of StatsRow
 
 	constructor(tbody, values = {}) {
@@ -49,23 +49,23 @@ class StatsBox {
 	}
 
 	has(key) {
-		return key in this._stats;
+		return this._stats.has(key);
 	}
 
 	set(key, value) {
 		if (this.has(key)) {
-			this._rows[this._stats[key]]._value = value;
+			this._rows[this._stats.get(key)]._value = value;
 		} else {
 			const stat = new StatsRow(key, value);
-			this.#statsbody.append(stat._tr);
-			this._stats[key] = this._rows.length;
+			this._stats.set(key,  this._rows.length);
 			this._rows.push(stat);
+			this.#statsbody.append(stat._tr);
 		}
 	}
 
 	inc(key) {
 		if (this.has(key)) {
-			this._rows[this._stats[key]]._value++;
+			this._rows[this._stats.get(key)]._value++;
 		} else {
 			this.set(key, 1);
 		}
@@ -89,32 +89,41 @@ class SortedStatsBox extends StatsBox {
 
 	// moves a single key upwards
 	_sort(key) {
-		const idxOld = this._stats[key];
+		const idxOld = this._stats.get(key);
 
-		// already at the top
-		if (idxOld <= 0) {
+		// not present or already at the top
+		if (idxOld === undefined || idxOld <= 0) {
 			return;
 		}
 
 		const stat = this._rows[idxOld];
 		const value = stat._value;
+		let idxNew = idxOld - 1;
 
 		// won't move
-		if (value <= this._rows[idxOld-1]._value) {
+		if (value <= this._rows[idxNew]._value) {
 			return;
 		}
 
 		// find new position in rows array
-		let idxNew = idxOld;
-		do {
-			this._stats[this._rows[idxNew-1]._key] = idxNew--; // update indices
-		} while (idxNew > 0 && value > this._rows[idxNew-1]._value);
+		while (idxNew > 0 && value > this._rows[idxNew-1]._value) {
+			idxNew --;
+		}
+
+		// update indices
+		for (let i = idxNew; i < idxOld; i++) {
+			this._stats.set(this._rows[i]._key, i+1);
+		}
+
+		this._stats.set(key, idxNew);
+
+		const rowRef = this._rows[idxNew]._tr; // DOM element
 
 		// update rows
-		this._rows[idxNew]._tr.before(stat._tr); // move table row
 		this._rows.copyWithin(idxNew+1, idxNew, idxOld); // shift array back by one
 		this._rows[idxNew] = stat; // re-insert element
-		this._stats[key] = idxNew; // update index
+
+		rowRef.before(stat._tr); // update the DOM last
 	}
 }
 

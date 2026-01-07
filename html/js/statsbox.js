@@ -110,8 +110,6 @@ class SortedStatsBox extends StatsBox {
 			idxNew--;
 		}
 
-		const rowRef = this._rows[idxNew]._row; // DOM element at this position
-
 		// update indices
 		this._stats.set(key, idxNew);
 		for (let i = idxNew; i < idxOld; i++) {
@@ -119,9 +117,9 @@ class SortedStatsBox extends StatsBox {
 		}
 
 		// update rows
+		const rowRef = this._rows[idxNew]._row; // DOM element at this position
 		this._rows.copyWithin(idxNew+1, idxNew, idxOld); // shift array back by one
 		this._rows[idxNew] = stat; // re-insert element
-
 		rowRef.before(stat._row); // update the DOM last
 	}
 }

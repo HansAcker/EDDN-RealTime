@@ -107,7 +107,7 @@ class SortedStatsBox extends StatsBox {
 
 		// find new position in rows array
 		while (idxNew > 0 && value > this._rows[idxNew-1]._value) {
-			idxNew --;
+			idxNew--;
 		}
 
 		// update indices
@@ -117,12 +117,10 @@ class SortedStatsBox extends StatsBox {
 
 		this._stats.set(key, idxNew);
 
-		const rowRef = this._rows[idxNew]._tr; // DOM element
-
 		// update rows
+		const rowRef = this._rows[idxNew]._tr; // DOM element
 		this._rows.copyWithin(idxNew+1, idxNew, idxOld); // shift array back by one
 		this._rows[idxNew] = stat; // re-insert element
-
 		rowRef.before(stat._tr); // update the DOM last
 	}
 }

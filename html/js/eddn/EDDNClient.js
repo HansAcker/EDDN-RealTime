@@ -18,7 +18,7 @@ export class EDDNClient extends EventTarget {
 	url = "ws://127.0.0.1:8081";
 
 	resetTimeout = 0; // idle timeout (ms) before watchdog reconnects the socket, 0 to disable watchdog
-	protocol = ["v2.ws.eddn-realtime.space", "v1.ws.eddn-realtime.space"]; // currently unused
+	protocol = []; // ["v2.ws.eddn-realtime.space", "v1.ws.eddn-realtime.space"]; // currently unused
 
 
 	constructor(options = {}) {

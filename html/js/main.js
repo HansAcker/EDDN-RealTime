@@ -1,10 +1,9 @@
 import { ReconnectingWebSocket } from "ReconnectingWebSocket";
 
+import { EDDNClient } from "eddn/EDDNClient.js";
+
 import { PageIconActivity } from "ui/activity_icon.js";
 import { InfoBox } from "ui/infobox.js";
-
-import { EDDNClient } from "EDDNClient";
-import { EDDNEvent } from "EDDNEvent";
 
 import FSDJumpModule from "modules/FSDJumpModule.js";
 import NavRouteModule from "modules/NavRouteModule.js";

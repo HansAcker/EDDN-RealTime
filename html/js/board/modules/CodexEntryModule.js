@@ -1,5 +1,5 @@
 import DashboardModule from "DashboardModule";
-import GalacticRegions from "GalacticRegions.json" with { type: "json" };
+import GalacticRegions from "ed/GalacticRegions.json" with { type: "json" };
 
 
 const trimPrefix = (str, prefix) => (str.startsWith(prefix) ? str.slice(prefix.length) : str).trim();

@@ -13,6 +13,7 @@ import CodexEntryModule from "modules/CodexEntryModule.js";
 import UpdatesModule from "modules/UpdatesModule.js";
 import ApproachModule from "modules/ApproachModule.js";
 import EventStatsModule from "modules/EventStatsModule.js";
+import EventLogModule from "modules/EventLogModule.js";
 
 
 // Data window
@@ -68,6 +69,8 @@ const modules =
 	"Codex": new CodexEntryModule(client, window.board.querySelector(".dashboard__module--codex .dashboard__table--tbody"), infobox),
 	"Updates": new UpdatesModule(client, window.board.querySelector(".dashboard__module--updates .dashboard__table--tbody"), infobox),
 	"Approach": new ApproachModule(client, window.board.querySelector(".dashboard__module--asett .dashboard__table--tbody"), infobox),
+
+	"EventLog": new EventLogModule(client, window.board.querySelector(".dashboard__module--log .dashboard__table--tbody"), infobox, { listLength: 30 }),
 
 	// no infobox
 	"EventStats": new EventStatsModule(client, window.board.querySelector(".dashboard__module--events .dashboard__table--tbody")),

@@ -47,9 +47,10 @@ body {
 	border: 1px solid #f94;
 
 	/* experimental */
+	contain: content; /* each table is an isolated block */
 	content-visibility: auto; /* the page is probably too short for this to have an effect */
 	contain-intrinsic-size: auto;
-	will-change: transform; /* quirk to force compositing, repaint tables individually */
+	/* will-change: transform; */ /* quirk to force compositing, repaint tables individually */
 }
 
 /* Sizing modifiers */
@@ -66,7 +67,7 @@ body {
 }
 
 .dashboard__module--log {
-	flex: 0 1 calc(var(--baseWidth) * 4);
+	flex: 0 1 100%;
 }
 
 .dashboard__table--caption {

@@ -1,13 +1,22 @@
+
 export class DashboardModule {
+	#renderQueue = []; // array of elements to add in next paint cycle
+	#renderScheduled = false;
+
 	_container;
 	_infobox;
 
-	#renderQueue = [];
-	#renderScheduled = false;
-
 	listLength = 20;
+	cullFactor = 2; // cut back #renderQueue if > listLength * cullFactor // TODO: rename
 
-	constructor(router, topics = [], container, infobox, options = {}) {
+
+	// TODO: - container, infobox into options
+	//       - allow empty topics for wildcard?
+	constructor(router, topics, container, infobox, options = {}) {
+		if (router === undefined || topics === undefined) {
+			throw new Error("DashboardModule: missing required arguments");
+		}
+
 		// TODO: deconstruct specific options
 		Object.assign(this, options);
 
@@ -17,15 +26,18 @@ export class DashboardModule {
 		router.register((event) => this._handleEvent(event), topics);
 	}
 
+
 	_setupContainer(container) {
 		// base class
 		return container;
 	}
 
+
 	_handleEvent(event) {
 		// base class
 		console.log(event.type, event.eventType, event.timestamp);
 	}
+
 
 	makeCell(textContent, elementType = "div") {
 		const element = document.createElement(elementType);
@@ -35,13 +47,11 @@ export class DashboardModule {
 		return element;
 	}
 
+
 	makeRow(event, elementType = "div") {
 		const element = document.createElement(elementType);
-		element.classList.add("dashboard__table--row");
 		element.setAttribute("role", "row");
-		element.classList.add("data");
-
-        element.classList.add(event.gameType);
+		element.classList.add("dashboard__table--row", "data", event.gameType);
 
 		if (event.isTaxi) {
 			element.classList.add("taxi");
@@ -63,20 +73,28 @@ export class DashboardModule {
 		return element;
 	}
 
+
 	addRow(row) {
 		this.#renderQueue.push(row);
 
+/*
 		// drop overflowing elements, the page is likely inactive
 		while (this.#renderQueue.length > this.listLength) {
 			this.#renderQueue.shift();
 		}
+*/
+		// drop overflowing elements eventually, the page is likely inactive
+		if (this.#renderQueue.length > this.listLength * this.cullFactor) {
+			this.#renderQueue = this.#renderQueue.slice(-this.listLength);
+		}
 
 		// only update the DOM when the page is on display and ready to paint
-		if (!this.#renderScheduled) {
+		if (!this.#renderScheduled && this.#renderQueue.length) {
 			this.#renderScheduled = true;
 			requestAnimationFrame(() => this.#render());
 		}
 	}
+
 
 	#render() {
 		this.#renderScheduled = false;
@@ -89,7 +107,8 @@ export class DashboardModule {
 		}
 
 		if (queueLength > this.listLength) {
-			console.warn("DashboardModule: render queue overflow");
+			// lazy culling could lead here now
+			//console.warn(`DashboardModule: render queue overflow: ${queueLength} > ${this.listLength}`);
 
 			this.#renderQueue = this.#renderQueue.slice(-this.listLength);
 			queueLength = this.listLength;

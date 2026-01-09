@@ -77,12 +77,6 @@ export class DashboardModule {
 	addRow(row) {
 		this.#renderQueue.push(row);
 
-/*
-		// drop overflowing elements, the page is likely inactive
-		while (this.#renderQueue.length > this.listLength) {
-			this.#renderQueue.shift();
-		}
-*/
 		// drop overflowing elements eventually, the page is likely inactive
 		if (this.#renderQueue.length > this.listLength * this.cullFactor) {
 			this.#renderQueue = this.#renderQueue.slice(-this.listLength);
@@ -107,9 +101,6 @@ export class DashboardModule {
 		}
 
 		if (queueLength > this.listLength) {
-			// lazy culling could lead here now
-			//console.warn(`DashboardModule: render queue overflow: ${queueLength} > ${this.listLength}`);
-
 			this.#renderQueue = this.#renderQueue.slice(-this.listLength);
 			queueLength = this.listLength;
 		}

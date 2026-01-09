@@ -2,8 +2,8 @@ import DashboardModule from "DashboardModule";
 
 
 export class LocationModule extends DashboardModule {
-	constructor(eddnClient, container, infobox) {
-		super(eddnClient, ["journal:location", "journal:docked"], container, infobox);
+	constructor(router, container, infobox) {
+		super(router, ["journal:location", "journal:docked"], container, infobox);
 	}
 
 	_handleEvent(event) {

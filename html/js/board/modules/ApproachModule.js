@@ -2,8 +2,8 @@ import DashboardModule from "DashboardModule";
 
 
 export class ApproachModule extends DashboardModule {
-	constructor(eddnClient, container, infobox) {
-		super(eddnClient, ["approachsettlement"], container, infobox);
+	constructor(router, container, infobox) {
+		super(router, ["approachsettlement"], container, infobox);
 	}
 
 	_handleEvent(event) {

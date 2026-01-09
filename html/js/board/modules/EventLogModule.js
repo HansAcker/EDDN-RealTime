@@ -36,8 +36,8 @@ function formatRelativeTime(diffMs, rtf) {
 export class EventLogModule extends DashboardModule {
 	#timeFormat = new Intl.RelativeTimeFormat('en', { numeric: 'auto', style: "narrow" });
 
-	constructor(eddnClient, container, infobox, options) {
-		super(eddnClient, ["*"], container, infobox, options);
+	constructor(router, container, infobox, options) {
+		super(router, ["*"], container, infobox, options);
 	}
 
 	_handleEvent(event) {

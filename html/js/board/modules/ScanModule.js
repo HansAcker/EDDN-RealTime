@@ -2,8 +2,8 @@ import DashboardModule from "DashboardModule";
 
 
 export class ScanModule extends DashboardModule {
-	constructor(eddnClient, container, infobox) {
-		super(eddnClient, ["journal:scan"], container, infobox);
+	constructor(router, container, infobox) {
+		super(router, ["journal:scan"], container, infobox);
 	}
 
 	_handleEvent(event) {

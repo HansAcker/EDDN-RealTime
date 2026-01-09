@@ -2,8 +2,8 @@ import { DashboardModule} from "DashboardModule";
 
 
 export class FSDJumpModule extends DashboardModule {
-	constructor(eddnClient, container, infobox) {
-		super(eddnClient, ["journal:fsdjump"], container, infobox);
+	constructor(router, container, infobox) {
+		super(router, ["journal:fsdjump"], container, infobox);
 	}
 
 	_handleEvent(event) {

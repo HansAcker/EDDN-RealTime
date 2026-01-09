@@ -1,29 +1,18 @@
 export class DashboardModule {
-	#topics; // Set of subscribed topics
-
 	_container;
 	_infobox;
 
 	listLength = 20;
 
-	constructor(eddnClient, topics = [], container, infobox, options = {}) {
+	constructor(router, topics = [], container, infobox, options = {}) {
 		// TODO: deconstruct specific options
 		Object.assign(this, options);
 
-		this._eddnClient = eddnClient;
 		this._container = this._setupContainer(container);
 		this._infobox = infobox;
 
-		this.#topics = new Set(topics);
-
-		this._eddnClient.addEventListener("eddn:message", (event) => this.#routeEvent(event));
-	}
-
-	#routeEvent(event) {
-		// TODO: move to a mediator that only executes the subscribed modules
-		if (this.#topics.has(event.eventType) || this.#topics.has("*")) {
-			this._handleEvent(event);
-		}
+		this._router = router;
+		router.register((event) => this._handleEvent(event), topics);
 	}
 
 	_setupContainer(container) {

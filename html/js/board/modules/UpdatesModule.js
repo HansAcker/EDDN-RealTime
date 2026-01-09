@@ -2,8 +2,8 @@ import DashboardModule from "DashboardModule";
 
 
 export class UpdatesModule extends DashboardModule {
-	constructor(eddnClient, container, infobox) {
-		super(eddnClient, ["commodity", "outfitting", "shipyard"], container, infobox);
+	constructor(router, container, infobox) {
+		super(router, ["commodity", "outfitting", "shipyard"], container, infobox);
 	}
 
 	_handleEvent(event) {

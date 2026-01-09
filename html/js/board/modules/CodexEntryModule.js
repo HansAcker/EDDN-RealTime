@@ -5,8 +5,8 @@ import GalacticRegions from "ed/GalacticRegions.json" with { type: "json" };
 const trimPrefix = (str, prefix) => (str.startsWith(prefix) ? str.slice(prefix.length) : str).trim();
 
 export class CodexEntryModule extends DashboardModule {
-	constructor(eddnClient, container, infobox) {
-		super(eddnClient, ["codexentry"], container, infobox);
+	constructor(router, container, infobox) {
+		super(router, ["codexentry"], container, infobox);
 	}
 
 	_handleEvent(event) {

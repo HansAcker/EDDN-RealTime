@@ -2,8 +2,8 @@ import DashboardModule from "DashboardModule";
 
 
 export class GalaxyMapModule extends DashboardModule {
-	constructor(eddnClient, container, infobox) {
-		super(eddnClient, ["journal:fsdjump", "journal:location", "navroute", "navbeaconscan"], container, infobox);
+	constructor(router, container, infobox) {
+		super(router, ["journal:fsdjump", "journal:location", "navroute", "navbeaconscan"], container, infobox);
 		this.systems = new Map(); // Store visited systems
 	}
 

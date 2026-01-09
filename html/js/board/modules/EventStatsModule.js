@@ -5,8 +5,8 @@ import { SortedStatsBox } from "ui/statsbox.js";
 export class EventStatsModule extends DashboardModule {
 	#statsBox;
 
-	constructor(eddnClient, container, infobox) {
-		super(eddnClient, ["*"], container, infobox);
+	constructor(router, container, infobox) {
+		super(router, ["*"], container, infobox);
 		this.#statsBox = new SortedStatsBox(container);
 	}
 

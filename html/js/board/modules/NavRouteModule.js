@@ -5,8 +5,8 @@ import DashboardModule from "DashboardModule";
 const distance3 = (v0, v1) => Math.hypot(v0[0] - v1[0], v0[1] - v1[1], v0[2] - v1[2]); // subtract vectors, return length
 
 export class NavRouteModule extends DashboardModule {
-	constructor(eddnClient, container, infobox) {
-		super(eddnClient, ["navroute"], container, infobox);
+	constructor(router, container, infobox) {
+		super(router, ["navroute"], container, infobox);
 	}
 
 	_handleEvent(event) {

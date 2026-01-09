@@ -2,9 +2,9 @@ import DashboardModule from "DashboardModule";
 
 
 export class DebugLoggerModule extends DashboardModule {
-	constructor(eddnClient) {
+	constructor(router) {
 		// Subscribe to the generic event to catch everything
-		super(eddnClient, ["*"]);
+		super(router, ["*"]);
 	}
 
 	_handleEvent(event) {

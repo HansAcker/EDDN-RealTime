@@ -11,7 +11,6 @@ export class DashboardModule {
 		this._container = this._setupContainer(container);
 		this._infobox = infobox;
 
-		this._router = router;
 		router.register((event) => this._handleEvent(event), topics);
 	}
 

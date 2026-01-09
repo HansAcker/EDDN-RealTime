@@ -82,7 +82,7 @@ export class RegionMap {
 
 		// array data is [Length, ID, Length, ID...]
 		let currentX = 0;
-		for (let i = start; i < end; i += 2) {
+		for (let i = start; i < end-1; i += 2) {
 
 			// find the length/region tuple that contains px
 			const runLength = rleData[i];

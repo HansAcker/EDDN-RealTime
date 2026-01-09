@@ -3,8 +3,12 @@ export class MessageRouter {
 	#topics = new Map();
 	#wildcards = new Set();
 
-	constructor(source) {
-		source.addEventListener("eddn:message", (event) => this.#dispatch(event));
+	constructor(source, options = {}) {
+		// optional external abort signal
+		const { signal } = options;
+
+		// subscribe to all messages
+		source.addEventListener("eddn:message", (event) => this.#dispatch(event), { signal });
 	}
 
 	register(callback, topics) {
@@ -13,8 +17,13 @@ export class MessageRouter {
 			return;
 		}
 
-		if (!Array.isArray(topics)) {
-			console.warn("topics must be an array");
+		// support passing a single string
+		if (typeof topics === "string") {
+			topics = [topics];
+		}
+
+		if (typeof topics[Symbol.iterator] !== "function") {
+			console.warn("topics must be iterable");
 			return;
 		}
 
@@ -24,11 +33,14 @@ export class MessageRouter {
 				continue;
 			}
 
-			if (!this.#topics.has(topic)) {
-				this.#topics.set(topic, new Set());
+			let tgroup = this.#topics.get(topic);
+
+			if (!tgroup) {
+				tgroup = new Set();
+				this.#topics.set(topic, tgroup);
 			}
 
-			this.#topics.get(topic).add(callback);
+			tgroup.add(callback);
 		}
 	}
 
@@ -38,8 +50,13 @@ export class MessageRouter {
 			return;
 		}
 
-		if (!Array.isArray(topics)) {
-			console.warn("topics must be an array");
+		// support passing a single string
+		if (typeof topics === "string") {
+			topics = [topics];
+		}
+
+		if (typeof topics[Symbol.iterator] !== "function") {
+			console.warn("topics must be iterable");
 			return;
 		}
 
@@ -59,16 +76,38 @@ export class MessageRouter {
 		}
 	}
 
+	unregisterAll(callback) {
+		this.#wildcards.delete(callback);
+
+		for (const [topic, tgroup] of this.#topics) {
+			tgroup.delete(callback);
+			if (tgroup.size === 0) {
+				this.#topics.delete(topic);
+			}
+		}
+	}
+
 	#dispatch(event) {
-		for (const callback of this.#wildcards) {
-			callback(event);
-		}		
+		if (this.#wildcards.size > 0) {
+			for (const callback of this.#wildcards) {
+				invoke(callback, event);
+			}
+		}
 
 		const tgroup = this.#topics.get(event.eventType);
 		if (tgroup) {
 			for (const callback of tgroup) {
-				callback(event);
+				invoke(callback, event);
 			}
 		}
+	}
+}
+
+
+function invoke(cb, event) {
+	try {
+		cb(event);
+	} catch (err) {
+		console.error("Error in message handler:", err);
 	}
 }

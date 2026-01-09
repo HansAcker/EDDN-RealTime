@@ -6,6 +6,9 @@ export class DashboardModule {
 	_container;
 	_infobox;
 
+	_rowTemplate; // DOM elements to be cloned by makeCell()/makeRow()
+	_cellTemplate;
+
 	listLength = 20;
 	cullFactor = 2; // cut back #renderQueue if > listLength * cullFactor // TODO: rename
 
@@ -21,6 +24,8 @@ export class DashboardModule {
 		Object.assign(this, options);
 
 		this._container = this._setupContainer(container);
+		this._setupTemplates();
+
 		this._infobox = infobox;
 
 		router.register((event) => this._handleEvent(event), topics);
@@ -32,6 +37,18 @@ export class DashboardModule {
 		return container;
 	}
 
+	_setupTemplates() {
+		// row Template
+		this._rowTemplate = document.createElement("div");
+		this._rowTemplate.classList.add("dashboard__table--row", "data");
+		this._rowTemplate.setAttribute("role", "row");
+
+		// cell Template
+		this._cellTemplate = document.createElement("div");
+		this._cellTemplate.classList.add("dashboard__table--cell");
+		this._cellTemplate.setAttribute("role", "cell");
+	}
+
 
 	_handleEvent(event) {
 		// base class
@@ -39,19 +56,16 @@ export class DashboardModule {
 	}
 
 
-	makeCell(textContent, elementType = "div") {
-		const element = document.createElement(elementType);
-		element.classList.add("dashboard__table--cell");
-		element.setAttribute("role", "cell");
+	makeCell(textContent) {
+		const element = this._cellTemplate.cloneNode(false);
 		element.textContent = element.title = textContent;
 		return element;
 	}
 
 
-	makeRow(event, elementType = "div") {
-		const element = document.createElement(elementType);
-		element.setAttribute("role", "row");
-		element.classList.add("dashboard__table--row", "data", event.gameType);
+	makeRow(event) {
+		const element = this._rowTemplate.cloneNode(false);
+		element.classList.add(event.gameType);
 
 		if (event.isTaxi) {
 			element.classList.add("taxi");
@@ -137,12 +151,16 @@ export class DataTableModule extends DashboardModule {
 		return table;
 	}
 
-	makeCell(textContent, elementType = "td") {
-		return super.makeCell(textContent, elementType);
-	}
+	_setupTemplates() {
+		// row Template
+		this._rowTemplate = document.createElement("tr");
+		this._rowTemplate.classList.add("dashboard__table--row", "data");
+		this._rowTemplate.setAttribute("role", "row");
 
-	makeRow(event, elementType = "tr") {
-		return super.makeRow(event, elementType);
+		// cell Template
+		this._cellTemplate = document.createElement("td");
+		this._cellTemplate.classList.add("dashboard__table--cell");
+		this._cellTemplate.setAttribute("role", "cell");
 	}
 }
 

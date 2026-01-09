@@ -1,18 +1,16 @@
 import { EDDNEvent } from "eddn/EDDNEvent.js";
 
 
-// TODO: current use-case never calls .close(), untested
-
-
 export class EDDNClient extends EventTarget {
 	#WebSocketClass; // the WebSocket class prototype used to create a new connection, defaults to WebSocket
+
 	#abortController = null; // event handler decoupler
+	#textDecoder = null; // decodes bytes to string (binary frames)
 	#socket = null;
 
-	#lastEvent; // timestamp of last valid message from socket
+	#lastEvent = null; // timestamp of last valid message from socket
 	#watchdogTimer = null;
 
-	#textDecoder = new TextDecoder("utf-8"); // decodes JSON bytes to string
 	#filterFunction = () => true; // accept all messages
 
 	url = "ws://127.0.0.1:8081";
@@ -26,10 +24,9 @@ export class EDDNClient extends EventTarget {
 
 		const { url, resetTimeout, filter, WebSocketClass, signal } = options;
 
-		// TODO: use URL() to validate?
+		// TODO: use URL() to validate / check for "^wss?://"?
 		this.url = url ?? this.url;
 
-		// TODO: verify interface, .prototype instanceof EventTarget && typeof .OPEN === "number"?
 		this.#WebSocketClass = WebSocketClass ?? WebSocket;
 
 		if (resetTimeout) {
@@ -76,23 +73,18 @@ export class EDDNClient extends EventTarget {
 	close() {
 		console.debug("EDDNClient: closing");
 
- 		// cleanup any old watchdog and socket
-		// TODO: handle async close / reconnect properly
-		//       - ideally the socket's `close` event would be allowed to trigger and forward
-		//       - on reconnect, a `close` of the old socket should not be sent on after an `open` from the new one
-
-		clearTimeout(this.#watchdogTimer);
-		this.#watchdogTimer = null;
-		this.#lastEvent = null;
+		// cleanup any old watchdog
+		this.#stopWatchdog();
 
 		// cleanup listeners immediately
 		this.#abortController?.abort();
 		this.#abortController = null;
 
+		// discard WebSocket instance
 		this.#socket?.close();
 		this.#socket = null;
 
-		// inform the client
+		// inform event listeners now because there won't be a `close` from the socket later
 		this.dispatchEvent(new CloseEvent("close", {
 			code: 1000,
 			reason: "EDDNClient.close() called",
@@ -111,14 +103,14 @@ export class EDDNClient extends EventTarget {
 		let payload;
 
 		try {
-			// ArrayBuffer binary frames
-			if (rawData instanceof ArrayBuffer) {
-				payload = JSON.parse(this.#textDecoder.decode(rawData));
+			// Text frames
+			if (typeof rawData === "string") {
+				payload = JSON.parse(rawData);
 			}
 
-			// Text frames
-			else if (typeof rawData === "string") {
-				payload = JSON.parse(rawData);
+			// ArrayBuffer binary frames
+			else if (rawData instanceof ArrayBuffer) {
+				payload = JSON.parse((this.#textDecoder ?? (this.#textDecoder = new TextDecoder("utf-8"))).decode(rawData));
 			}
 
 			else {
@@ -172,18 +164,12 @@ export class EDDNClient extends EventTarget {
 
 		console.log(`EDDNClient: WebSocket connected${this.#socket.protocol ? ` with protocol '${this.#socket.protocol}'` : ""}`);
 
-		// clear any previous timer
-		clearTimeout(this.#watchdogTimer);
-		this.#watchdogTimer = null;
+		// reset watchdog
+		this.#stopWatchdog();
+		this.#watchdog();
 
 		this.#lastEvent = Date.now();
 
-		// start watchdog timer
-		if (this.resetTimeout > 0) {
-			this.#watchdog();
-		}
-
-		// Dispatch a new Event so `target` refers to this class instance, not the internal WebSocket
 		this.dispatchEvent(new Event("open"));
 	}
 
@@ -197,10 +183,7 @@ export class EDDNClient extends EventTarget {
 		console.log("EDDNClient: WebSocket closed");
 
 		// stop watchdog
-		clearTimeout(this.#watchdogTimer);
-		this.#watchdogTimer = null;
-
-		this.#lastEvent = null;
+		this.#stopWatchdog();
 
 		// TODO: a standard WebSocket is "dead" after CLOSED while ReconnectingWebSocket potentially continues
 		//       - ReconnectingWebSocket would need to pass `wasForced` or similar?
@@ -211,7 +194,6 @@ export class EDDNClient extends EventTarget {
 			this.#socket = null;
 		}
 
-		// Create a new CloseEvent to forward specific close codes/reasons to the UI
 		this.dispatchEvent(new CloseEvent("close", {
 			code: originalEvent.code,
 			reason: originalEvent.reason,
@@ -226,7 +208,7 @@ export class EDDNClient extends EventTarget {
 			return;
 		}
 
-		console.error("EDDNClient: WebSocket Error received");
+		console.warn("EDDNClient: WebSocket error received");
 		this.dispatchEvent(new Event("error"));
 	}
 
@@ -260,5 +242,12 @@ export class EDDNClient extends EventTarget {
 		// console.debug(`watchdog: Sleeping for ${nextWake}ms`);
 
 		this.#watchdogTimer = setTimeout(() => this.#watchdog(), nextWake);
+	}
+
+
+	#stopWatchdog() {
+		clearTimeout(this.#watchdogTimer);
+		this.#watchdogTimer = null;
+		this.#lastEvent = null;
 	}
 }

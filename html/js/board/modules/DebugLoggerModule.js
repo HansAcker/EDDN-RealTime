@@ -11,7 +11,7 @@ export class DebugLoggerModule extends DashboardModule {
 		// e.type will be 'eddn:message', so we look at the event's internal data
 		const software = event.header.softwareName;
 		const timestamp = event.timestamp.toLocaleTimeString();
-		const schema = event.schemaRef.replace(/.*\/([^\/]*\/[^\/]*)$/, "$1");
+		const schema = event.schemaRef.replace(/.*\/([^/]*\/[^/]*)$/, "$1");
 		const jevent = event.message.event ?? "";
 
 		// Extensible: We can process data regardless of schema

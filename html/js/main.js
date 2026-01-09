@@ -29,7 +29,7 @@ window.board.addEventListener("click", (ev) => {
 
 
 // The EDDN event bus
-const client = new EDDNClient({
+const eddn = new EDDNClient({
 	url: "wss://ws.eddn-realtime.space/eddn",
 
 	// reset websocket connection after 5min without messages
@@ -48,22 +48,25 @@ const client = new EDDNClient({
 */
 });
 
-const router = new MessageRouter(client);
-
-client.connect();
-
 
 // Reflect websocket activity in page icon
 const activity = new PageIconActivity(window.icon, 2300);
-client.addEventListener("open", () => activity.idle());
-client.addEventListener("close", () => activity.off());
-client.addEventListener("error", () => activity.error());
-client.addEventListener("eddn:message", () => activity.ok()); // all valid messages passing the filter
-client.addEventListener("eddn:error", () => activity.error()); // parse errors
+eddn.addEventListener("open", () => activity.idle());
+eddn.addEventListener("close", () => activity.off());
+eddn.addEventListener("error", () => activity.error());
+eddn.addEventListener("eddn:message", () => activity.ok()); // all valid messages passing the filter
+eddn.addEventListener("eddn:error", () => activity.error()); // parse errors
+
+
+eddn.connect();
+
+
 
 
 // Initialize Modules
 // They attach their own listeners
+
+const router = new MessageRouter(eddn);
 const modules = 
 {
 	"Jump": new FSDJumpModule(router, window.board.querySelector(".dashboard__module--jumps .dashboard__table--tbody"), infobox),

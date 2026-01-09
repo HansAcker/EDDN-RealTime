@@ -66,52 +66,53 @@ export class DashboardModule {
 	addRow(row) {
 		this.#renderQueue.push(row);
 
-		if (this.#renderQueue.length > this.listLength) {
+		// drop overflowing elements, the page is likely inactive
+		while (this.#renderQueue.length > this.listLength) {
 			this.#renderQueue.shift();
 		}
 
-		this.#scheduleRender();
-	}
-
-	#scheduleRender() {
-		if (this.#renderScheduled) return;
-		this.#renderScheduled = true;
-
-		// Wait for the next browser repaint
-		requestAnimationFrame(() => this.#render());
+		// only update the DOM when the page is on display and ready to paint
+		if (!this.#renderScheduled) {
+			this.#renderScheduled = true;
+			requestAnimationFrame(() => this.#render());
+		}
 	}
 
 	#render() {
-		const queueLength = this.#renderQueue.length;
+		this.#renderScheduled = false;
+
+		let queueLength = this.#renderQueue.length;
 
 		if (queueLength === 0) {
-			this.#renderScheduled = false;
+			console.warn("DashboardModule: render scheduled on empty queue");
 			return;
 		}
 
 		if (queueLength > this.listLength) {
 			console.warn("DashboardModule: render queue overflow");
+
 			this.#renderQueue = this.#renderQueue.slice(-this.listLength);
+			queueLength = this.listLength;
 		}
 
-		const listCount = this._container.childElementCount;
-		const dropCount = (listCount + queueLength) - this.listLength;
+		// read current element count
+		const dropCount = (this._container.childElementCount + queueLength) - this.listLength;
 
+		// batch updates into one DocumentFragment
 		const fragment = document.createDocumentFragment();
-
-		while (this.#renderQueue.length > 0) {
+		for (let i = 0; i < queueLength; i++) {
 			fragment.prepend(this.#renderQueue.shift());
 		}
 
+		// remove tail
 		if (dropCount > 0) {
 			for (let i = 0; i < dropCount; i++) {
 				this._container.lastElementChild?.remove();
 			}
 		}
 
+		// insert new rows
 		this._container.prepend(fragment);
-
-		this.#renderScheduled = false;
 	}
 }
 

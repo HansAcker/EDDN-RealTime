@@ -2,6 +2,9 @@ export class DashboardModule {
 	_container;
 	_infobox;
 
+	#renderQueue = [];
+	#renderScheduled = false;
+
 	listLength = 20;
 
 	constructor(router, topics = [], container, infobox, options = {}) {
@@ -61,11 +64,54 @@ export class DashboardModule {
 	}
 
 	addRow(row) {
-		while (this._container.childElementCount >= this.listLength) {
-			this._container.lastElementChild.remove();
+		this.#renderQueue.push(row);
+
+		if (this.#renderQueue.length > this.listLength) {
+			this.#renderQueue.shift();
 		}
 
-		this._container.prepend(row);
+		this.#scheduleRender();
+	}
+
+	#scheduleRender() {
+		if (this.#renderScheduled) return;
+		this.#renderScheduled = true;
+
+		// Wait for the next browser repaint
+		requestAnimationFrame(() => this.#render());
+	}
+
+	#render() {
+		const queueLength = this.#renderQueue.length;
+
+		if (queueLength === 0) {
+			this.#renderScheduled = false;
+			return;
+		}
+
+		if (queueLength > this.listLength) {
+			console.warn("DashboardModule: render queue overflow");
+			this.#renderQueue = this.#renderQueue.slice(-this.listLength);
+		}
+
+		const listCount = this._container.childElementCount;
+		const dropCount = (listCount + queueLength) - this.listLength;
+
+		const fragment = document.createDocumentFragment();
+
+		while (this.#renderQueue.length > 0) {
+			fragment.prepend(this.#renderQueue.shift());
+		}
+
+		if (dropCount > 0) {
+			for (let i = 0; i < dropCount; i++) {
+				this._container.lastElementChild?.remove();
+			}
+		}
+
+		this._container.prepend(fragment);
+
+		this.#renderScheduled = false;
 	}
 }
 

@@ -1,4 +1,4 @@
-import { EDDNEvent } from "EDDNEvent";
+import { EDDNEvent } from "eddn/EDDNEvent.js";
 
 
 // TODO: current use-case never calls .close(), untested

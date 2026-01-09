@@ -1,4 +1,4 @@
-import { ReconnectingWebSocket } from "ReconnectingWebSocket";
+import { ReconnectingWebSocket } from "ws/ReconnectingWebSocket.js";
 
 import { EDDNClient } from "eddn/EDDNClient.js";
 import { MessageRouter } from "eddn/MessageRouter.js";

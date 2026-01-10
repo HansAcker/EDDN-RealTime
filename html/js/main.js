@@ -1,3 +1,4 @@
+
 import { ReconnectingWebSocket } from "ws/ReconnectingWebSocket.js";
 
 import { EDDNClient } from "eddn/EDDNClient.js";
@@ -46,12 +47,15 @@ const eddn = new EDDNClient({
 	// pass only a subset of messages to display modules
 	filter: (event) => (
 //		(event.age < 0) || (event.isMulticrew) ||
+//		(!event.StarSystem) || (!event.StarPos) ||
 //		(event.StarSystem.startsWith("HIP ")) ||
-		(event.message?.Route?.some((wp) => wp?.StarSystem?.startsWith("HIP "))) ||
+//		(event.message?.Route?.some((wp) => wp?.StarSystem?.startsWith("HIP "))) ||
 //		(event.StarPos && RegionMap.findRegion(...event.StarPos).id === 0) ||
 //		(!event.StarPos || RegionMap.findRegion(...event.StarPos).id === 0) ||
-		(event.StarPos && RegionMap.isReady && RegionMap.findRegion(...event.StarPos).name !== "Inner Orion Spur") ||
+		(event.StarPos && RegionMap.isReady && RegionMap.findRegion(...event.StarPos).id !== 18) ||
+//		(event.StarPos && RegionMap.isReady && RegionMap.findRegion(...event.StarPos).name !== "Inner Orion Spur") ||
 //		(event.StarPos && ["Perseus Arm", "The Abyss", "Elysian Shore"].includes(RegionMap.findRegion(...event.StarPos).name)) ||
+//		(true)
 		(false)
 	),
 });

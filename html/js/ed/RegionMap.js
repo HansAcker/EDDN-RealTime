@@ -26,7 +26,7 @@ const readyPromise = (async function loadData() {
 		const isLittleEndian = new Uint8Array(new Uint32Array([0x12345678]).buffer)[0] === 0x78;
 		const MAP_URL = `/js/ed/RegionMapData${isLittleEndian ? "" : "_BE"}.bin`;
 
-		console.debug("RegionMapData loading...");
+		console.debug("RegionMap: loading data...");
 		const response = await fetch(MAP_URL);
 		if (!response.ok) {
 			throw new Error(`Failed to load map data: ${response.statusText}`);
@@ -46,9 +46,9 @@ const readyPromise = (async function loadData() {
 		}
 
 		isReady = true;
-		console.debug("RegionMapData loaded");
+		console.debug("RegionMap: data loaded");
 	} catch (err) {
-		console.error("RegionMap initialization failed:", err);
+		console.error("RegionMap: initialization failed:", err);
 		// initialize empty buffers
 		rowIndex = new Uint32Array(MAP_SIZE + 1);
 		rleData = new Uint16Array(0);

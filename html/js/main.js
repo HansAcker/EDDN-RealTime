@@ -19,6 +19,9 @@ import EventStatsModule from "modules/EventStatsModule.js";
 import EventLogModule from "modules/EventLogModule.js";
 
 
+console.debug("Main start");
+
+
 // Data window
 const infobox = new InfoBox(document.body, window.infotemplate);
 window.board.addEventListener("click", (ev) => {
@@ -47,11 +50,13 @@ const eddn = new EDDNClient({
 		(event.message?.Route?.some((wp) => wp?.StarSystem?.startsWith("HIP "))) ||
 //		(event.StarPos && RegionMap.findRegion(...event.StarPos).id === 0) ||
 //		(!event.StarPos || RegionMap.findRegion(...event.StarPos).id === 0) ||
-		(event.StarPos && RegionMap.findRegion(...event.StarPos).name !== "Inner Orion Spur") ||
+		(event.StarPos && RegionMap.isReady && RegionMap.findRegion(...event.StarPos).name !== "Inner Orion Spur") ||
 //		(event.StarPos && ["Perseus Arm", "The Abyss", "Elysian Shore"].includes(RegionMap.findRegion(...event.StarPos).name)) ||
 		(false)
 	),
 });
+
+eddn.connect();
 
 
 // Reflect websocket activity in page icon
@@ -63,14 +68,22 @@ eddn.addEventListener("eddn:message", () => activity.ok()); // all valid message
 eddn.addEventListener("eddn:error", () => activity.error()); // parse errors
 
 
-eddn.connect();
+
+
+// TODO: dynamic imports etc., progress bar, "Loading..." animation
+
+// block here until RegionMapData loaded
+await RegionMap.ready;
+
+console.debug("Load done");
 
 
 
 
-// Initialize Modules
-// They attach their own listeners
+// TODO: - a Dashboard component that handles the modules, their containers and order
+//       - save/load layout, config, etc.
 
+// initialize and connect modules
 const router = new MessageRouter(eddn);
 const modules = 
 {
@@ -87,3 +100,6 @@ const modules =
 	// no infobox
 	"EventStats": new EventStatsModule(router, window.board.querySelector(".dashboard__module--events .dashboard__table--tbody")),
 };
+
+
+console.debug("Init done");

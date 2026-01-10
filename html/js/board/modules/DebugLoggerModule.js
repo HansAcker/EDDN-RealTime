@@ -12,7 +12,7 @@ export class DebugLoggerModule extends DashboardModule {
 		const software = event.header.softwareName;
 		const timestamp = event.timestamp.toLocaleTimeString();
 		const schema = event.schemaRef.replace(/.*\/([^/]*\/[^/]*)$/, "$1");
-		const jevent = event.message.event ?? "";
+		const jevent = event.eventName ?? "";
 
 		// Extensible: We can process data regardless of schema
 		console.log(`[${timestamp}] received from ${software} ( ${schema} ${jevent} ${event.message.StarSystem})` );

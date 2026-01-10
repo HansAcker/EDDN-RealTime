@@ -71,7 +71,7 @@ export class EventLogModule extends DashboardModule {
 			this.makeCell(formatRelativeTime(event.age, this.#timeFormat)),
 			idCell,
 //			this.makeCell(idstr),
-			this.makeCell(message.event ?? event.eventType),
+			this.makeCell(event.eventName),
 			this.makeCell(event.header.softwareName),
 			this.makeCell(event.header.softwareVersion),
 			this.makeCell(message.StarSystem ?? message.systemName ?? message.Route?.[0]?.StarSystem ?? ""),

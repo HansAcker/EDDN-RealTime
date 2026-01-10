@@ -1,6 +1,5 @@
 /**
  * A standardized event wrapper for all EDDN messages.
- * This carries the raw payload, the header, and normalized metadata.
  */
 export class EDDNEvent extends Event {
 	$schemaRef;
@@ -8,10 +7,11 @@ export class EDDNEvent extends Event {
 	message;
 	data; // event data { $schemaRef, header, message } for easier reference
 
-	receiveTimestamp; // local clock timestamp of event creation
-	#age; // difference between gatewayTimestamp and timestamp, set by get age()
+	receiveTimestamp; // timestamp of event creation (local clock)
+	#age; // difference between gatewayTimestamp (gateway clock) and timestamp (game clock), set by get age()
 
 	#eventType; // derived from schema/message.event. set by get eventType()
+	#eventName; // message.event if present, set by get eventName()
 	#gameType; // Odyssey, Horizons. set by get gameType()
 
 	#isTaxi;
@@ -49,6 +49,10 @@ export class EDDNEvent extends Event {
 
 	get gameType() {
 		return this.#gameType ?? (this.#gameType = EDDNEvent.getGameType(this.data));
+	}
+
+	get eventName() {
+		return this.#eventName ?? (this.#eventName = this.message?.event ?? this.eventType);
 	}
 
 	get isTaxi() {

@@ -1,6 +1,5 @@
 import GalacticRegions from "ed/GalacticRegions.json" with { type: "json" };
 
-
 // Sol-centered coordinate system
 const X0 = -49985;
 const Y0 = -40985;
@@ -11,26 +10,29 @@ const MAP_SIZE = 2048;
 const MAP_SCALE = 83 / 4096; // ly to index
 
 // region lookup tables
-let rowIndex; // Uint32Array - z-axis: per-row index into rleData (MAP_SIZE+1 entries)
-let rleData;  // Uint16Array - x-axis: variable-length runs of tuples (length, regionID)
+let rowIndex; // z-axis: per-row index into rleData (MAP_SIZE+1 entries)
+let rleData;  // x-axis: variable-length runs of tuples (length, regionID)
+
+let isReady = false; // set to true after data load
 
 
 // fetch arraybuffer data on module init
 // binary data created from RegionMapData.json: https://github.com/klightspeed/EliteDangerousRegionMap
 // Layout: [RowIndex (Uint32)...] [RLE Data (Uint16)...]
-{
+const readyPromise = (async function loadData() {
 	try {
 		// hypothetically, someone could browse the site on an IBM Z mainframe...
 		const isLittleEndian = new Uint8Array(new Uint32Array([0x12345678]).buffer)[0] === 0x78;
 		const MAP_URL = `/js/ed/RegionMapData${isLittleEndian ? "" : "_BE"}.bin`;
 
+		console.debug("RegionMapData loading...");
 		const response = await fetch(MAP_URL);
-	
 		if (!response.ok) {
 			throw new Error(`Failed to load map data: ${response.statusText}`);
 		}
 
 		const buffer = await response.arrayBuffer();
+
 		const offsetCount = MAP_SIZE + 1;
 		const offsetByteSize = offsetCount * 4;
 
@@ -41,27 +43,32 @@ let rleData;  // Uint16Array - x-axis: variable-length runs of tuples (length, r
 		if (rleData.length !== rowIndex[MAP_SIZE]) {
 			throw new Error(`Data length mismatch: Got ${rleData.length}, expected ${rowIndex[MAP_SIZE]}`);
 		}
+
+		isReady = true;
+		console.debug("RegionMapData loaded");
 	} catch (err) {
 		console.error("RegionMap initialization failed:", err);
 		// initialize empty buffers
 		rowIndex = new Uint32Array(MAP_SIZE + 1);
 		rleData = new Uint16Array(0);
 	}
-}
+})();
 
 
 const bitMask = (field, bits) => (BigInt(field) & (~(~0n << BigInt(bits))));
 
 
 export class RegionMap {
+	static get ready() { return readyPromise; } // `await RegionMap.ready;`
+	static get isReady() { return isReady; }
+
 	static get X0() { return X0; }
 	static get Y0() { return Y0; }
 	static get Z0() { return Z0; }
 
-
 	// find region for galactic coordinates
 	static findRegion(x, _y, z) {
-		if (x === undefined || z === undefined) {
+		if (!isReady || x === undefined || z === undefined) {
 			return { id: 0, name: null };
 		}
 

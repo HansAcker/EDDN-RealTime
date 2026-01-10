@@ -82,8 +82,12 @@ console.debug("Load done");
 
 // TODO: - a Dashboard component that handles the modules, their containers and order
 //       - save/load layout, config, etc.
+//       - handle InfoBox
 
-// initialize and connect modules
+//const dashboard = new Dashboard(container, router, options);
+
+
+// statically create and connect modules here for now
 const router = new MessageRouter(eddn);
 const modules = 
 {

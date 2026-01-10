@@ -1,6 +1,10 @@
 import { DashboardModule} from "DashboardModule";
 import { RegionMap } from "ed/RegionMap.js";
 
+
+const ab = true; // (Math.random() >= 0.5);
+
+
 /**
  * Formats a given date/time into a relative time string.
  * @param {Date | number | string} inputDate - Date object, timestamp (ms), or date string.
@@ -44,12 +48,16 @@ export class EventLogModule extends DashboardModule {
 		const message = event.message;
 		const row = this.makeRow(event);
 
+
+		// hex chars to braille patterns
 		let idstr = "";
 		const uploaderID = event.header.uploaderID;
 		for (let i = 0; i < uploaderID.length-1; i += 2) {
-			idstr += String.fromCodePoint(parseInt(uploaderID.substring(i, i+2), 16) + 0x2800); // hex chars to braille patterns
+			idstr += String.fromCodePoint(parseInt(uploaderID.substring(i, i+2), 16) + 0x2800);
 		}
 
+
+		// hex chars to colored blocks
 		const colors = [
 			"#F2F3F4", "#222222", "#F3C300", "#875692",
 			"#F38400", "#A1CAF1", "#BE0032", "#C2B280",
@@ -67,10 +75,10 @@ export class EventLogModule extends DashboardModule {
 		const idCell = this.makeCell();
 		idCell.innerHTML = idHTML;
 
+
 		row.append(
 			this.makeCell(formatRelativeTime(event.age, this.#timeFormat)),
-			idCell,
-//			this.makeCell(idstr),
+			(ab ? idCell : this.makeCell(idstr)),
 			this.makeCell(event.eventName),
 			this.makeCell(event.header.softwareName),
 			this.makeCell(event.header.softwareVersion),

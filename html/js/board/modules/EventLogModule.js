@@ -50,9 +50,27 @@ export class EventLogModule extends DashboardModule {
 			idstr += String.fromCodePoint(parseInt(uploaderID.substring(i, i+2), 16) + 0x2800); // hex chars to braille patterns
 		}
 
+		const colors = [
+			"#F2F3F4", "#222222", "#F3C300", "#875692",
+			"#F38400", "#A1CAF1", "#BE0032", "#C2B280",
+			"#848482", "#008856", "#E68FAC", "#0067A5",
+			"#F99379", "#604E97", "#DCD300", "#B3446C"
+		];
+
+		let idHTML = "";
+		for (let i = 0; i < uploaderID.length-1; i += 2) {
+			const fg = parseInt(uploaderID.substring(i, i+1), 16);
+			const bg = parseInt(uploaderID.substring(i+1, i+2), 16);
+			idHTML += `<span style="color:${colors[fg]};background-color:${colors[bg]};">▀</span>`;
+		}
+
+		const idCell = this.makeCell();
+		idCell.innerHTML = idHTML;
+
 		row.append(
 			this.makeCell(formatRelativeTime(event.age, this.#timeFormat)),
-			this.makeCell(idstr),
+			idCell,
+//			this.makeCell(idstr),
 			this.makeCell(message.event ?? event.eventType),
 			this.makeCell(event.header.softwareName),
 			this.makeCell(event.header.softwareVersion),

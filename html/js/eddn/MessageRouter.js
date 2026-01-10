@@ -48,7 +48,7 @@ export class MessageRouter {
 
 	unregister(callback, topics) {
 		if (!topics) {
-			this.#wildcards.delete(callback);
+			this.unregisterAll(callback);
 			return;
 		}
 

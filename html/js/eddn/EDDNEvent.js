@@ -16,6 +16,9 @@ export class EDDNEvent extends Event {
 
 	#isTaxi;
 	#isMulticrew;
+	#starSystem; // derived from message.StarSystem, .systemName, .SytemName, .System or first hop of .Route, defaults to "", set by get StarSystem()
+	#starPos;
+	#gotStarPos = false;
 
 
 	/**
@@ -63,6 +66,13 @@ export class EDDNEvent extends Event {
 		return this.#isMulticrew ?? (this.#isMulticrew = !!this.message?.Multicrew);
 	}
 
+	get StarSystem() {
+		return this.#starSystem ?? (this.#starSystem = this.message.StarSystem ?? this.message.systemName ?? this.message.SystemName ?? this.message.System ?? this.message.Route?.[0]?.StarSystem ?? "");
+	}
+
+	get StarPos() {
+		return this.#gotStarPos ? this.#starPos : (this.#gotStarPos = true, this.#starPos = this.message.StarPos ?? this.message.Route?.[0]?.StarPos);
+	}
 
 	/**
 	 * Normalizes the schema URL into a clean event string.

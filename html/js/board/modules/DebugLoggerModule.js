@@ -15,7 +15,7 @@ export class DebugLoggerModule extends DashboardModule {
 		const jevent = event.eventName ?? "";
 
 		// Extensible: We can process data regardless of schema
-		console.log(`[${timestamp}] received from ${software} ( ${schema} ${jevent} ${event.message.StarSystem})` );
+		console.log(`[${timestamp}] received from ${software} ( ${schema} ${jevent} ${event.StarSystem})` );
 	}
 }
 

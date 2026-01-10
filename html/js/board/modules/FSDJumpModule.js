@@ -8,7 +8,7 @@ export class FSDJumpModule extends DashboardModule {
 
 	_handleEvent(event) {
 		const row = this.makeRow(event);
-		row.append(this.makeCell(event.message.StarSystem));
+		row.append(this.makeCell(event.StarSystem));
 		this.addRow(row);
 	}
 }

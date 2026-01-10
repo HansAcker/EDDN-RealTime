@@ -74,8 +74,8 @@ export class EventLogModule extends DashboardModule {
 			this.makeCell(event.eventName),
 			this.makeCell(event.header.softwareName),
 			this.makeCell(event.header.softwareVersion),
-			this.makeCell(message.StarSystem ?? message.systemName ?? message.Route?.[0]?.StarSystem ?? ""),
-			this.makeCell(RegionMap.findRegion(...(message.StarPos ?? message.Route?.[0]?.StarPos ?? [])).name ?? ""),
+			this.makeCell(event.StarSystem),
+			this.makeCell(event.StarPos ? RegionMap.findRegion(...event.StarPos).name ?? "" : ""),
 			this.makeCell(`${event.header.gameversion}${event.header.gamebuild ? ` - ${event.header.gamebuild}` : ""}`),
 			this.makeCell(event.$schemaRef.replace(/^https:\/\/eddn.edcd.io\/schemas\//, ""))
 		);

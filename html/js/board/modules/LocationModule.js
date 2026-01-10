@@ -9,7 +9,7 @@ export class LocationModule extends DashboardModule {
 	_handleEvent(event) {
 		const row = this.makeRow(event);
 		const message = event.message;
-		row.append(this.makeCell(message.StationName ?? ""), this.makeCell(message.StationType ?? ""), this.makeCell(message.StarSystem));
+		row.append(this.makeCell(message.StationName ?? ""), this.makeCell(message.StationType ?? ""), this.makeCell(event.StarSystem));
 		this.addRow(row);
 	}
 }

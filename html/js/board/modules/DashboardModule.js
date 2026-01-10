@@ -1,4 +1,7 @@
 
+// TODO: DashboardModule should be more generic while DataTableModule deals with rows and cells
+
+
 export class DashboardModule {
 	#renderQueue = []; // array of elements to add in next paint cycle
 	#renderScheduled = false;

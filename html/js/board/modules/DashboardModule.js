@@ -59,7 +59,7 @@ export class DashboardModule {
 	}
 
 
-	makeCell(textContent) {
+	makeCell(textContent = "") {
 		const element = this._cellTemplate.cloneNode(false);
 		element.textContent = element.title = textContent;
 		return element;

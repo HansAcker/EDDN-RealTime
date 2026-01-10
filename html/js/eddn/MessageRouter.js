@@ -3,13 +3,14 @@ export class MessageRouter {
 	#topics = new Map();
 	#wildcards = new Set();
 
+
 	constructor(source, options = {}) {
 		// optional external abort signal
 		const { signal } = options;
 
-		// subscribe to all messages
 		source.addEventListener("eddn:message", (event) => this.#dispatch(event), { signal });
 	}
+
 
 	register(callback, topics) {
 		if (!topics) {
@@ -44,6 +45,7 @@ export class MessageRouter {
 		}
 	}
 
+
 	unregister(callback, topics) {
 		if (!topics) {
 			this.#wildcards.delete(callback);
@@ -67,8 +69,10 @@ export class MessageRouter {
 			}
 
 			const tgroup = this.#topics.get(topic);
+
 			if (tgroup) {
 				tgroup.delete(callback);
+
 				if (tgroup.size === 0) {
 					this.#topics.delete(topic);
 				}
@@ -76,16 +80,19 @@ export class MessageRouter {
 		}
 	}
 
+
 	unregisterAll(callback) {
 		this.#wildcards.delete(callback);
 
 		for (const [topic, tgroup] of this.#topics) {
 			tgroup.delete(callback);
+
 			if (tgroup.size === 0) {
 				this.#topics.delete(topic);
 			}
 		}
 	}
+
 
 	#dispatch(event) {
 		if (this.#wildcards.size > 0) {

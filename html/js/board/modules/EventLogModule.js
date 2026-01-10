@@ -69,7 +69,9 @@ export class EventLogModule extends DashboardModule {
 		for (let i = 0; i < uploaderID.length-1; i += 2) {
 			const fg = parseInt(uploaderID.substring(i, i+1), 16);
 			const bg = parseInt(uploaderID.substring(i+1, i+2), 16);
-			idHTML += `<span style="color:${colors[fg]};background-color:${colors[bg]};">▀</span>`;
+//			idHTML += `<span style="color:${colors[fg]};background-color:${colors[bg]};">▀</span>`;
+			idHTML += `<span style="display:inline-block;width:0.4em;background-color:${colors[fg]};">&nbsp;</span>`;
+			idHTML += `<span style="display:inline-block;width:0.4em;background-color:${colors[bg]};">&nbsp;</span>`;
 		}
 
 		const idCell = this.makeCell();

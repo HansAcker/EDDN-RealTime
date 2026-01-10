@@ -3,6 +3,8 @@ import { ReconnectingWebSocket } from "ws/ReconnectingWebSocket.js";
 import { EDDNClient } from "eddn/EDDNClient.js";
 import { MessageRouter } from "eddn/MessageRouter.js";
 
+import { RegionMap } from "ed/RegionMap.js";
+
 import { PageIconActivity } from "ui/activity_icon.js";
 import { InfoBox } from "ui/infobox.js";
 
@@ -38,14 +40,17 @@ const eddn = new EDDNClient({
 	// ReconnectingWebSocket handles transient connection errors
 	WebSocketClass: ReconnectingWebSocket,
 
-/*
 	// pass only a subset of messages to display modules
-	filter: (event) => {
-		return  (event.message?.StarSystem ?? event.message?.systemName)?.startsWith("HIP ") ||
-				(event.message?.Route?.some((wp) => wp?.StarSystem?.startsWith("HIP "))) ||
-				(event.age <= 0) || (event.isTaxi)
-	},
-*/
+	filter: (event) => (
+//		(event.age < 0) || (event.isMulticrew) ||
+//		(event.StarSystem.startsWith("HIP ")) ||
+		(event.message?.Route?.some((wp) => wp?.StarSystem?.startsWith("HIP "))) ||
+//		(event.StarPos && RegionMap.findRegion(...event.StarPos).id === 0) ||
+//		(!event.StarPos || RegionMap.findRegion(...event.StarPos).id === 0) ||
+		(event.StarPos && RegionMap.findRegion(...event.StarPos).name !== "Inner Orion Spur") ||
+//		(event.StarPos && ["Perseus Arm", "The Abyss", "Elysian Shore"].includes(RegionMap.findRegion(...event.StarPos).name)) ||
+		(false)
+	),
 });
 
 

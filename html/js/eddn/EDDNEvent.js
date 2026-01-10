@@ -16,6 +16,7 @@ export class EDDNEvent extends Event {
 
 	#isTaxi;
 	#isMulticrew;
+
 	#starSystem; // derived from message.StarSystem, .systemName, .SytemName, .System or first hop of .Route, defaults to "", set by get StarSystem()
 	#starPos;
 	#gotStarPos = false;

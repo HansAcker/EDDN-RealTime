@@ -147,9 +147,7 @@ body {
 .dashboard__module--legend .dashboard__table--thead, .dashboard__module--legend .dashboard__table--row { grid-template-columns: 1fr; }
 
 .dashboard__module--log .dashboard__table--thead, .dashboard__module--log .dashboard__table--row { grid-template-columns: 6% 12% 10% 15% 6% 1fr 12% 10% 10%; }
-/*
-.dashboard__module--log .dashboard__table--thead, .dashboard__module--log .dashboard__table--row { grid-template-columns: 6% 12% 10% 15% 6% 10% 1fr 12% 10%; }
-*/
+
 
 /* Colors */
 .Odyssey .dashboard__table--cell { background-color: #05b; }

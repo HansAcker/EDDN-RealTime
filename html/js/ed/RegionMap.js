@@ -1,5 +1,6 @@
 import GalacticRegions from "ed/GalacticRegions.json" with { type: "json" };
 
+
 // Sol-centered coordinate system
 const X0 = -49985;
 const Y0 = -40985;
@@ -65,6 +66,7 @@ export class RegionMap {
 	static get X0() { return X0; }
 	static get Y0() { return Y0; }
 	static get Z0() { return Z0; }
+
 
 	// find region for galactic coordinates
 	static findRegion(x, _y, z) {

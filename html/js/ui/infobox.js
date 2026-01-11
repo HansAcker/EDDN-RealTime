@@ -95,6 +95,15 @@ export class InfoBox {
 	 */
 	static #copyToClipboard(text, element) {
 		return new Promise((resolve, reject) => {
+			// clipboard not available in insecure (HTTP) context and others
+			if (!navigator.clipboard) {
+				const err = new Error("Clipboard API unavailable");
+				console.warn("InfoBox:", err.message);
+				InfoBox.#triggerAnimation(element, "infobox__button--signal-error");
+				//reject(err);
+				return;
+			}
+
 			navigator.clipboard.writeText(text)
 				.then(() => {
 					return InfoBox.#triggerAnimation(element, "infobox__button--signal-success");
@@ -102,7 +111,7 @@ export class InfoBox {
 				.catch((err) => {
 					console.warn("InfoBox: clipboard copy error:", err);
 					InfoBox.#triggerAnimation(element, "infobox__button--signal-error");
-					reject(err);
+					//reject(err);
 				});
 		});
 	}

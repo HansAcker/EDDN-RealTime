@@ -2,8 +2,10 @@
 // counts and displays named events or other information
 
 
-const defaultRowFactory = (...children) => { const div = document.createElement("div"); div.classList.add("dashboard__table--row"); div.setAttribute("role", "row"); div.append(...children); return div; };
-const defaultCellFactory = (textContent) => { const div = document.createElement("div"); div.classList.add("dashboard__table--cell"); div.setAttribute("role", "cell"); div.textContent = div.title = textContent ?? ""; return div; };
+const defaultRowFactory = (...children) => { const row = document.createElement("tr"); row.append(...children); return row; };
+const defaultCellFactory = (textContent) => { const cell = document.createElement("td"); cell.textContent = cell.title = textContent ?? ""; return cell; };
+//const defaultRowFactory = (...children) => { const div = document.createElement("div"); div.classList.add("dashboard__table--row"); div.setAttribute("role", "row"); div.append(...children); return div; };
+//const defaultCellFactory = (textContent) => { const div = document.createElement("div"); div.classList.add("dashboard__table--cell"); div.setAttribute("role", "cell"); div.textContent = div.title = textContent ?? ""; return div; };
 
 
 class StatsRow {

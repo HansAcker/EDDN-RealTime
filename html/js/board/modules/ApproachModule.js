@@ -1,10 +1,11 @@
-import DashboardModule from "DashboardModule";
+import { DataTableModule } from "#DashboardModule";
 
 
-export class ApproachModule extends DashboardModule {
-	constructor(router, container, infobox) {
-		super(router, ["approachsettlement"], container, infobox);
+export class ApproachModule extends DataTableModule {
+	constructor(router, container, options) {
+		super(router, ["approachsettlement"], container, options);
 	}
+
 
 	_handleEvent(event) {
 		const row = this.makeRow(event);

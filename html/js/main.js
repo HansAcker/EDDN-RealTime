@@ -1,26 +1,30 @@
 
-import { ReconnectingWebSocket } from "ws/ReconnectingWebSocket.js";
+import { EDDNClient } from "#eddn/EDDNClient.js";
+import { MessageRouter } from "#eddn/MessageRouter.js";
 
-import { EDDNClient } from "eddn/EDDNClient.js";
-import { MessageRouter } from "eddn/MessageRouter.js";
+import { RegionMap } from "#ed/RegionMap.js";
 
-import { RegionMap } from "ed/RegionMap.js";
+import { ReconnectingWebSocket } from "#ws/ReconnectingWebSocket.js";
 
-import { PageIconActivity } from "ui/activity_icon.js";
-import { InfoBox } from "ui/infobox.js";
+import { CachedPageIconActivity } from "#ui/activity_icon.js";
+import { InfoBox } from "#ui/infobox.js";
 
-import FSDJumpModule from "modules/FSDJumpModule.js";
-import NavRouteModule from "modules/NavRouteModule.js";
-import ScanModule from "modules/ScanModule.js";
-import LocationModule from "modules/LocationModule.js";
-import CodexEntryModule from "modules/CodexEntryModule.js";
-import UpdatesModule from "modules/UpdatesModule.js";
-import ApproachModule from "modules/ApproachModule.js";
-import EventStatsModule from "modules/EventStatsModule.js";
-import EventLogModule from "modules/EventLogModule.js";
+import FSDJumpModule from "#modules/FSDJumpModule.js";
+import NavRouteModule from "#modules/NavRouteModule.js";
+import ScanModule from "#modules/ScanModule.js";
+import LocationModule from "#modules/LocationModule.js";
+import CodexEntryModule from "#modules/CodexEntryModule.js";
+import UpdatesModule from "#modules/UpdatesModule.js";
+import ApproachModule from "#modules/ApproachModule.js";
+import EventStatsModule from "#modules/EventStatsModule.js";
+import EventLogModule from "#modules/EventLogModule.js";
+import VisitsModule from "#modules/VisitsModule.js";
+import NewStarsModule from "#modules/NewStarsModule.js";
+import NewBodiesModule from "#modules/NewBodiesModule.js";
+// import { DashboardModule } from "#DashboardModule";
 
 
-console.debug("Main start");
+console.debug("Main: start");
 
 
 // Data window
@@ -45,26 +49,15 @@ const eddn = new EDDNClient({
 	WebSocketClass: ReconnectingWebSocket,
 
 	// pass only a subset of messages to display modules
-	filter: (event) => (
-//		(event.age < 0) || (event.isMulticrew) ||
-//		(!event.StarSystem) || (!event.StarPos) ||
-//		(event.StarSystem.startsWith("HIP ")) ||
-//		(event.message?.Route?.some((wp) => wp?.StarSystem?.startsWith("HIP "))) ||
-//		(event.StarPos && RegionMap.findRegion(...event.StarPos).id === 0) ||
-//		(!event.StarPos || RegionMap.findRegion(...event.StarPos).id === 0) ||
-		(event.StarPos && RegionMap.isReady && RegionMap.findRegion(...event.StarPos).id !== 18) ||
-//		(event.StarPos && RegionMap.isReady && RegionMap.findRegion(...event.StarPos).name !== "Inner Orion Spur") ||
-//		(event.StarPos && ["Perseus Arm", "The Abyss", "Elysian Shore"].includes(RegionMap.findRegion(...event.StarPos).name)) ||
-//		(true)
-		(false)
-	),
+	// TODO: remove global defined in index.html. something else?
+	filter: (typeof globalEventFilter === "function" ? globalEventFilter : null), // eslint-disable-line no-undef
 });
 
 eddn.connect();
 
 
 // Reflect websocket activity in page icon
-const activity = new PageIconActivity(window.icon, 2300);
+const activity = new CachedPageIconActivity(window.icon, 2300);
 eddn.addEventListener("open", () => activity.idle());
 eddn.addEventListener("close", () => activity.off());
 eddn.addEventListener("error", () => activity.error());
@@ -76,10 +69,11 @@ eddn.addEventListener("eddn:error", () => activity.error()); // parse errors
 
 // TODO: dynamic imports etc., progress bar, "Loading..." animation
 
-// block here until RegionMapData loaded
+// block here until all loaded
 await RegionMap.ready;
+// await CachedPageIconActivity.ready;
 
-console.debug("Load done");
+console.debug("Main: load done");
 
 
 
@@ -90,24 +84,35 @@ console.debug("Load done");
 
 //const dashboard = new Dashboard(container, router, options);
 
+/*
+for (const el of window.board.querySelectorAll("[data-dashboard__module]")) {
+	console.log(el.dataset.dashboard__module, JSON.parse(String(el.dataset.dashboard__options ?? "{}")));
+}
+*/
+
 
 // statically create and connect modules here for now
 const router = new MessageRouter(eddn);
-const modules = 
-{
-	"Jump": new FSDJumpModule(router, window.board.querySelector(".dashboard__module--jumps .dashboard__table--tbody"), infobox),
-	"Route": new NavRouteModule(router, window.board.querySelector(".dashboard__module--routes .dashboard__table--tbody"), infobox),
-	"Scan": new ScanModule(router, window.board.querySelector(".dashboard__module--scanbods .dashboard__table--tbody"), infobox),
-	"Location": new LocationModule(router, window.board.querySelector(".dashboard__module--locations .dashboard__table--tbody"), infobox),
-	"Codex": new CodexEntryModule(router, window.board.querySelector(".dashboard__module--codex .dashboard__table--tbody"), infobox),
-	"Updates": new UpdatesModule(router, window.board.querySelector(".dashboard__module--updates .dashboard__table--tbody"), infobox),
-	"Approach": new ApproachModule(router, window.board.querySelector(".dashboard__module--asett .dashboard__table--tbody"), infobox),
+const options = { infobox, listLength: 20 };
 
-	"EventLog": new EventLogModule(router, window.board.querySelector(".dashboard__module--log .dashboard__table--tbody"), infobox, { listLength: 30 }),
+const _modules = // eslint-disable-line no-unused-vars
+{
+//	"Jump": new FSDJumpModule(router, window.jumps, options),
+	"Jump": new FSDJumpModule(router, window.FSDJump, { template: window.FSDJumpTemplate, ...options }),
+	"Route": new NavRouteModule(router, window.NavRoute, { template: window.NavRouteTemplate, ...options }),
+	"Scan": new ScanModule(router, window.Scan, { template: window.ScanTemplate, ...options }),
+	"Location": new LocationModule(router, window.Docks, { template: window.LocationTemplate, ...options }),
+	"Codex": new CodexEntryModule(router, window.CodexDiscoveries, { template: window.CodexDiscoveriesTemplate, ...options }),
+	"Updates": new UpdatesModule(router, window.Updates, { template: window.UpdatesTemplate, ...options }),
+	"Approach": new ApproachModule(router, window.Approach, { template: window.ApproachTemplate, ...options }),
+	"Visits": new VisitsModule(router, window.Visits, { template: window.VisitsTemplate, ...options }),
+	"NewStars": new NewStarsModule(router, window.NewStars, { template: window.NewStarsTemplate, ...options }),
+	"NewBodies": new NewBodiesModule(router, window.NewBodies, { template: window.NewBodiesTemplate, ...options }),
+
+	"EventLog": new EventLogModule(router, window.EventLog, { template: window.EventLogTemplate, ...options }),
 
 	// no infobox
-	"EventStats": new EventStatsModule(router, window.board.querySelector(".dashboard__module--events .dashboard__table--tbody")),
+	"EventStats": new EventStatsModule(router, window.eventsbody),
 };
 
-
-console.debug("Init done");
+console.debug("Main: init done");

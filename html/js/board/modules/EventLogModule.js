@@ -1,5 +1,5 @@
-import { DashboardModule} from "DashboardModule";
-import { RegionMap } from "ed/RegionMap.js";
+import { DataTableModule } from "#DashboardModule";
+import { RegionMap } from "#ed/RegionMap.js";
 
 
 const ab = true; // (Math.random() >= 0.5);
@@ -37,25 +37,29 @@ function formatRelativeTime(diffMs, rtf) {
 }
 
 
-export class EventLogModule extends DashboardModule {
-	#timeFormat = new Intl.RelativeTimeFormat('en', { numeric: 'auto', style: "narrow" });
+export class EventLogModule extends DataTableModule {
+	#timeFormat = new Intl.RelativeTimeFormat("en", { numeric: "auto", style: "narrow" });
 
-	constructor(router, container, infobox, options) {
-		super(router, ["*"], container, infobox, options);
+	constructor(router, container, options) {
+		super(router, ["*"], container, options);
 	}
 
+
 	_handleEvent(event) {
-		const message = event.message;
 		const row = this.makeRow(event);
 
+		const uploaderID = event.header.uploaderID;
+		const idCell = this.makeCell(uploaderID);
 
+/*
 		// hex chars to braille patterns
 		let idstr = "";
-		const uploaderID = event.header.uploaderID;
 		for (let i = 0; i < uploaderID.length-1; i += 2) {
 			idstr += String.fromCodePoint(parseInt(uploaderID.substring(i, i+2), 16) + 0x2800);
 		}
 
+		idCell.textContent = idstr;
+*/
 
 		// hex chars to colored blocks
 		const colors = [
@@ -65,22 +69,33 @@ export class EventLogModule extends DashboardModule {
 			"#F99379", "#604E97", "#DCD300", "#B3446C"
 		];
 
-		let idHTML = "";
-		for (let i = 0; i < uploaderID.length-1; i += 2) {
-			const fg = parseInt(uploaderID.substring(i, i+1), 16);
-			const bg = parseInt(uploaderID.substring(i+1, i+2), 16);
-//			idHTML += `<span style="color:${colors[fg]};background-color:${colors[bg]};">▀</span>`;
-			idHTML += `<span style="display:inline-block;width:0.4em;background-color:${colors[fg]};">&nbsp;</span>`;
-			idHTML += `<span style="display:inline-block;width:0.4em;background-color:${colors[bg]};">&nbsp;</span>`;
+		const stops = [];
+		const len = uploaderID.length;
+		const step = 100 / len;
+
+		for (let i = 0; i < len; i++) {
+			const color = colors[parseInt(uploaderID[i], 16)];
+			// Hard stops for blocky look: color starts at i*step, ends at (i+1)*step
+			stops.push(`${color} ${i * step}% ${(i + 1) * step}%`);
+//			stops.push(`${color} ${(i + 1) * step}%`);
 		}
 
-		const idCell = this.makeCell();
-		idCell.innerHTML = idHTML;
+		const bar = document.createElement("span");
+		bar.style = `
+			display: inline-block;
+			height: 1em;
+			width: 100%;
+			/* min-width: 100px; */
+			background: linear-gradient(to right, ${stops.join(",")});
+		`;
+
+		// bar.textContent = idCell.textContent;
+		idCell.replaceChildren(bar);
 
 
 		row.append(
 			this.makeCell(formatRelativeTime(event.age, this.#timeFormat)),
-			(ab ? idCell : this.makeCell(idstr)),
+			idCell,
 			this.makeCell(event.eventName),
 			this.makeCell(event.header.softwareName),
 			this.makeCell(event.header.softwareVersion),

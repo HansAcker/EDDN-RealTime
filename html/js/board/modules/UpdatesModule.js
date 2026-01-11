@@ -1,10 +1,11 @@
-import DashboardModule from "DashboardModule";
+import { DataTableModule } from "#DashboardModule";
 
 
-export class UpdatesModule extends DashboardModule {
-	constructor(router, container, infobox) {
-		super(router, ["commodity", "outfitting", "shipyard"], container, infobox);
+export class UpdatesModule extends DataTableModule {
+	constructor(router, container, options) {
+		super(router, ["commodity", "outfitting", "shipyard"], container, options);
 	}
+
 
 	_handleEvent(event) {
 		const row = this.makeRow(event);

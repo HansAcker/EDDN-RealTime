@@ -17,11 +17,13 @@ body {
 	overflow-anchor: none;
 }
 
+
 #board {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: flex-start;
 }
+
 
 .dashboard__table {
 	--tabs: 4;
@@ -35,11 +37,13 @@ body {
 @media screen and (max-width: 450px) {dashboard__table { --tabs: 1; }}
 */
 
+
 .dashboard__table {
 	display: flex;
 	flex-direction: column;
 
 	--baseWidth: calc(100% / var(--tabs));
+/*	--baseWidth: calc((100% - (var(--tabs) - 1) * 1rem) / var(--tabs)); */
 	flex: 0 1 var(--baseWidth);
 	max-width: 100%;
 	box-sizing: border-box;
@@ -52,6 +56,7 @@ body {
 	contain-intrinsic-size: auto;
 	/* will-change: transform; */ /* quirk to force compositing, repaint tables individually */
 }
+
 
 /* Sizing modifiers */
 .dashboard__table.narrow {
@@ -66,107 +71,83 @@ body {
 	flex: 0 1 calc(var(--baseWidth) * 2);
 }
 
-.dashboard__module--log {
+.dashboard__table.full {
 	flex: 0 1 100%;
 }
 
-.dashboard__table--caption {
-	display: none;
+
+.dashboard__table table {
+	table-layout: fixed;
+	border-collapse: separate;
+/*	border-spacing: 1px; */
 }
 
-/* Header and Row Grid Layout */
-.dashboard__table--thead, .dashboard__table--row {
-	display: grid;
-	gap: 2px;
-}
-
-.dashboard__table--thead {
+.dashboard__table thead {
 	font-family: orbitron, sans-serif;
 	color: #f94;
 /*	font-weight: bold; */
 	text-align: center;
 }
 
-.dashboard__table--thead .dashboard__table--cell {
-	padding: 0.25em 0;
-}
-
-.dashboard__table--tbody {
+.dashboard__table tbody {
 	font-size: 80%;
 	text-align: end;
-
-	display: flex;
-	flex-direction: column;
-	gap: 2px;
 }
 
-.dashboard__table--cell {
+.dashboard__table th, .dashboard__table td {
+	max-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	padding: 0 0.25em;
 }
 
-/* Table-specific Grid Definitions */
-/* 1 column */
-.dashboard__module--jumps .dashboard__table--thead, .dashboard__module--jumps .dashboard__table--row { grid-template-columns: 1fr; }
+.dashboard__table td {
+	padding: 0.08em 0.2em;
+}
 
-/* Route From, To, Jumps, Distance, Total, Max */
-.dashboard__module--routes .dashboard__table--thead, .dashboard__module--routes .dashboard__table--row { grid-template-columns: 25% 1fr 10% 14% 14% 12%; }
-
-/* Discovered Star, Class */
-.dashboard__module--newstars .dashboard__table--thead, .dashboard__module--newstars .dashboard__table--row { grid-template-columns: 1fr 20%; }
-
-/* Discovered Body, Class, Atmosphere, Landable */
-.dashboard__module--newplanets .dashboard__table--thead, .dashboard__module--newplanets .dashboard__table--row { grid-template-columns: 1fr 25% 20% 15%; }
-
-/* Scanned Body, Scan Type */
-.dashboard__module--scanbods .dashboard__table--thead, .dashboard__module--scanbods .dashboard__table--row { grid-template-columns: 1fr 30%; }
-
-/* Settlement Approach, System */
-.dashboard__module--asett .dashboard__table--thead, .dashboard__module--asett .dashboard__table--row { grid-template-columns: 50% 1fr; }
-
-/* Docked At, Type, System */
-.dashboard__module--locations .dashboard__table--thead, .dashboard__module--locations .dashboard__table--row { grid-template-columns: 40% 25% 1fr; }
-
-/* Updated, Station, System */
-.dashboard__module--updates .dashboard__table--thead, .dashboard__module--updates .dashboard__table--row { grid-template-columns: 25% 40% 1fr; }
-
-/* System Visited, Population, Allegiance, Faction, State */
-.dashboard__module--visits .dashboard__table--thead, .dashboard__module--visits .dashboard__table--row { grid-template-columns: 25% 15% 15% 1fr 10%; }
-
-/* System, Body, Codex Category, Type, Region */
-.dashboard__module--codex .dashboard__table--thead, .dashboard__module--codex .dashboard__table--row { grid-template-columns: 1fr 10% 20% 25% 20%; }
-
-/* Stats, Count */
-.dashboard__module--stats .dashboard__table--thead, .dashboard__module--stats .dashboard__table--row { grid-template-columns: 1fr 1fr; }
-.dashboard__module--events .dashboard__table--thead, .dashboard__module--events .dashboard__table--row { grid-template-columns: 1fr 25%; }
-.dashboard__module--softwares .dashboard__table--thead, .dashboard__module--softwares .dashboard__table--row { grid-template-columns: 1fr 25%; }
-
-/* Legend */
-.dashboard__module--legend .dashboard__table--thead, .dashboard__module--legend .dashboard__table--row { grid-template-columns: 1fr; }
-
-.dashboard__module--log .dashboard__table--thead, .dashboard__module--log .dashboard__table--row { grid-template-columns: 6% 12% 10% 15% 6% 1fr 12% 10% 10%; }
-
-
-/* Colors */
-.Odyssey .dashboard__table--cell { background-color: #05b; }
-.Horizons .dashboard__table--cell { background-color: #b50; }
-.Base .dashboard__table--cell { background-color: #555; }
-.Legacy .dashboard__table--cell { background-color: #333; }
-
-.taxi { color: yellow; font-weight: bold; }
-.old { color: #aaa; }
-.new { color: #a00; }
-.longjump { font-weight: bold; }
-
-.dashboard__table--row.data:hover {
+.dashboard__table tr.data:hover {
 	outline: 2px solid yellow;
 }
 
-.dashboard__module--legend .dashboard__table--tbody {
-	text-align: center;
+.dashboard__table caption {
+	display: none;
 }
+
+
+.dashboard__table .Odyssey {
+	background-color: #05b;
+}
+
+.dashboard__table .Horizons {
+	background-color: #b50;
+}
+
+.dashboard__table .Base {
+	background-color: #555;
+}
+
+.dashboard__table .Legacy {
+	background-color: #333;
+}
+
+.dashboard__table .taxi {
+	color: yellow;
+	font-weight: bold;
+}
+
+.dashboard__table .old {
+	color: #aaa;
+}
+
+.dashboard__table .new {
+	color: #a00;
+}
+
+.dashboard__table .longjump {
+	font-weight: bold;
+}
+
+
 
 
 /* InfoBox window */

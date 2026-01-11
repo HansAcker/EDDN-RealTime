@@ -1,14 +1,32 @@
 
-// TODO: DashboardModule should be more generic while DataTableModule deals with rows and cells
-
 
 export class DashboardModule {
+
+	// TODO: allow empty topics for wildcard?
+	constructor(router, topics) {
+		if (router === undefined || topics === undefined) {
+			throw new Error("DashboardModule: missing required arguments");
+		}
+
+		router.register((event) => this._handleEvent(event), topics);
+	}
+
+
+	_handleEvent(event) {
+		// base class
+		console.log(event.type, event.eventName, event.receiveTimestamp);
+	}
+}
+
+
+export class DataTableModule extends DashboardModule {
 	#renderQueue = []; // array of elements to add in next paint cycle
 	#renderScheduled = false;
 
 	_container;
 	_infobox;
 
+	_tableTemplate;
 	_rowTemplate; // DOM elements to be cloned by makeCell()/makeRow()
 	_cellTemplate;
 
@@ -16,46 +34,52 @@ export class DashboardModule {
 	cullFactor = 2; // cut back #renderQueue if > listLength * cullFactor // TODO: rename
 
 
-	// TODO: - container, infobox into options
-	//       - allow empty topics for wildcard?
-	constructor(router, topics, container, infobox, options = {}) {
-		if (router === undefined || topics === undefined) {
-			throw new Error("DashboardModule: missing required arguments");
+	constructor(router, topics, container, options = {}) {
+		const { listLength, cullFactor, template, infobox } = options;
+
+		if (listLength && !Number.isInteger(listLength)) {
+			throw new Error("listLength must be an integer");
 		}
 
-		// TODO: deconstruct specific options
-		Object.assign(this, options);
+		if (cullFactor && isNaN(parseFloat(cullFactor))) {
+			throw new Error("cullFactor must be a number");
+		}
 
-		this._container = this._setupContainer(container);
-		this._setupTemplates();
+		super(router, topics);
+
+		listLength && (this.listLength = listLength);
+		cullFactor && (this.cullFactor = parseFloat(cullFactor));
 
 		this._infobox = infobox;
+		this._tableTemplate = template;
 
-		router.register((event) => this._handleEvent(event), topics);
+		this._container = this._setupContainer(container);
+
+		this._setupTemplates();
 	}
 
 
 	_setupContainer(container) {
-		// base class
-		return container;
+		if (!this._tableTemplate) {
+			return container;
+		}
+
+		const table = document.importNode(this._tableTemplate.content, true);
+		const tbody = table.querySelector("tbody"); // TODO: check
+		tbody.innerHTML = "<tr><td>&nbsp;".repeat(this.listLength);
+
+		container.replaceChildren(table);
+		return tbody;
 	}
+
 
 	_setupTemplates() {
 		// row Template
-		this._rowTemplate = document.createElement("div");
-		this._rowTemplate.classList.add("dashboard__table--row", "data");
-		this._rowTemplate.setAttribute("role", "row");
+		this._rowTemplate = document.createElement("tr");
+		this._rowTemplate.classList.add("data");
 
 		// cell Template
-		this._cellTemplate = document.createElement("div");
-		this._cellTemplate.classList.add("dashboard__table--cell");
-		this._cellTemplate.setAttribute("role", "cell");
-	}
-
-
-	_handleEvent(event) {
-		// base class
-		console.log(event.type, event.eventType, event.timestamp);
+		this._cellTemplate = document.createElement("td");
 	}
 
 
@@ -140,30 +164,6 @@ export class DashboardModule {
 
 		// insert new rows
 		this._container.prepend(fragment);
-	}
-}
-
-
-export class DataTableModule extends DashboardModule {
-	_setupContainer(container) {
-		// insert table into container
-		const table = document.createElement("table");
-		// TODO: add classes, attributres, make it a web component, etc.
-		container.replaceChildren(table);
-		// TODO: fill with listLength?
-		return table;
-	}
-
-	_setupTemplates() {
-		// row Template
-		this._rowTemplate = document.createElement("tr");
-		this._rowTemplate.classList.add("dashboard__table--row", "data");
-		this._rowTemplate.setAttribute("role", "row");
-
-		// cell Template
-		this._cellTemplate = document.createElement("td");
-		this._cellTemplate.classList.add("dashboard__table--cell");
-		this._cellTemplate.setAttribute("role", "cell");
 	}
 }
 

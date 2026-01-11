@@ -1,4 +1,4 @@
-import GalacticRegions from "ed/GalacticRegions.json" with { type: "json" };
+import GalacticRegions from "#ed/GalacticRegions.json" with { type: "json" };
 
 
 // Sol-centered coordinate system

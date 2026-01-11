@@ -1,4 +1,4 @@
-import DashboardModule from "DashboardModule";
+import { DashboardModule } from "#DashboardModule";
 
 
 export class DebugLoggerModule extends DashboardModule {
@@ -10,8 +10,8 @@ export class DebugLoggerModule extends DashboardModule {
 	_handleEvent(event) {
 		// e.type will be 'eddn:message', so we look at the event's internal data
 		const software = event.header.softwareName;
-		const timestamp = event.timestamp.toLocaleTimeString();
-		const schema = event.schemaRef.replace(/.*\/([^/]*\/[^/]*)$/, "$1");
+		const timestamp = event.receiveTimestamp.toLocaleTimeString();
+		const schema = event.$schemaRef.replace(/.*\/([^/]*\/[^/]*)$/, "$1");
 		const jevent = event.eventName ?? "";
 
 		// Extensible: We can process data regardless of schema

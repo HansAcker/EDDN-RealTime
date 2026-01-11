@@ -1,4 +1,4 @@
-import { EDDNEvent } from "eddn/EDDNEvent.js";
+import { EDDNEvent } from "#eddn/EDDNEvent.js";
 
 
 export class EDDNClient extends EventTarget {

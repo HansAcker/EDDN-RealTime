@@ -1,12 +1,12 @@
-import DashboardModule from "DashboardModule";
-import { SortedStatsBox } from "ui/statsbox.js";
+import { DataTableModule } from "#DashboardModule";
+import { SortedStatsBox } from "#ui/statsbox.js";
 
 
-export class EventStatsModule extends DashboardModule {
+export class EventStatsModule extends DataTableModule {
 	#statsBox;
 
-	constructor(router, container, infobox) {
-		super(router, ["*"], container, infobox);
+	constructor(router, container, options) {
+		super(router, ["*"], container, options);
 		this.#statsBox = new SortedStatsBox(container);
 	}
 

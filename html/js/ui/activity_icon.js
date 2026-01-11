@@ -23,7 +23,7 @@ class Activity {
 		this.#idleTimeout = idleTimeout;
 	}
 
-	_changeState(newState, oldState) {
+	_changeState(_newState, _oldState) {
 		// base class does nothing here
 	}
 
@@ -63,7 +63,7 @@ class PageIconActivity extends Activity {
 		[Activity._states._error]: "img/activity-icon/activity-icon--state-error.svg"
 	};
 
-	_changeState(newState, oldState) {
+	_changeState(newState, _oldState) {
 		this._element.href = PageIconActivity.#icons[newState];
 	}
 }

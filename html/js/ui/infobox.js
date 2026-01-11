@@ -100,7 +100,7 @@ export class InfoBox {
 					return InfoBox.#triggerAnimation(element, "infobox__button--signal-success");
 				})
 				.catch((err) => {
-					console.log("copy error:", err);
+					console.warn("InfoBox: clipboard copy error:", err);
 					InfoBox.#triggerAnimation(element, "infobox__button--signal-error");
 					reject(err);
 				});

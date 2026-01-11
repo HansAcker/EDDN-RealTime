@@ -66,7 +66,7 @@ export class DataTableModule extends DashboardModule {
 
 		const table = document.importNode(this._tableTemplate.content, true);
 		const tbody = table.querySelector("tbody"); // TODO: check
-		tbody.innerHTML = "<tr><td>&nbsp;".repeat(this.listLength);
+		tbody.innerHTML = "<tr><td>&nbsp;</td></tr>".repeat(this.listLength);
 
 		container.replaceChildren(table);
 		return tbody;

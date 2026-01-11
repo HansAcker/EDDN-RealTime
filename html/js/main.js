@@ -65,13 +65,17 @@ eddn.addEventListener("eddn:message", () => activity.ok()); // all valid message
 eddn.addEventListener("eddn:error", () => activity.error()); // parse errors
 
 
-
-
 // TODO: dynamic imports etc., progress bar, "Loading..." animation
 
 // block here until all loaded
 await RegionMap.ready;
 // await CachedPageIconActivity.ready;
+
+// wait for CSS to finish loading
+if (document.readyState === "loading") {
+	await new Promise((resolve) => window.addEventListener("load", resolve, { once: true }));
+}
+
 
 console.debug("Main: load done");
 
@@ -96,23 +100,22 @@ const router = new MessageRouter(eddn);
 const options = { infobox, listLength: 20 };
 
 const _modules = // eslint-disable-line no-unused-vars
-{
-//	"Jump": new FSDJumpModule(router, window.jumps, options),
-	"Jump": new FSDJumpModule(router, window.FSDJump, { template: window.FSDJumpTemplate, ...options }),
-	"Route": new NavRouteModule(router, window.NavRoute, { template: window.NavRouteTemplate, ...options }),
-	"Scan": new ScanModule(router, window.Scan, { template: window.ScanTemplate, ...options }),
-	"Location": new LocationModule(router, window.Docks, { template: window.LocationTemplate, ...options }),
-	"Codex": new CodexEntryModule(router, window.CodexDiscoveries, { template: window.CodexDiscoveriesTemplate, ...options }),
-	"Updates": new UpdatesModule(router, window.Updates, { template: window.UpdatesTemplate, ...options }),
-	"Approach": new ApproachModule(router, window.Approach, { template: window.ApproachTemplate, ...options }),
-	"Visits": new VisitsModule(router, window.Visits, { template: window.VisitsTemplate, ...options }),
-	"NewStars": new NewStarsModule(router, window.NewStars, { template: window.NewStarsTemplate, ...options }),
-	"NewBodies": new NewBodiesModule(router, window.NewBodies, { template: window.NewBodiesTemplate, ...options }),
+[
+	new FSDJumpModule(router, window.FSDJump, { template: window.FSDJumpTemplate, ...options }),
+	new NavRouteModule(router, window.NavRoute, { template: window.NavRouteTemplate, ...options }),
+	new ScanModule(router, window.Scan, { template: window.ScanTemplate, ...options }),
+	new LocationModule(router, window.Docks, { template: window.LocationTemplate, ...options }),
+	new CodexEntryModule(router, window.CodexEntry, { template: window.CodexEntryTemplate, ...options }),
+	new UpdatesModule(router, window.Updates, { template: window.UpdatesTemplate, ...options }),
+	new ApproachModule(router, window.Approach, { template: window.ApproachTemplate, ...options }),
+	new VisitsModule(router, window.Visits, { template: window.VisitsTemplate, ...options }),
+	new NewStarsModule(router, window.NewStars, { template: window.NewStarsTemplate, ...options }),
+	new NewBodiesModule(router, window.NewBodies, { template: window.NewBodiesTemplate, ...options }),
 
-	"EventLog": new EventLogModule(router, window.EventLog, { template: window.EventLogTemplate, ...options }),
+	new EventLogModule(router, window.EventLog, { template: window.EventLogTemplate, ...options }),
 
 	// no infobox
-	"EventStats": new EventStatsModule(router, window.eventsbody),
-};
+	new EventStatsModule(router, window.eventsbody),
+];
 
 console.debug("Main: init done");

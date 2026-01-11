@@ -38,8 +38,7 @@ export class MessageRouter {
 		}
 
 		if (typeof topics[Symbol.iterator] !== "function") {
-			console.warn("topics must be iterable");
-			return;
+			throw new TypeError("topics must be iterable");
 		}
 
 		for (const topic of topics) {
@@ -77,8 +76,7 @@ export class MessageRouter {
 		}
 
 		if (typeof topics[Symbol.iterator] !== "function") {
-			console.warn("topics must be iterable");
-			return;
+			throw new TypeError("topics must be iterable");
 		}
 
 		for (const topic of topics) {
@@ -147,6 +145,6 @@ function invoke(cb, event) {
 	try {
 		cb(event);
 	} catch (err) {
-		console.error("Error in message handler:", err);
+		console.error("MessageRouter: Error in message handler:", err);
 	}
 }

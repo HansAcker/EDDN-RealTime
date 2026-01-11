@@ -27,6 +27,8 @@ export class MessageRouter {
 	 * @param {string|Iterable<string>} [topics] - A single topic string, an iterable of strings, or undefined for wildcard.
 	 */
 	register(callback, topics) {
+		// TODO: possibly support passing a signal, call unregister on abort
+
 		if (!topics) {
 			this.#wildcards.add(callback);
 			return;

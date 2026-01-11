@@ -28,7 +28,7 @@
 <div data-dashboard__module="UpdatesModule"></div>
 
 <div data-dashboard__module="VisitsModule"></div>
-<div data-dashboard__module="CodexDiscoveryModule"></div>
+<div data-dashboard__module="CodexEntryModule"></div>
 
 <div data-dashboard__module="GameStatsModule"></div>
 <div data-dashboard__module="EventStatsModule"></div>
@@ -57,7 +57,7 @@
 
 <div id="Visits" class="dashboard__table wider"></div>
 
-<div id="CodexDiscoveries" class="dashboard__table wider"></div>
+<div id="CodexEntry" class="dashboard__table wider"></div>
 
 <div id="EventLog" class="dashboard__table full"></div>
 
@@ -65,7 +65,7 @@
 <table>
 <caption>Stats
 <thead><tr><th>Stats<th>Count
-<tbody id="statsbody">
+<tbody>
 </table>
 </div>
 
@@ -73,7 +73,7 @@
 <table>
 <caption>Event Stats
 <thead><tr><th>Event<th style="width: 25%;">Count
-<tbody id="eventsbody">
+<tbody>
 </table>
 </div>
 
@@ -81,7 +81,7 @@
 <table>
 <caption>Software Stats
 <thead><tr><th>Software<th style="width: 25%;">Count
-<tbody id="softbody">
+<tbody>
 </table>
 </div>
 
@@ -122,7 +122,7 @@
 <table class="wide">
 <caption>Routes Plotted
 <thead><tr><th style="width: 25%;">Route From<th>To<th style="width: 10%;">Jumps<th style="width: 14%;">Distance<th style="width: 14%;">Total<th style="width: 12%;">Max
-<tbody id="routes">
+<tbody>
 </table>
 </template>
 
@@ -130,7 +130,7 @@
 <table class="narrow">
 <caption>Stars discovered
 <thead><tr><th>Discovered Star<th style="width: 20%;">Class
-<tbody id="newstars">
+<tbody>
 </table>
 </template>
 
@@ -138,7 +138,7 @@
 <table class="wide">
 <caption>Planets discovered
 <thead><tr><th>Discovered Body<th style="width: 25%;">Class<th style="width: 20%;">Atmosphere<th style="width: 15%;">Landable
-<tbody id="newplanets">
+<tbody>
 </table>
 </template>
 
@@ -146,7 +146,7 @@
 <table>
 <caption>Scanned Bodies
 <thead><tr><th>Scanned Body<th style="width: 30%;">Scan Type
-<tbody id="scanbods">
+<tbody>
 </table>
 </template>
 
@@ -154,7 +154,7 @@
 <table>
 <caption>Settlement Approach
 <thead><tr><th style="width: 50%;">Settlement Approach<th>System
-<tbody id="asett">
+<tbody>
 </table>
 </template>
 
@@ -162,7 +162,7 @@
 <table>
 <caption>Docking and Locations
 <thead><tr><th style="width: 40%;">Docked At<th style="width: 25%;">Type<th>System
-<tbody id="docks">
+<tbody>
 </table>
 </template>
 
@@ -170,7 +170,7 @@
 <table>
 <caption>Tables updated
 <thead><tr><th style="width: 25%;">Updated<th style="width: 40%;">Station<th>System
-<tbody id="updates">
+<tbody>
 </table>
 </template>
 
@@ -178,15 +178,15 @@
 <table class="wider">
 <caption>Jumps to inhabited systems
 <thead><tr><th style="width: 25%;">System Visited<th style="width: 15%;">Population<th style="width: 15%;">Allegiance<th>Faction<th style="width: 10%;">State<!-- <th>Conflicts-->
-<tbody id="visits">
+<tbody>
 </table>
 </template>
 
-<template id="CodexDiscoveriesTemplate">
+<template id="CodexEntryTemplate">
 <table class="wider">
 <caption>Codex Discoveries
 <thead><tr><th>System<th style="width: 10%;">Body<th style="width: 20%;">Codex Category<th style="width: 25%;">Type<th style="width: 20%;">Region
-<tbody id="codex">
+<tbody>
 </table>
 </template>
 

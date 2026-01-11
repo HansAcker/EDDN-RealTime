@@ -1,7 +1,7 @@
 import { DataTableModule } from "#DashboardModule";
 
 
-export class NewStarsModule extends DataTableModule {
+export class NewBodiesModule extends DataTableModule {
 	constructor(router, container, options) {
 		super(router, ["journal:scan"], container, options);
 	}
@@ -30,23 +30,4 @@ export class NewStarsModule extends DataTableModule {
 }
 
 
-export default NewStarsModule;
-
-/*
-        // some false positives slip through in pre-discovered systems
-        if (message.WasDiscovered === false && message.WasMapped === false && message.ScanType !== "NavBeaconDetail") {
-                if (message.StarType) {
-                        const row = makeRow(messageRecord);
-                        row.append(makeCell(message.BodyName), makeCell(`${message.StarType} ${message.Subclass}`));
-                        addRow(window.newstars, row);
-                }
-                else if (message.PlanetClass) {
-                        const row = makeRow(messageRecord);
-                        row.append(makeCell(message.BodyName),
-                                makeCell(message.PlanetClass),
-                                makeCell(message.AtmosphereType && message.AtmosphereType !== "None" ? message.AtmosphereType : ""),
-                                makeCell(message.Landable ? "Yes" : ""));
-                        addRow(window.newplanets, row);
-                }
-        }
-*/
+export default NewBodiesModule;

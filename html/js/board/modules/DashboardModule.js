@@ -119,7 +119,7 @@ export class DataTableModule extends DashboardModule {
 		this.#renderQueue.push(row);
 
 		// drop overflowing elements eventually, the page is likely inactive
-		if (this.#renderQueue.length > this.listLength * this.cullFactor) {
+		if (this.#renderQueue.length >= this.listLength * this.cullFactor) {
 			this.#renderQueue = this.#renderQueue.slice(-this.listLength);
 		}
 
@@ -142,6 +142,8 @@ export class DataTableModule extends DashboardModule {
 		}
 
 		if (queueLength > this.listLength) {
+			// clear table
+			this._container.replaceChildren();
 			this.#renderQueue = this.#renderQueue.slice(-this.listLength);
 			queueLength = this.listLength;
 		}
@@ -156,6 +158,7 @@ export class DataTableModule extends DashboardModule {
 		}
 
 		// remove tail
+		// TODO: possibly use Range.deleteContents() here?
 		if (dropCount > 0) {
 			for (let i = 0; i < dropCount; i++) {
 				this._container.lastElementChild?.remove();

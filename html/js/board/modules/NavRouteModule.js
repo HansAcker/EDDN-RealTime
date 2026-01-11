@@ -20,14 +20,16 @@ export class NavRouteModule extends DataTableModule {
 			return;
 		}
 
-		const row = this.makeRow(event);
-
 		let dist = 0;
 		let longest = 0;
 
-		row.append(this.makeCell(route[0].StarSystem),
+		const row = this.makeRow(event);
+
+		row.append(
+			this.makeCell(route[0].StarSystem),
 			this.makeCell(route[route.length-1].StarSystem),
-			this.makeCell(`${route.length-1}j`));
+			this.makeCell(`${route.length-1}j`)
+		);
 
 		if (route.length === 2) {
 			// single-jump route

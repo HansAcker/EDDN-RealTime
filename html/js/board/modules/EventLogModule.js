@@ -2,9 +2,6 @@ import { DataTableModule } from "#DashboardModule";
 import { RegionMap } from "#ed/RegionMap.js";
 
 
-const ab = true; // (Math.random() >= 0.5);
-
-
 /**
  * Formats a given date/time into a relative time string.
  * @param {Date | number | string} inputDate - Date object, timestamp (ms), or date string.

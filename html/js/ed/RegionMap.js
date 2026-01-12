@@ -90,12 +90,12 @@ export class RegionMap {
 		const end = rowIndex[pz + 1];
 
 		// array data is [Length, ID, Length, ID...]
-		let currentX = 0;
+		let remainingX = px;
 		for (let i = start; i < end-1; i += 2) {
 
 			// find the length/region tuple that contains px
 			const runLength = rleData[i];
-			if (px < currentX + runLength) {
+			if (remainingX < runLength) {
 				const regionId = rleData[i + 1];
 				return regionId === 0 
 					? { id: 0, name: null } 
@@ -103,7 +103,7 @@ export class RegionMap {
 			}
 	
 			// skip to next segment
-			currentX += runLength;
+			remainingX -= runLength;
 		}
 
 		// coordinates not found in rleData

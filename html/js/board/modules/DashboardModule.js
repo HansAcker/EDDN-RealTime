@@ -115,12 +115,16 @@ export class DataTableModule extends DashboardModule {
 	}
 
 
+
 	_addRow(row) {
 		this.#renderQueue.push(row);
+		const queueLength = this.#renderQueue.length;
 
 		// drop overflowing elements eventually, the page is likely inactive
-		if (this.#renderQueue.length >= this.listLength * this.cullFactor) {
-			this.#renderQueue = this.#renderQueue.slice(-this.listLength);
+		const dropCount = this.#cutQueue(this.listLength, this.listLength * this.cullFactor);
+
+		if (dropCount) {
+			// console.debug("overflow in addRow:", queueLength, dropCount);
 		}
 
 		// only update the DOM when the page is on display and ready to paint
@@ -141,10 +145,11 @@ export class DataTableModule extends DashboardModule {
 			return;
 		}
 
-		if (queueLength > this.listLength) {
+		if (this.#cutQueue(this.listLength)) {
+			// console.debug("overflow in #render:", queueLength, queueLength - this.listLength);
+
 			// clear table
 			this._container.replaceChildren();
-			this.#renderQueue = this.#renderQueue.slice(-this.listLength);
 			queueLength = this.listLength;
 		}
 
@@ -157,7 +162,7 @@ export class DataTableModule extends DashboardModule {
 			fragment.prepend(this.#renderQueue[i]);
 		}
 
-		this.#renderQueue = [];
+		this.#renderQueue.length = 0;
 
 		// remove tail
 		// TODO: possibly use Range.deleteContents() here?
@@ -169,6 +174,23 @@ export class DataTableModule extends DashboardModule {
 
 		// insert new rows
 		this._container.prepend(fragment);
+	}
+
+
+	#cutQueue(hardLimit, softLimit) {
+		const queueLength = this.#renderQueue.length;
+
+		if (queueLength >= (softLimit ?? hardLimit)) {
+			const dropCount = queueLength - hardLimit;
+
+			// move queue tail up front ([dropCount].. -> [0]..)
+			this.#renderQueue.copyWithin(0, dropCount);
+			this.#renderQueue.length = hardLimit;
+
+			return dropCount;
+		}
+
+		return 0;
 	}
 }
 

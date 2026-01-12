@@ -162,6 +162,8 @@ export class RegionMap {
 		const SystemAddress = bitMask(_id64, 55);
 		const BodyId = Number(_id64 >> 55n);
 
+		// TODO: keep a shift counter instead of modifying _id64
+
 		const massClass = Number(bitMask(_id64, 3));
 		_id64 = _id64 >> 3n;
 

@@ -120,7 +120,6 @@ export class DataTableModule extends DashboardModule {
 
 		// drop overflowing elements eventually, the page is likely inactive
 		if (this.#renderQueue.length >= this.listLength * this.cullFactor) {
-console.log(`overflow in addRow(): ${this.#renderQueue.length}`);
 			this.#renderQueue = this.#renderQueue.slice(-this.listLength);
 		}
 
@@ -143,7 +142,6 @@ console.log(`overflow in addRow(): ${this.#renderQueue.length}`);
 		}
 
 		if (queueLength > this.listLength) {
-console.log(`overflow in #render(): ${queueLength}`);
 			// clear table
 			this._container.replaceChildren();
 			this.#renderQueue = this.#renderQueue.slice(-this.listLength);

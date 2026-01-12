@@ -129,8 +129,8 @@ class SortedStatsBox extends StatsBox {
 
 		// update indices
 		this._stats.set(key, idxNew);
-		for (let i = idxNew; i < idxOld; i++) {
-			this._stats.set(this._rows[i]._key, i+1);
+		for (let i = idxNew+1; i <= idxOld; i++) {
+			this._stats.set(this._rows[i]._key, i);
 		}
 
 		rowRef.before(stat._row); // update the DOM last

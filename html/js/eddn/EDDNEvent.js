@@ -7,7 +7,7 @@ export class EDDNEvent extends Event {
 	message;
 	data; // event data { $schemaRef, header, message } for easier reference
 
-	receiveTimestamp; // timestamp of event creation (local clock)
+	#receiveTimestamp; // timestamp of event creation (local clock)
 	#age; // difference between gatewayTimestamp (gateway clock) and timestamp (sender clock), set by get age()
 
 	#eventType; // derived from schema/message.event. set by get eventType()
@@ -39,9 +39,14 @@ export class EDDNEvent extends Event {
 		this.message = message;
 		this.data = data;
 
-		this.receiveTimestamp = new Date();
+		// store a number here, make it a Date object if they someone asks for it
+		this.#receiveTimestamp = Date.now();
 	}
 
+
+	get receiveTimestamp() {
+		return new Date(this.#receiveTimestamp);
+	}
 
 	get age() {
 		return this.#age ?? (this.#age = (Date.parse(this.header?.gatewayTimestamp) - Date.parse(this.message?.timestamp)));

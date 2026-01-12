@@ -2,6 +2,26 @@ import { DataTableModule } from "#DashboardModule";
 import { RegionMap } from "#ed/RegionMap.js";
 
 
+// 16 colors per nibble
+// TODO: improve this "high-contrast" selection?
+const hex_colors = [
+	"#F2F3F4", "#222222", "#F3C300", "#875692",
+	"#F38400", "#A1CAF1", "#BE0032", "#C2B280",
+	"#848482", "#008856", "#E68FAC", "#0067A5",
+	"#F99379", "#604E97", "#DCD300", "#B3446C"
+];
+
+// time rounding units in seconds
+const time_units = [
+	{ unit: 'year', seconds: 31536000 },
+	{ unit: 'month', seconds: 2592000 },
+	{ unit: 'day', seconds: 86400 },
+	{ unit: 'hour', seconds: 3600 },
+	{ unit: 'minute', seconds: 60 },
+	{ unit: 'second', seconds: 1 }
+];
+
+
 /**
  * Formats a given date/time into a relative time string.
  * @param {Date | number | string} inputDate - Date object, timestamp (ms), or date string.
@@ -11,17 +31,7 @@ function formatRelativeTime(diffMs, rtf) {
     try {
         const diffSec = Math.round(-diffMs / 1000);
 
-        // Define time units in seconds
-        const units = [
-            { unit: 'year', seconds: 31536000 },
-            { unit: 'month', seconds: 2592000 },
-            { unit: 'day', seconds: 86400 },
-            { unit: 'hour', seconds: 3600 },
-            { unit: 'minute', seconds: 60 },
-            { unit: 'second', seconds: 1 }
-        ];
-
-        for (const { unit, seconds } of units) {
+        for (const { unit, seconds } of time_units) {
             if (Math.abs(diffSec) >= seconds || unit === 'second') {
                 const value = Math.round(diffSec / seconds);
                 return rtf.format(value, unit);
@@ -59,19 +69,12 @@ export class EventLogModule extends DataTableModule {
 */
 
 		// hex chars to colored blocks
-		const colors = [
-			"#F2F3F4", "#222222", "#F3C300", "#875692",
-			"#F38400", "#A1CAF1", "#BE0032", "#C2B280",
-			"#848482", "#008856", "#E68FAC", "#0067A5",
-			"#F99379", "#604E97", "#DCD300", "#B3446C"
-		];
-
 		const stops = [];
 		const len = uploaderID.length;
 		const step = 100 / len;
 
 		for (let i = 0; i < len; i++) {
-			const color = colors[parseInt(uploaderID[i], 16)];
+			const color = hex_colors[parseInt(uploaderID[i], 16)];
 			// Hard stops for blocky look: color starts at i*step, ends at (i+1)*step
 			stops.push(`${color} ${i * step}% ${(i + 1) * step}%`);
 //			stops.push(`${color} ${(i + 1) * step}%`);

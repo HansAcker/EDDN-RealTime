@@ -12,53 +12,16 @@
 
 <div id="board" class="dashboard">
 
-<!-- 
-<div data-dashboard__module="FSDJumpModule"></div>
-<div data-dashboard__module="NavRouteModule"></div>
-<!-/
-<div data-dashboard__module="ScanModule" data-dashboard__options='{"allScans": false, "newStars": true}'></div>
-<div data-dashboard__module="ScanModule" data-dashboard__options='{"allScans": false, "newBodies": true}'></div>
-/->
-<div data-dashboard__module="NewStarsModule"></div>
-<div data-dashboard__module="NewBodiesModule"></div>
-
-<div data-dashboard__module="ScanModule"></div>
-<div data-dashboard__module="ApproachModule"></div>
-<div data-dashboard__module="LocationModule"></div>
-<div data-dashboard__module="UpdatesModule"></div>
-
-<div data-dashboard__module="VisitsModule"></div>
-<div data-dashboard__module="CodexEntryModule"></div>
-
-<div data-dashboard__module="GameStatsModule"></div>
-<div data-dashboard__module="EventStatsModule"></div>
-<div data-dashboard__module="SoftwareStatsModule"></div>
-<div data-dashboard__module="LegendModule"></div>
-
-<div data-dashboard__module="EventLogModule" data-dashboard__options='{"listLength":30}'></div>
--->
-
-
 <div id="FSDJump" class="dashboard__table narrow"></div>
-
 <div id="NavRoute" class="dashboard__table wide"></div>
-
 <div id="NewStars" class="dashboard__table narrow"></div>
-
 <div id="NewBodies" class="dashboard__table wide"></div>
-
 <div id="Scan" class="dashboard__table"></div>
-
 <div id="Approach" class="dashboard__table"></div>
-
 <div id="Docks" class="dashboard__table"></div>
-
 <div id="Updates" class="dashboard__table"></div>
-
 <div id="Visits" class="dashboard__table wider"></div>
-
 <div id="CodexEntry" class="dashboard__table wider"></div>
-
 <div id="EventLog" class="dashboard__table full"></div>
 
 <div id="GameStats" class="dashboard__table">
@@ -69,13 +32,7 @@
 </table>
 </div>
 
-<div id="EventStats" class="dashboard__table">
-<table>
-<caption>Event Stats</caption>
-<thead><tr><th>Event<th style="width: 25%;">Count
-<tbody id="eventsbody">
-</table>
-</div>
+<div id="EventStats" class="dashboard__table"></div>
 
 <div id="SoftwareStats" class="dashboard__table">
 <table>
@@ -99,6 +56,8 @@
 	<tr class="Odyssey old"><td>Older than 1h
 	<tr class="Odyssey new"><td>In the future
 </table>
+</div>
+
 </div>
 
 
@@ -190,7 +149,13 @@
 </table>
 </template>
 
-</div>
+<template id="EventStatsTemplate">
+<table>
+<caption>Event Stats</caption>
+<thead><tr><th>Event<th style="width: 25%;">Count
+<tbody>
+</table>
+</template>
 
 
 <template id="infotemplate">
@@ -224,6 +189,7 @@
 	}
 }
 </script>
+
 <!-- 
 <script>
 "use strict";

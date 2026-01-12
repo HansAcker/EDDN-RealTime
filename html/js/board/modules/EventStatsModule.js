@@ -3,15 +3,21 @@ import { SortedStatsBox } from "#ui/statsbox.js";
 
 
 export class EventStatsModule extends DataTableModule {
-	#statsBox;
+	// TODO: don't declare it here because of the way _setupContainer() is called by super constructor
+	//_statsBox;
 
 	constructor(router, container, options) {
 		super(router, ["*"], container, options);
-		this.#statsBox = new SortedStatsBox(container);
+	}
+
+	_setupContainer(container) {
+		const tbody = super._setupContainer(container);
+		this._statsBox = new SortedStatsBox(tbody);
+		return tbody;
 	}
 
 	_handleEvent(event) {
-		this.#statsBox.inc(event.eventName);
+		this._statsBox.inc(event.eventName);
 	}
 }
 

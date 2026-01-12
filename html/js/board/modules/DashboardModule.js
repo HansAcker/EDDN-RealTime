@@ -181,7 +181,7 @@ export class DataTableModule extends DashboardModule {
 	#cutQueue(hardLimit, softLimit) {
 		const queueLength = this.#renderQueue.length;
 
-		if (queueLength >= (softLimit ?? hardLimit)) {
+		if (queueLength > (softLimit ?? hardLimit)) {
 			const dropCount = queueLength - hardLimit;
 
 			// move queue tail up front ([dropCount].. -> [0]..)

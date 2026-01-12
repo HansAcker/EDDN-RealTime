@@ -148,7 +148,6 @@ export class DataTableModule extends DashboardModule {
 		}
 
 		// read current element count
-		// TODO: when could childElementCount be !== listLength? usually, dropCount = queueLength
 		const dropCount = (this._container.childElementCount + queueLength) - this.listLength;
 
 		// batch updates into one DocumentFragment
@@ -157,11 +156,10 @@ export class DataTableModule extends DashboardModule {
 			fragment.prepend(this.#renderQueue[i]);
 		}
 
-		// reset queue
+		// reset queue, drop any remaining elements
 		this.#renderQueue.length = 0;
 
 		// remove older rows from table
-		// TODO: possibly use Range.deleteContents() here?
 		if (dropCount > 0) {
 			for (let i = 0; i < dropCount; i++) {
 				this._container.lastElementChild?.remove();

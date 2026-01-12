@@ -13,10 +13,11 @@ export class EDDNClient extends EventTarget {
 
 	#filterFunction = () => true; // accept all messages
 
+	#protocol = []; // ["v2.ws.eddn-realtime.space", "v1.ws.eddn-realtime.space"]; // currently unused
+
 	url = "ws://127.0.0.1:8081";
 
 	resetTimeout = 0; // idle timeout (ms) before watchdog reconnects the socket, 0 to disable watchdog
-	protocol = []; // ["v2.ws.eddn-realtime.space", "v1.ws.eddn-realtime.space"]; // currently unused
 
 
 	constructor(options = {}) {
@@ -46,7 +47,8 @@ export class EDDNClient extends EventTarget {
 		}
 
 		// close connection on optional abort signal
-		signal?.addEventListener("abort", () => this.close());
+		// TODO: block `connect()` after abort?
+		signal?.addEventListener("abort", () => this.close(), { once: true });
 	}
 
 
@@ -63,7 +65,7 @@ export class EDDNClient extends EventTarget {
 		const signal = this.#abortController.signal;
 
 		// pass abort signal into WebSocket class if it supports it
-		this.#socket = new this.#WebSocketClass(this.url, this.protocol, { signal });
+		this.#socket = new this.#WebSocketClass(this.url, this.#protocol, { signal });
 		this.#socket.binaryType = "arraybuffer";
 
 		this.#attachEventHandlers(this.#socket, signal);
@@ -83,6 +85,8 @@ export class EDDNClient extends EventTarget {
 		// discard WebSocket instance
 		this.#socket?.close();
 		this.#socket = null;
+
+		console.log("EDDNClient: WebSocket removed");
 
 		// inform event listeners now because there won't be a `close` from the socket later
 		this.dispatchEvent(new CloseEvent("close", {

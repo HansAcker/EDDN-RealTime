@@ -13,8 +13,9 @@ export class MessageRouter {
 	 * @param {AbortSignal} [options.signal] - An AbortSignal to remove the event listener from the source.
 	 */
 	constructor(source, options = {}) {
-		// optional external abort signal
+		// optional external abort signal, drop all callbacks, prevent new registration
 		const { signal } = options;
+		signal?.addEventListener("abort", () => { this.#topics = this.#wildcards = null; }, { once: true });
 
 		source.addEventListener("eddn:message", (event) => this.#dispatch(event), { signal });
 	}
@@ -26,11 +27,14 @@ export class MessageRouter {
 	 * @param {Function} callback - The function to invoke when a matching message is received.
 	 * @param {string|Iterable<string>} [topics] - A single topic string, an iterable of strings, or undefined for wildcard.
 	 */
-	register(callback, topics) {
-		// TODO: possibly support passing a signal, call unregister on abort
+	register(callback, topics, options = {}) {
+		const { signal } = options;
 
 		if (!topics) {
-			this.#wildcards.add(callback);
+			if (!this.#wildcards.has(callback)) {
+				this.#wildcards.add(callback);
+				signal?.addEventListener("abort", () => this.unregister(callback, ["*"]), { once: true });
+			}
 			return;
 		}
 
@@ -38,10 +42,16 @@ export class MessageRouter {
 		if (typeof topics === "string") {
 			topics = [topics];
 		}
-
-		if (typeof topics[Symbol.iterator] !== "function") {
+		else if (typeof topics[Symbol.iterator] !== "function") {
 			throw new TypeError("topics must be iterable");
 		}
+
+		// make a persistent copy of the potentially consumable iterator, for the unregister handler
+		topics = Array.from(topics);
+
+		// TODO: could possibly queue up multiple listeners for the same callback
+		//       - we'd have to check each set, add listener if any `.has()` returned false
+		signal?.addEventListener("abort", () => this.unregister(callback, topics), { once: true });
 
 		for (const topic of topics) {
 			if (topic === "*") {

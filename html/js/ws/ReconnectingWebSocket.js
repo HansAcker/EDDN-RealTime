@@ -37,7 +37,7 @@ class ReconnectingWebSocket extends EventTarget {
 		Object.assign(this, config);
 
 		if (signal) {
-			signal.addEventListener("abort", () => this.close());
+			signal.addEventListener("abort", () => this.close(), { once: true });
 		}
 
 		this.#onOnlineBound = () => this.#handleWindowOnline();

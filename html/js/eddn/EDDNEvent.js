@@ -8,17 +8,17 @@ export class EDDNEvent extends Event {
 	data; // event data { $schemaRef, header, message } for easier reference
 
 	receiveTimestamp; // timestamp of event creation (local clock)
-	#age; // difference between gatewayTimestamp (gateway clock) and timestamp (game clock), set by get age()
+	#age; // difference between gatewayTimestamp (gateway clock) and timestamp (sender clock), set by get age()
 
 	#eventType; // derived from schema/message.event. set by get eventType()
-	#eventName; // message.event if present, set by get eventName()
+	#eventName; // message.event if present, otherwise eventType, set by get eventName()
 	#gameType; // Odyssey, Horizons. set by get gameType()
 
 	#isTaxi;
 	#isMulticrew;
 
 	#starSystem; // derived from message.StarSystem, .systemName, .SytemName, .System or first hop of .Route, defaults to "", set by get StarSystem()
-	#starPos;
+	#starPos; // derived from message.StarPos or first .Route hop, defaults to undefined, set by get StarPos()
 	#gotStarPos = false;
 
 
@@ -51,12 +51,12 @@ export class EDDNEvent extends Event {
 		return this.#eventType ?? (this.#eventType = EDDNEvent.getEventType(this.data));
 	}
 
-	get gameType() {
-		return this.#gameType ?? (this.#gameType = EDDNEvent.getGameType(this.data));
-	}
-
 	get eventName() {
 		return this.#eventName ?? (this.#eventName = this.message?.event ?? this.eventType);
+	}
+
+	get gameType() {
+		return this.#gameType ?? (this.#gameType = EDDNEvent.getGameType(this.data));
 	}
 
 	get isTaxi() {
@@ -68,12 +68,13 @@ export class EDDNEvent extends Event {
 	}
 
 	get StarSystem() {
-		return this.#starSystem ?? (this.#starSystem = this.message.StarSystem ?? this.message.systemName ?? this.message.SystemName ?? this.message.System ?? this.message.Route?.[0]?.StarSystem ?? "");
+		return this.#starSystem ?? (this.#starSystem = this.message?.StarSystem ?? this.message?.systemName ?? this.message?.SystemName ?? this.message?.System ?? this.message?.Route?.[0]?.StarSystem ?? "");
 	}
 
 	get StarPos() {
-		return this.#gotStarPos ? this.#starPos : (this.#gotStarPos = true, this.#starPos = this.message.StarPos ?? this.message.Route?.[0]?.StarPos);
+		return this.#gotStarPos ? this.#starPos : (this.#gotStarPos = true, this.#starPos = this.message?.StarPos ?? this.message?.Route?.[0]?.StarPos);
 	}
+
 
 	/**
 	 * Normalizes the schema URL into a clean event string.

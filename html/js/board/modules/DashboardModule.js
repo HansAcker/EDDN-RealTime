@@ -154,8 +154,10 @@ export class DataTableModule extends DashboardModule {
 		// batch updates into one DocumentFragment
 		const fragment = document.createDocumentFragment();
 		for (let i = 0; i < queueLength; i++) {
-			fragment.prepend(this.#renderQueue.shift());
+			fragment.prepend(this.#renderQueue[i]);
 		}
+
+		this.#renderQueue = [];
 
 		// remove tail
 		// TODO: possibly use Range.deleteContents() here?

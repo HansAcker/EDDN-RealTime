@@ -44,7 +44,7 @@ export class EDDNEvent extends Event {
 
 
 	get age() {
-		return this.#age ?? (this.#age = (new Date(this.header?.gatewayTimestamp) - new Date(this.message?.timestamp)));
+		return this.#age ?? (this.#age = (Date.parse(this.header?.gatewayTimestamp) - Date.parse(this.message?.timestamp)));
 	}
 
 	get eventType() {

@@ -6,7 +6,8 @@
 		"build:bundle": "esbuild html/js/main.js --outdir=html/js/dist/ --bundle --format=esm --mangle-props='^[#_]' --minify --sourcemap --analyze",
 		"build": "npm run build:bundle",
 		"watch": "npm run build:bundle -- --watch",
-		"lint": "eslint html/js"
+		"lint:js": "eslint html/js",
+		"lint": "npm run lint:js"
 	},
 	"imports": {
 		"#DashboardModule": "./html/js/board/modules/DashboardModule.js",

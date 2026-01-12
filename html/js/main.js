@@ -101,18 +101,18 @@ const options = { infobox, listLength: 20 };
 
 const _modules = // eslint-disable-line no-unused-vars
 [
-	new FSDJumpModule(router, window.FSDJump, { template: window.FSDJumpTemplate, ...options }),
-	new NavRouteModule(router, window.NavRoute, { template: window.NavRouteTemplate, ...options }),
-	new ScanModule(router, window.Scan, { template: window.ScanTemplate, ...options }),
-	new LocationModule(router, window.Docks, { template: window.LocationTemplate, ...options }),
-	new CodexEntryModule(router, window.CodexEntry, { template: window.CodexEntryTemplate, ...options }),
-	new UpdatesModule(router, window.Updates, { template: window.UpdatesTemplate, ...options }),
-	new ApproachModule(router, window.Approach, { template: window.ApproachTemplate, ...options }),
-	new VisitsModule(router, window.Visits, { template: window.VisitsTemplate, ...options }),
-	new NewStarsModule(router, window.NewStars, { template: window.NewStarsTemplate, ...options }),
-	new NewBodiesModule(router, window.NewBodies, { template: window.NewBodiesTemplate, ...options }),
+	new FSDJumpModule(router, window.FSDJump, { ...options, template: window.FSDJumpTemplate }),
+	new NavRouteModule(router, window.NavRoute, { ...options, template: window.NavRouteTemplate }),
+	new ScanModule(router, window.Scan, { ...options, template: window.ScanTemplate }),
+	new LocationModule(router, window.Docks, { ...options, template: window.LocationTemplate }),
+	new CodexEntryModule(router, window.CodexEntry, { ...options, template: window.CodexEntryTemplate }),
+	new UpdatesModule(router, window.Updates, { ...options, template: window.UpdatesTemplate }),
+	new ApproachModule(router, window.Approach, { ...options, template: window.ApproachTemplate }),
+	new VisitsModule(router, window.Visits, { ...options, template: window.VisitsTemplate }),
+	new NewStarsModule(router, window.NewStars, { ...options, template: window.NewStarsTemplate }),
+	new NewBodiesModule(router, window.NewBodies, { ...options, template: window.NewBodiesTemplate }),
 
-	new EventLogModule(router, window.EventLog, { template: window.EventLogTemplate, ...options }),
+	new EventLogModule(router, window.EventLog, { ...options, template: window.EventLogTemplate, listLength: 30 }),
 
 	// no infobox
 	new EventStatsModule(router, window.eventsbody),

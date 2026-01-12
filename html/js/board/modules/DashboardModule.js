@@ -116,17 +116,12 @@ export class DataTableModule extends DashboardModule {
 	}
 
 
-
 	_addRow(row) {
+		// add row to queue
 		this.#renderQueue.push(row);
-		const queueLength = this.#renderQueue.length;
 
-		// drop overflowing elements eventually, the page is likely inactive
+		// drop overflowing rows eventually, the page is likely inactive
 		const dropCount = this.#cutQueue(this.listLength, this.listLength * this.cullFactor);
-
-		if (dropCount) {
-			// console.debug("overflow in addRow:", queueLength, dropCount);
-		}
 
 		// only update the DOM when the page is on display and ready to paint
 		if (!this.#renderScheduled && this.#renderQueue.length) {
@@ -147,14 +142,13 @@ export class DataTableModule extends DashboardModule {
 		}
 
 		if (this.#cutQueue(this.listLength)) {
-			// console.debug("overflow in #render:", queueLength, queueLength - this.listLength);
-
 			// clear table
 			this._container.replaceChildren();
 			queueLength = this.listLength;
 		}
 
 		// read current element count
+		// TODO: when could childElementCount be !== listLength? usually, dropCount = queueLength
 		const dropCount = (this._container.childElementCount + queueLength) - this.listLength;
 
 		// batch updates into one DocumentFragment
@@ -163,9 +157,10 @@ export class DataTableModule extends DashboardModule {
 			fragment.prepend(this.#renderQueue[i]);
 		}
 
+		// reset queue
 		this.#renderQueue.length = 0;
 
-		// remove tail
+		// remove older rows from table
 		// TODO: possibly use Range.deleteContents() here?
 		if (dropCount > 0) {
 			for (let i = 0; i < dropCount; i++) {
@@ -184,7 +179,7 @@ export class DataTableModule extends DashboardModule {
 		if (queueLength > (softLimit ?? hardLimit)) {
 			const dropCount = queueLength - hardLimit;
 
-			// move queue tail up front ([dropCount].. -> [0]..)
+			// move queue tail up front ([dropCount]... -> [0]...)
 			this.#renderQueue.copyWithin(0, dropCount);
 			this.#renderQueue.length = hardLimit;
 

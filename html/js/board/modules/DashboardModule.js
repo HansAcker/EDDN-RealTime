@@ -83,14 +83,14 @@ export class DataTableModule extends DashboardModule {
 	}
 
 
-	makeCell(textContent = "") {
+	_makeCell(textContent = "") {
 		const element = this._cellTemplate.cloneNode(false);
 		element.textContent = element.title = textContent;
 		return element;
 	}
 
 
-	makeRow(event) {
+	_makeRow(event) {
 		const element = this._rowTemplate.cloneNode(false);
 		element.classList.add(event.gameType);
 
@@ -115,11 +115,12 @@ export class DataTableModule extends DashboardModule {
 	}
 
 
-	addRow(row) {
+	_addRow(row) {
 		this.#renderQueue.push(row);
 
 		// drop overflowing elements eventually, the page is likely inactive
 		if (this.#renderQueue.length >= this.listLength * this.cullFactor) {
+console.log(`overflow in addRow(): ${this.#renderQueue.length}`);
 			this.#renderQueue = this.#renderQueue.slice(-this.listLength);
 		}
 
@@ -142,6 +143,7 @@ export class DataTableModule extends DashboardModule {
 		}
 
 		if (queueLength > this.listLength) {
+console.log(`overflow in #render(): ${queueLength}`);
 			// clear table
 			this._container.replaceChildren();
 			this.#renderQueue = this.#renderQueue.slice(-this.listLength);

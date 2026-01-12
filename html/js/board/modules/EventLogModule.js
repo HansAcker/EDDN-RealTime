@@ -43,10 +43,10 @@ export class EventLogModule extends DataTableModule {
 
 
 	_handleEvent(event) {
-		const row = this.makeRow(event);
+		const row = this._makeRow(event);
 
 		const uploaderID = event.header.uploaderID;
-		const idCell = this.makeCell(uploaderID);
+		const idCell = this._makeCell(uploaderID);
 
 /*
 		// hex chars to braille patterns
@@ -91,17 +91,17 @@ export class EventLogModule extends DataTableModule {
 
 
 		row.append(
-			this.makeCell(formatRelativeTime(event.age, this.#timeFormat)),
+			this._makeCell(formatRelativeTime(event.age, this.#timeFormat)),
 			idCell,
-			this.makeCell(event.eventName),
-			this.makeCell(event.header.softwareName),
-			this.makeCell(event.header.softwareVersion),
-			this.makeCell(event.StarSystem),
-			this.makeCell(event.StarPos ? RegionMap.findRegion(...event.StarPos).name ?? "" : ""),
-			this.makeCell(`${event.header.gameversion}${event.header.gamebuild ? ` - ${event.header.gamebuild}` : ""}`),
-			this.makeCell(event.$schemaRef.replace(/^https:\/\/eddn.edcd.io\/schemas\//, ""))
+			this._makeCell(event.eventName),
+			this._makeCell(event.header.softwareName),
+			this._makeCell(event.header.softwareVersion),
+			this._makeCell(event.StarSystem),
+			this._makeCell(event.StarPos ? RegionMap.findRegion(...event.StarPos).name ?? "" : ""),
+			this._makeCell(`${event.header.gameversion}${event.header.gamebuild ? ` - ${event.header.gamebuild}` : ""}`),
+			this._makeCell(event.$schemaRef.replace(/^https:\/\/eddn.edcd.io\/schemas\//, ""))
 		);
-		this.addRow(row);
+		this._addRow(row);
 
 	}
 }

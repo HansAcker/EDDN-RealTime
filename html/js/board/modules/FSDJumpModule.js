@@ -8,9 +8,9 @@ export class FSDJumpModule extends DataTableModule {
 
 
 	_handleEvent(event) {
-		const row = this.makeRow(event);
-		row.append(this.makeCell(event.StarSystem));
-		this.addRow(row);
+		const row = this._makeRow(event);
+		row.append(this._makeCell(event.StarSystem));
+		this._addRow(row);
 	}
 }
 

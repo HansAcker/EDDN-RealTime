@@ -17,15 +17,15 @@ export class NewBodiesModule extends DataTableModule {
 			return;
 		}
 
-		const row = this.makeRow(event);
+		const row = this._makeRow(event);
 		row.append(
-			this.makeCell(message.BodyName),
-			this.makeCell(message.PlanetClass),
-			this.makeCell(message.AtmosphereType && message.AtmosphereType !== "None" ? message.AtmosphereType : ""),
-			this.makeCell(message.Landable ? "Yes" : "")
+			this._makeCell(message.BodyName),
+			this._makeCell(message.PlanetClass),
+			this._makeCell(message.AtmosphereType && message.AtmosphereType !== "None" ? message.AtmosphereType : ""),
+			this._makeCell(message.Landable ? "Yes" : "")
 		);
 
-		this.addRow(row);
+		this._addRow(row);
 	}
 }
 

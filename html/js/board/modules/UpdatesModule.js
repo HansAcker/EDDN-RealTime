@@ -8,14 +8,14 @@ export class UpdatesModule extends DataTableModule {
 
 
 	_handleEvent(event) {
-		const row = this.makeRow(event);
+		const row = this._makeRow(event);
 		const message = event.message;
 
-		row.append(this.makeCell(message.commodities ? "Market" : message.ships ? "Shipyard" : message.modules ? "Outfitting" : ""),
-			this.makeCell(message.stationName),
-			this.makeCell(message.systemName));
+		row.append(this._makeCell(message.commodities ? "Market" : message.ships ? "Shipyard" : message.modules ? "Outfitting" : ""),
+			this._makeCell(message.stationName),
+			this._makeCell(message.systemName));
 
-		this.addRow(row);
+		this._addRow(row);
 	}
 }
 

@@ -13,18 +13,18 @@ export class VisitsModule extends DataTableModule {
 	_handleEvent(event) {
 		const message = event.message;
 		if (message.Population > 0 || message.SystemAllegiance) {
-			const row = this.makeRow(event);
+			const row = this._makeRow(event);
 			const faction = message.SystemFaction ?? {};
 
 			row.append(
-				this.makeCell(event.StarSystem),
-				this.makeCell(VisitsModule.#numFormat(message.Population ?? 0)),
-				this.makeCell(message.SystemAllegiance),
-				this.makeCell(faction.Name ?? ""),
-				this.makeCell(faction.FactionState ?? "")
+				this._makeCell(event.StarSystem),
+				this._makeCell(VisitsModule.#numFormat(message.Population ?? 0)),
+				this._makeCell(message.SystemAllegiance),
+				this._makeCell(faction.Name ?? ""),
+				this._makeCell(faction.FactionState ?? "")
 			);
 
-			this.addRow(row);
+			this._addRow(row);
 		}
 
 	}

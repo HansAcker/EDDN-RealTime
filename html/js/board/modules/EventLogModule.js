@@ -4,12 +4,16 @@ import { RegionMap } from "#ed/RegionMap.js";
 
 // 16 colors per nibble
 // TODO: improve this "high-contrast" selection?
-const hex_colors = [
-	"#F2F3F4", "#222222", "#F3C300", "#875692",
-	"#F38400", "#A1CAF1", "#BE0032", "#C2B280",
-	"#848482", "#008856", "#E68FAC", "#0067A5",
-	"#F99379", "#604E97", "#DCD300", "#B3446C"
-];
+const hex_colors = {
+	"0": "#F2F3F4", "1": "#222222", "2": "#F3C300", "3": "#875692",
+	"4": "#F38400", "5": "#A1CAF1", "6": "#BE0032", "7": "#C2B280",
+	"8": "#848482", "9": "#008856",
+	// belts and braces - duplicate a-f, A-F
+	"a": "#E68FAC", "b": "#0067A5", "c": "#F99379", "d": "#604E97",
+	"e": "#DCD300", "f": "#B3446C",
+	"A": "#E68FAC", "B": "#0067A5",	"C": "#F99379", "D": "#604E97",
+	"E": "#DCD300", "F": "#B3446C"
+};
 
 // time rounding units in seconds
 const time_units = [
@@ -74,7 +78,7 @@ export class EventLogModule extends DataTableModule {
 		const step = 100 / len;
 
 		for (let i = 0; i < len; i++) {
-			const color = hex_colors[parseInt(uploaderID[i], 16)];
+			const color = hex_colors[uploaderID[i]] ?? "#000";
 			// Hard stops for blocky look: color starts at i*step, ends at (i+1)*step
 			stops.push(`${color} ${i * step}% ${(i + 1) * step}%`);
 //			stops.push(`${color} ${(i + 1) * step}%`);
@@ -102,7 +106,7 @@ export class EventLogModule extends DataTableModule {
 			this._makeCell(event.StarSystem),
 			this._makeCell(event.StarPos ? RegionMap.findRegion(...event.StarPos).name ?? "" : ""),
 			this._makeCell(`${event.header.gameversion}${event.header.gamebuild ? ` - ${event.header.gamebuild}` : ""}`),
-			this._makeCell(event.$schemaRef.replace(/^https:\/\/eddn.edcd.io\/schemas\//, ""))
+			this._makeCell(event.$schemaRef.replace(/^https:\/\/eddn\.edcd\.io\/schemas\//, ""))
 		);
 		this._addRow(row);
 

@@ -1,4 +1,5 @@
 import { DataTableModule } from "#DashboardModule";
+import { Config } from "#config.js";
 import { RegionMap } from "#ed/RegionMap.js";
 
 
@@ -51,7 +52,7 @@ function formatRelativeTime(diffMs, rtf) {
 
 
 export class EventLogModule extends DataTableModule {
-	#timeFormat = new Intl.RelativeTimeFormat("en", { numeric: "auto", style: "narrow" });
+	#timeFormat = new Intl.RelativeTimeFormat(Config.timeLocale, Config.timeOptions);
 
 	constructor(router, container, options) {
 		super(router, ["*"], container, options);

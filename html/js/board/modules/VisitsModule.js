@@ -1,8 +1,9 @@
 import { DataTableModule } from "#DashboardModule";
+import { Config } from "#config.js";
 
 
 export class VisitsModule extends DataTableModule {
-	static #numFormat = new Intl.NumberFormat("en", { notation: "standard", useGrouping: "always" }).format;
+	static #numFormat = new Intl.NumberFormat(Config.numberLocale, Config.numberOptions).format;
 
 
 	constructor(router, container, options) {

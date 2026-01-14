@@ -217,8 +217,12 @@ class WebsocketRelay:
 				try:
 					# stream compression runs on the main thread
 					websockets.broadcast(self._ws_conns, data.decode("utf-8"))
+					# yield to loop, in case of message bursts
+					await asyncio.sleep(0)
 				except Exception as e:
 					self._logger.exception("websockets relay error")
+					# avoid busy error loop
+					await asyncio.sleep(0.1)
 
 		except Exception as e:
 			# If the upstream iterator fails, terminate the server process,

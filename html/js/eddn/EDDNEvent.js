@@ -12,24 +12,19 @@ export class EDDNEvent extends Event {
 
 	#receiveTimestamp; // timestamp of event creation (local clock)
 
-	// TODO: lazy initialization causes late representation changes. initialize with sentinel value of same type?
-	//       - null should be good for heap objects and oddballs (boolean), not so much for numbers
-	//       - use gotX bools for numbers?
-
-	// TODO: for ages > ~24d, a double is required. initialize with 0.0 to always force the type?
 	#age = 0; // difference between gatewayTimestamp (gateway clock) and timestamp (sender clock), set by get age()
 	#gotAge = false;
 
-	#eventType = null; // derived from schema/message.event. set by get eventType()
-	#eventName = null; // message.event if present, otherwise eventType, set by get eventName()
-	#gameType = null; // Odyssey, Horizons. set by get gameType()
+	#eventType; // derived from schema/message.event. set by get eventType()
+	#eventName; // message.event if present, otherwise eventType, set by get eventName()
+	#gameType; // Odyssey, Horizons. set by get gameType()
 
-	#isTaxi = null;
-	#isMulticrew = null;
+	#isTaxi;
+	#isMulticrew;
 
-	#starSystem = null; // derived from message.StarSystem, .systemName, .SytemName, .System or first hop of .Route, defaults to "", set by get StarSystem()
+	#starSystem; // derived from message.StarSystem, .systemName, .SytemName, .System or first hop of .Route, defaults to "", set by get StarSystem()
 
-	#starPos = null; // derived from message.StarPos or first .Route hop, defaults to undefined, set by get StarPos()
+	#starPos; // derived from message.StarPos or first .Route hop, defaults to undefined, set by get StarPos()
 	#gotStarPos = false;
 
 

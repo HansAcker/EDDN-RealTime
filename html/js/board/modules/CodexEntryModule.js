@@ -4,6 +4,10 @@ import GalacticRegions from "#ed/GalacticRegions.json" with { type: "json" };
 
 const trimPrefix = (str, prefix) => (str.startsWith(prefix) ? str.slice(prefix.length) : str).trim();
 
+const RX_SUB_CATEGORY = /^\$Codex_SubCategory_(.*);$/;
+const RX_CODEX_NAME = /^\$Codex_Ent_(.*)_Name;$/;
+const RX_REGION_NAME = /^\$Codex_RegionName_(.*);$/;
+
 
 export class CodexEntryModule extends DataTableModule {
 	constructor(router, container, options) {
@@ -18,9 +22,9 @@ export class CodexEntryModule extends DataTableModule {
 		row.append(
 			this._makeCell(message.System),
 			this._makeCell(trimPrefix(message.BodyName ?? "", message.System)), // strip system name from body name
-			this._makeCell(message.SubCategory.replace(/^\$Codex_SubCategory_(.*);$/, "$1").replaceAll("_", " ")), // reformat keys
-			this._makeCell(message.Name.replace(/^\$Codex_Ent_(.*)_Name;$/, "$1").replaceAll("_", " ")),
-			this._makeCell(GalacticRegions[message.Region.replace(/^\$Codex_RegionName_(.*);$/, "$1")])); // look up region name from number
+			this._makeCell(message.SubCategory.replace(RX_SUB_CATEGORY, "$1").replaceAll("_", " ")), // reformat keys
+			this._makeCell(message.Name.replace(RX_CODEX_NAME, "$1").replaceAll("_", " ")),
+			this._makeCell(GalacticRegions[+(message.Region.replace(RX_REGION_NAME, "$1"))])); // look up region name from number
 
 		this._addRow(row);
 	}

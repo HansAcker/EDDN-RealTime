@@ -25,8 +25,8 @@ export default [
 //					"caughtErrorsIgnorePattern": "^_"
 				}
 			],
-			"prefer-const": "error"
-			// "semi": ["error", "always"]
+			"prefer-const": "error",
+			"semi": ["error", "always"]
 		}
 	}
 ];

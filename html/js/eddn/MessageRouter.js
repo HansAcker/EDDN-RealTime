@@ -42,6 +42,7 @@ export class MessageRouter {
 		if (typeof topics === "string") {
 			topics = [topics];
 		}
+
 		else if (typeof topics[Symbol.iterator] !== "function") {
 			throw new TypeError("topics must be iterable");
 		}
@@ -87,7 +88,7 @@ export class MessageRouter {
 			topics = [topics];
 		}
 
-		if (typeof topics[Symbol.iterator] !== "function") {
+		else if (typeof topics[Symbol.iterator] !== "function") {
 			throw new TypeError("topics must be iterable");
 		}
 

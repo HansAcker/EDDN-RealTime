@@ -40,3 +40,6 @@ Config.relTimeFormat = new Intl.RelativeTimeFormat(Config.timeLocale, Config.tim
 
 // nothing more to add
 Object.freeze(Config);
+
+
+export default Config;

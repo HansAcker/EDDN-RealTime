@@ -10,6 +10,7 @@
 		"lint": "npm run lint:js"
 	},
 	"imports": {
+		"#config.js": "./html/js/config.js",
 		"#DashboardModule": "./html/js/board/modules/DashboardModule.js",
 		"#ed/*": "./html/js/ed/*",
 		"#eddn/*": "./html/js/eddn/*",

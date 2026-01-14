@@ -112,11 +112,15 @@ class CachedPageIconActivity extends PageIconActivity {
 			const path = ICON_PATHS[state];
 			try {
 				const response = await fetch(path);
-				if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-				const blob = await response.blob();
-				const blobUrl = URL.createObjectURL(blob);
-				this.#cache.set(state, blobUrl);
+				if (!response.ok) {
+					throw new Error(`HTTP ${response.status}`);
+				}
+
+				// TODO: check that response is SVG?
+
+				// store response in blob storage, register blob: URL in map
+				this.#cache.set(state, URL.createObjectURL(await response.blob()));
 				console.debug(`CachedPageIconActivity: cached icon: ${path} for state: ${state.toString()}`);
 			} catch (err) {
 				console.warn(`CachedPageIconActivity: failed to preload icon: ${path} for state: ${state.toString()}:`, err);

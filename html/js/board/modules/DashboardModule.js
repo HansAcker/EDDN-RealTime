@@ -1,5 +1,4 @@
 
-
 export class DashboardModule {
 
 	// TODO: allow empty topics for wildcard?
@@ -18,6 +17,8 @@ export class DashboardModule {
 	}
 }
 
+
+// TODO: keep and re-use a pool of DOM nodes?
 
 export class DataTableModule extends DashboardModule {
 	#renderQueue = []; // array of elements to add in next paint cycle

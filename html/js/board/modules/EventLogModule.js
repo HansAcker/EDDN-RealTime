@@ -16,40 +16,6 @@ const hex_colors = {
 	"E": "#DCD300", "F": "#B3446C"
 };
 
-// time rounding units in seconds
-const time_units = [
-	{ unit: 'year', seconds: 31536000 },
-	{ unit: 'month', seconds: 2592000 },
-	{ unit: 'day', seconds: 86400 },
-	{ unit: 'hour', seconds: 3600 },
-	{ unit: 'minute', seconds: 60 },
-	{ unit: 'second', seconds: 1 }
-];
-
-const RX_SCHEMAREF_EDDN = /^https:\/\/eddn\.edcd\.io\/schemas\//;
-
-
-/**
- * Formats a given date/time into a relative time string.
- * @param {Date | number | string} inputDate - Date object, timestamp (ms), or date string.
- * @returns {string} - Relative time string (e.g., "5 minutes ago", "in 2 hours").
- */
-function formatRelativeTime(diffMs, rtf) {
-    try {
-        const diffSec = Math.round(-diffMs / 1000);
-
-        for (const { unit, seconds } of time_units) {
-            if (Math.abs(diffSec) >= seconds || unit === 'second') {
-                const value = Math.round(diffSec / seconds);
-                return rtf.format(value, unit);
-            }
-        }
-    } catch (err) {
-        console.error(err.message);
-        return "Invalid date";
-    }
-}
-
 
 export class EventLogModule extends DataTableModule {
 	#timeFormat = new Intl.RelativeTimeFormat(Config.timeLocale, Config.timeOptions);
@@ -114,6 +80,40 @@ export class EventLogModule extends DataTableModule {
 		this._addRow(row);
 
 	}
+}
+
+
+const RX_SCHEMAREF_EDDN = /^https:\/\/eddn\.edcd\.io\/schemas\//;
+
+// time rounding units in seconds
+const time_units = [
+	{ unit: 'year', seconds: 31536000 },
+	{ unit: 'month', seconds: 2592000 },
+	{ unit: 'day', seconds: 86400 },
+	{ unit: 'hour', seconds: 3600 },
+	{ unit: 'minute', seconds: 60 },
+	{ unit: 'second', seconds: 1 }
+];
+
+/**
+ * Formats a given date/time into a relative time string.
+ * @param {Date | number | string} inputDate - Date object, timestamp (ms), or date string.
+ * @returns {string} - Relative time string (e.g., "5 minutes ago", "in 2 hours").
+ */
+function formatRelativeTime(diffMs, rtf) {
+    try {
+        const diffSec = Math.round(-diffMs / 1000);
+
+        for (const { unit, seconds } of time_units) {
+            if (Math.abs(diffSec) >= seconds || unit === 'second') {
+                const value = Math.round(diffSec / seconds);
+                return rtf.format(value, unit);
+            }
+        }
+    } catch (err) {
+        console.error(err.message);
+        return "Invalid date";
+    }
 }
 
 

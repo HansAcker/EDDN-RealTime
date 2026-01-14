@@ -1,7 +1,3 @@
-
-// extract schema name into $1
-const RX_SCHEMAREF = /\/schemas\/([^/]+)\/(\d+)(\/test)?$/;
-
 /**
  * A standardized event wrapper for all EDDN messages.
  */
@@ -126,3 +122,7 @@ export class EDDNEvent extends Event {
 		}
 	}
 }
+
+
+// extract schema name into $1
+const RX_SCHEMAREF = /\/schemas\/([^/]+)\/(\d+)(\/test)?$/;

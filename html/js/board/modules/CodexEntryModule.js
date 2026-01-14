@@ -2,13 +2,6 @@ import { DataTableModule } from "#DashboardModule";
 import GalacticRegions from "#ed/GalacticRegions.json" with { type: "json" };
 
 
-const trimPrefix = (str, prefix) => (str.startsWith(prefix) ? str.slice(prefix.length) : str).trim();
-
-const RX_SUB_CATEGORY = /^\$Codex_SubCategory_(.*);$/;
-const RX_CODEX_NAME = /^\$Codex_Ent_(.*)_Name;$/;
-const RX_REGION_NAME = /^\$Codex_RegionName_(.*);$/;
-
-
 export class CodexEntryModule extends DataTableModule {
 	constructor(router, container, options) {
 		super(router, ["codexentry"], container, options);
@@ -29,6 +22,13 @@ export class CodexEntryModule extends DataTableModule {
 		this._addRow(row);
 	}
 }
+
+
+const RX_SUB_CATEGORY = /^\$Codex_SubCategory_(.*);$/;
+const RX_CODEX_NAME = /^\$Codex_Ent_(.*)_Name;$/;
+const RX_REGION_NAME = /^\$Codex_RegionName_(.*);$/;
+
+const trimPrefix = (str, prefix) => (str.startsWith(prefix) ? str.slice(prefix.length) : str).trim();
 
 
 export default CodexEntryModule;

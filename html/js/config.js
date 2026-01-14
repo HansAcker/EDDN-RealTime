@@ -36,3 +36,6 @@ export const Config = {
 // initialize static formatters
 Config.numberFormat = new Intl.NumberFormat(Config.numberLocale, Config.numberOptions);
 Config.relTimeFormat = new Intl.RelativeTimeFormat(Config.timeLocale, Config.timeOptions);
+
+// nothing more to add
+Object.freeze(Config);

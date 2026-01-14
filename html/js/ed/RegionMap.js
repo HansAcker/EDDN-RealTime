@@ -56,7 +56,7 @@ const readyPromise = (async function loadData() {
 })();
 
 
-const bitMask = (field, bits) => (BigInt(field) & (~(~0n << BigInt(bits))));
+const bitMask = (field, bits, shift) => (field >> shift) & (~(~0n << bits));
 
 
 export class RegionMap {
@@ -159,41 +159,37 @@ export class RegionMap {
 	static decodeId64(id64) {
 		let _id64 = BigInt(id64);
 
-		const SystemAddress = bitMask(_id64, 55);
+		const SystemAddress = bitMask(_id64, 55n, 0n);
 		const BodyId = Number(_id64 >> 55n);
 
-		// TODO: keep a shift counter instead of modifying _id64
+		const massClass = Number(bitMask(_id64, 3n, 0n));
+		const boxelBits = BigInt(7 - massClass);
+		let shift = 3n;
 
-		const massClass = Number(bitMask(_id64, 3));
-		_id64 = _id64 >> 3n;
+		const zb = Number(bitMask(_id64, boxelBits, shift));
+		shift += boxelBits;
 
-		const boxelBits = 7 - massClass;
-		const boxels = boxelBits ? 2**boxelBits : 0;
+		const zs = Number(bitMask(_id64, 7n, shift));
+		shift += 7n;
 
-		const zb = Number(bitMask(_id64, boxelBits));
-		_id64 = _id64 >> BigInt(boxelBits);
+		const yb = Number(bitMask(_id64, boxelBits, shift));
+		shift += boxelBits;
 
-		const zs = Number(bitMask(_id64, 7));
-		_id64 = _id64 >> 7n;
+		const ys = Number(bitMask(_id64, 6n, shift));
+		shift += 6n;
 
-		const yb = Number(bitMask(_id64, boxelBits));
-		_id64 = _id64 >> BigInt(boxelBits);
+		const xb = Number(bitMask(_id64, boxelBits, shift));
+		shift += boxelBits;
 
-		const ys = Number(bitMask(_id64, 6));
-		_id64 = _id64 >> 6n;
+		const xs = Number(bitMask(_id64, 7n, shift));
+		shift += 7n;
 
-		const xb = Number(bitMask(_id64, boxelBits));
-		_id64 = _id64 >> BigInt(boxelBits);
-
-		const xs = Number(bitMask(_id64, 7));
-		_id64 = _id64 >> 7n;
-
-		const n2 = Number(bitMask(_id64, 32-(boxelBits*3)));
+		const n2 = Number(bitMask(_id64, 32n-(boxelBits*3n), shift));
 
 		const { x, y, z } = this.sectorsToCoords(xs, ys, zs, massClass, xb, yb, zb);
 
 		// TODO: decide on a return format
-		return { SystemAddress, BoxelPos: [x, y, z], BodyId, massClass, boxels, xs, ys, zs, xb, yb, zb, n2 };
+		return { SystemAddress, BoxelPos: [x, y, z], BodyId, massClass, xs, ys, zs, xb, yb, zb, n2 };
 		//return { SystemAddress, BodyId, BoxelPos: [x, y, z], Sector: [xs, ys, zs], Boxel: [xb, yb, zb], massClass, n2 };
 	}
 

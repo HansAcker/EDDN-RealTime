@@ -21,7 +21,6 @@ import EventLogModule from "#modules/EventLogModule.js";
 import VisitsModule from "#modules/VisitsModule.js";
 import NewStarsModule from "#modules/NewStarsModule.js";
 import NewBodiesModule from "#modules/NewBodiesModule.js";
-// import { DashboardModule } from "#DashboardModule";
 
 
 console.debug("Main: start");

@@ -115,7 +115,7 @@ const _modules = // eslint-disable-line no-unused-vars
 	new EventLogModule(router, window.EventLog, { ...options, template: window.EventLogTemplate, listLength: 30 }),
 
 	// no infobox
-	new EventStatsModule(router, window.EventStats, { ...options, template: window.EventStatsTemplate }),
+	new EventStatsModule(router, window.EventStats, { template: window.EventStatsTemplate }),
 ];
 
 console.debug("Main: init done");

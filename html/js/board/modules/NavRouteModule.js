@@ -1,10 +1,6 @@
 import { DataTableModule } from "#DashboardModule";
 
 
-// const distanceN = (v0, v1) => Math.hypot(...v0.map((v, i) => v - v1[i]));
-const distance3 = (v0, v1) => Math.hypot(v0[0] - v1[0], v0[1] - v1[1], v0[2] - v1[2]); // subtract vectors, return length
-
-
 export class NavRouteModule extends DataTableModule {
 	constructor(router, container, options) {
 		super(router, ["navroute"], container, options);
@@ -81,6 +77,10 @@ export class NavRouteModule extends DataTableModule {
 		this._addRow(row);
 	}
 }
+
+
+// const distanceN = (v0, v1) => Math.hypot(...v0.map((v, i) => v - v1[i]));
+const distance3 = (v0, v1) => Math.hypot(v0[0] - v1[0], v0[1] - v1[1], v0[2] - v1[2]); // subtract vectors, return length
 
 
 export default NavRouteModule;

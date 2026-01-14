@@ -42,8 +42,7 @@ jobs:
         run: |
           npm ci &&
           npm run build &&
-          rm -r html/js &&
-          mv html/js-dist html/js
+          cp html/js-dist/* html/js/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

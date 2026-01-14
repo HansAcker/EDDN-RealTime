@@ -18,8 +18,6 @@ const hex_colors = {
 
 
 export class EventLogModule extends DataTableModule {
-	#timeFormat = new Intl.RelativeTimeFormat(Config.timeLocale, Config.timeOptions);
-
 	constructor(router, container, options) {
 		super(router, ["*"], container, options);
 	}
@@ -67,7 +65,7 @@ export class EventLogModule extends DataTableModule {
 
 
 		row.append(
-			this._makeCell(formatRelativeTime(event.age, this.#timeFormat)),
+			this._makeCell(formatRelativeTime(event.age)),
 			idCell,
 			this._makeCell(event.eventName),
 			this._makeCell(event.header.softwareName),
@@ -100,14 +98,14 @@ const time_units = [
  * @param {Date | number | string} inputDate - Date object, timestamp (ms), or date string.
  * @returns {string} - Relative time string (e.g., "5 minutes ago", "in 2 hours").
  */
-function formatRelativeTime(diffMs, rtf) {
+function formatRelativeTime(diffMs) {
     try {
         const diffSec = Math.round(-diffMs / 1000);
 
         for (const { unit, seconds } of time_units) {
             if (Math.abs(diffSec) >= seconds || unit === 'second') {
                 const value = Math.round(diffSec / seconds);
-                return rtf.format(value, unit);
+                return Config.relTimeFormat.format(value, unit);
             }
         }
     } catch (err) {

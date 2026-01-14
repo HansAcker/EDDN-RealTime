@@ -1,16 +1,18 @@
 // import { RegionMap } from "#ed/RegionMap.js";
 
+
 export const Config = {
+	locale: navigator.language?.split("-")?.[0]?.toLowerCase() ?? "en",
+
 	// load templates from template_XX.html
 	// TODO: define and match against supportedLocales?
 	templateLocale: "en",
-//	templateLocale = navigator.language?.split("-")?.[0]?.toLowerCase() ?? "en",
 
-	// options for Intl.NumberFormat
+	// override options for Intl.NumberFormat
 //	numberLocale: "en",
 //	numberOptions: { notation: "standard", useGrouping: "always" },
 
-	// options for Intl.RelativeTimeFormat
+	// override options for Intl.RelativeTimeFormat
 //	timeLocale: "en",
 	timeOptions: { style: "narrow" },
 
@@ -30,3 +32,7 @@ export const Config = {
 	),
 */
 };
+
+// initialize static formatters
+Config.numberFormat = new Intl.NumberFormat(Config.numberLocale, Config.numberOptions);
+Config.relTimeFormat = new Intl.RelativeTimeFormat(Config.timeLocale, Config.timeOptions);

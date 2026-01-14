@@ -3,9 +3,6 @@ import { Config } from "#config.js";
 
 
 export class VisitsModule extends DataTableModule {
-	static #numFormat = new Intl.NumberFormat(Config.numberLocale, Config.numberOptions).format;
-
-
 	constructor(router, container, options) {
 		super(router, ["journal:fsdjump"], container, options);
 	}
@@ -19,7 +16,7 @@ export class VisitsModule extends DataTableModule {
 
 			row.append(
 				this._makeCell(event.StarSystem),
-				this._makeCell(VisitsModule.#numFormat(message.Population ?? 0)),
+				this._makeCell(Config.numberFormat.format(message.Population ?? 0)),
 				this._makeCell(message.SystemAllegiance),
 				this._makeCell(faction.Name ?? ""),
 				this._makeCell(faction.FactionState ?? "")

@@ -1,4 +1,5 @@
 
+// extract schema name into $1
 const RX_SCHEMAREF = /\/schemas\/([^/]+)\/(\d+)(\/test)?$/;
 
 /**

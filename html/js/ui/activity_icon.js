@@ -71,16 +71,24 @@ class PageIconActivity extends Activity {
 
 // pre-loads icons into "blob:" URLs
 class CachedPageIconActivity extends PageIconActivity {
-	static #cache = new Map();
-	static #readyPromise = null;
+	static #cache = new Map(); // state -> blob
+	static #readyPromise = null;  // `await CachedPageIconActivity.ready`
 
 	constructor(element, idleTimeout) {
 		super(element, idleTimeout);
 
-		// start async fetches
+		// start async fetches on first run
 		void CachedPageIconActivity.ready;
 	}
 
+	_changeState(newState, oldState) {
+		if (CachedPageIconActivity.#cache.has(newState)) {
+			this._element.href = CachedPageIconActivity.#cache.get(newState);
+		} else {
+			console.debug(`CachedPageIconActivity: no cache for ${newState.toString()}`);
+			super._changeState(newState, oldState);
+		}
+	}
 
 	static get ready() {
 		if (!CachedPageIconActivity.#readyPromise) {
@@ -91,9 +99,8 @@ class CachedPageIconActivity extends PageIconActivity {
 		return CachedPageIconActivity.#readyPromise;
 	}
 
-
 	static async #preloadIcons() {
-		// TODO: merge with PageIconActivity.#icons. use "_" instead of "#"?
+		// TODO: merge with PageIconActivity.#icons. use "_icons" instead of "#"?
 		const ICON_PATHS = {
 			[Activity._states._ok]: "img/activity-icon/activity-icon--state-ok.svg",
 			[Activity._states._off]: "img/activity-icon/activity-icon--state-off.svg",
@@ -101,10 +108,7 @@ class CachedPageIconActivity extends PageIconActivity {
 			[Activity._states._error]: "img/activity-icon/activity-icon--state-error.svg"
 		};
 
-		// Symbols are not enumerable via standard Object.entries, so we use getOwnPropertySymbols
-		const symbols = Object.getOwnPropertySymbols(ICON_PATHS);
-
-		const loadPromises = symbols.map(async (state) => {
+		const loadPromises = Object.getOwnPropertySymbols(ICON_PATHS).map(async (state) => {
 			const path = ICON_PATHS[state];
 			try {
 				const response = await fetch(path);
@@ -120,17 +124,6 @@ class CachedPageIconActivity extends PageIconActivity {
 		});
 
 		return Promise.allSettled(loadPromises);
-	}
-
-
-	_changeState(newState, oldState) {
-		if (CachedPageIconActivity.#cache.has(newState)) {
-			// console.debug(`CachedPageIconActivity: have cache for ${newState.toString()}`);
-			this._element.href = CachedPageIconActivity.#cache.get(newState);
-		} else {
-			console.debug(`CachedPageIconActivity: no cache for ${newState.toString()}`);
-			super._changeState(newState, oldState);
-		}
 	}
 }
 

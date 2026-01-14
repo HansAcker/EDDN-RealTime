@@ -2,7 +2,7 @@
 import { EDDNClient } from "#eddn/EDDNClient.js";
 import { MessageRouter } from "#eddn/MessageRouter.js";
 
-import { RegionMap } from "#ed/RegionMap.js";
+// import { RegionMap } from "#ed/RegionMap.js";
 
 import { ReconnectingWebSocket } from "#ws/ReconnectingWebSocket.js";
 
@@ -67,7 +67,7 @@ eddn.addEventListener("eddn:error", () => activity.error()); // parse errors
 // TODO: dynamic imports etc., progress bar, "Loading..." animation
 
 // block here until all loaded
-await RegionMap.ready;
+// await RegionMap.ready;
 // await CachedPageIconActivity.ready;
 
 // wait for CSS to finish loading

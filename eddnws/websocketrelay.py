@@ -11,6 +11,9 @@ from typing import Any, AsyncIterable, Callable, Coroutine, Dict, Set, Tuple, Op
 
 import websockets
 
+if (float(websockets.__version__) >= 14):
+	raise ImportError("Websockets < 14 required")
+
 
 class WebsocketRelay:
 	"""

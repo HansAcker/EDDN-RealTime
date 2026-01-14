@@ -11,17 +11,26 @@ export class EDDNEvent extends Event {
 	data; // event data { $schemaRef, header, message } for easier reference
 
 	#receiveTimestamp; // timestamp of event creation (local clock)
-	#age; // difference between gatewayTimestamp (gateway clock) and timestamp (sender clock), set by get age()
 
-	#eventType; // derived from schema/message.event. set by get eventType()
-	#eventName; // message.event if present, otherwise eventType, set by get eventName()
-	#gameType; // Odyssey, Horizons. set by get gameType()
+	// TODO: lazy initialization causes late representation changes. initialize with sentinel value of same type?
+	//       - null should be good for heap objects. not so much for boolean or number but not much choice there
+	//       - use gotX bools?
 
-	#isTaxi;
-	#isMulticrew;
+	#age = 0; // difference between gatewayTimestamp (gateway clock) and timestamp (sender clock), set by get age()
+	#gotAge = false;
 
-	#starSystem; // derived from message.StarSystem, .systemName, .SytemName, .System or first hop of .Route, defaults to "", set by get StarSystem()
-	#starPos; // derived from message.StarPos or first .Route hop, defaults to undefined, set by get StarPos()
+	#eventType = null; // derived from schema/message.event. set by get eventType()
+	#eventName = null; // message.event if present, otherwise eventType, set by get eventName()
+	#gameType = null; // Odyssey, Horizons. set by get gameType()
+
+	#isTaxi = false;
+	#gotTaxi = false;
+
+	#isMulticrew = false;
+	#gotMulticrew = false;
+
+	#starSystem = null; // derived from message.StarSystem, .systemName, .SytemName, .System or first hop of .Route, defaults to "", set by get StarSystem()
+	#starPos = null; // derived from message.StarPos or first .Route hop, defaults to undefined, set by get StarPos()
 	#gotStarPos = false;
 
 
@@ -42,7 +51,7 @@ export class EDDNEvent extends Event {
 		this.message = message;
 		this.data = data;
 
-		// store a number here, make it a Date object if they someone asks for it
+		// store a number here, make it a Date object on request
 		this.#receiveTimestamp = Date.now();
 	}
 
@@ -52,7 +61,8 @@ export class EDDNEvent extends Event {
 	}
 
 	get age() {
-		return this.#age ?? (this.#age = (Date.parse(this.header?.gatewayTimestamp) - Date.parse(this.message?.timestamp)));
+		return this.#gotAge ? this.#age : (this.#gotAge = true, this.#age = (Date.parse(this.header?.gatewayTimestamp) - Date.parse(this.message?.timestamp)));
+//		return this.#age ?? (this.#age = (Date.parse(this.header?.gatewayTimestamp) - Date.parse(this.message?.timestamp)));
 	}
 
 	get eventType() {
@@ -68,11 +78,13 @@ export class EDDNEvent extends Event {
 	}
 
 	get isTaxi() {
-		return this.#isTaxi ?? (this.#isTaxi = !!this.message?.Taxi);
+		return this.#gotTaxi ? this.#isTaxi : (this.#gotTaxi = true, this.#isTaxi = !!this.message?.Taxi);
+//		return this.#isTaxi ?? (this.#isTaxi = !!this.message?.Taxi);
 	}
 
 	get isMulticrew() {
-		return this.#isMulticrew ?? (this.#isMulticrew = !!this.message?.Multicrew);
+		return this.#gotMulticrew ? this.#isMulticrew : (this.#gotMulticrew = true, this.#isMulticrew = !!this.message?.Multicrew);
+//		return this.#isMulticrew ?? (this.#isMulticrew = !!this.message?.Multicrew);
 	}
 
 	get StarSystem() {

@@ -1,5 +1,5 @@
-import { DataTableModule } from "#DashboardModule";
 import { Config } from "#config.js";
+import { DataTableModule } from "#DashboardModule";
 import { RegionMap } from "#ed/RegionMap.js";
 
 

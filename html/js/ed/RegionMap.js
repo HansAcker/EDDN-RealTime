@@ -157,7 +157,7 @@ export class RegionMap {
 
 	// id64 should be String or BigInt. Number type could garble the critical lower bits
 	static decodeId64(id64) {
-		let _id64 = BigInt(id64);
+		const _id64 = BigInt(id64);
 
 		const SystemAddress = bitMask(_id64, 55n, 0n);
 		const BodyId = Number(_id64 >> 55n);

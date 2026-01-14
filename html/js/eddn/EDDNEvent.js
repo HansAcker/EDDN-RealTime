@@ -13,9 +13,10 @@ export class EDDNEvent extends Event {
 	#receiveTimestamp; // timestamp of event creation (local clock)
 
 	// TODO: lazy initialization causes late representation changes. initialize with sentinel value of same type?
-	//       - null should be good for heap objects. not so much for boolean or number but not much choice there
-	//       - use gotX bools?
+	//       - null should be good for heap objects and oddballs (boolean), not so much for numbers
+	//       - use gotX bools for numbers?
 
+	// TODO: for ages > ~24d, a double is required. initialize with 0.0 to always force the type?
 	#age = 0; // difference between gatewayTimestamp (gateway clock) and timestamp (sender clock), set by get age()
 	#gotAge = false;
 
@@ -23,13 +24,11 @@ export class EDDNEvent extends Event {
 	#eventName = null; // message.event if present, otherwise eventType, set by get eventName()
 	#gameType = null; // Odyssey, Horizons. set by get gameType()
 
-	#isTaxi = false;
-	#gotTaxi = false;
-
-	#isMulticrew = false;
-	#gotMulticrew = false;
+	#isTaxi = null;
+	#isMulticrew = null;
 
 	#starSystem = null; // derived from message.StarSystem, .systemName, .SytemName, .System or first hop of .Route, defaults to "", set by get StarSystem()
+
 	#starPos = null; // derived from message.StarPos or first .Route hop, defaults to undefined, set by get StarPos()
 	#gotStarPos = false;
 
@@ -62,7 +61,6 @@ export class EDDNEvent extends Event {
 
 	get age() {
 		return this.#gotAge ? this.#age : (this.#gotAge = true, this.#age = (Date.parse(this.header?.gatewayTimestamp) - Date.parse(this.message?.timestamp)));
-//		return this.#age ?? (this.#age = (Date.parse(this.header?.gatewayTimestamp) - Date.parse(this.message?.timestamp)));
 	}
 
 	get eventType() {
@@ -78,13 +76,11 @@ export class EDDNEvent extends Event {
 	}
 
 	get isTaxi() {
-		return this.#gotTaxi ? this.#isTaxi : (this.#gotTaxi = true, this.#isTaxi = !!this.message?.Taxi);
-//		return this.#isTaxi ?? (this.#isTaxi = !!this.message?.Taxi);
+		return this.#isTaxi ?? (this.#isTaxi = !!this.message?.Taxi);
 	}
 
 	get isMulticrew() {
-		return this.#gotMulticrew ? this.#isMulticrew : (this.#gotMulticrew = true, this.#isMulticrew = !!this.message?.Multicrew);
-//		return this.#isMulticrew ?? (this.#isMulticrew = !!this.message?.Multicrew);
+		return this.#isMulticrew ?? (this.#isMulticrew = !!this.message?.Multicrew);
 	}
 
 	get StarSystem() {

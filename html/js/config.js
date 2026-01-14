@@ -2,7 +2,8 @@
 
 
 export const Config = {
-	locale: navigator.language?.split("-")?.[0]?.toLowerCase() ?? "en",
+	// TODO: use this as default?
+	// locale: navigator.language?.split("-")?.[0]?.toLowerCase() ?? "en",
 
 	// load templates from template_XX.html
 	// TODO: define and match against supportedLocales?

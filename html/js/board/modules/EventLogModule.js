@@ -25,6 +25,8 @@ const time_units = [
 	{ unit: 'second', seconds: 1 }
 ];
 
+const RX_SCHEMAREF_EDDN = /^https:\/\/eddn\.edcd\.io\/schemas\//;
+
 
 /**
  * Formats a given date/time into a relative time string.
@@ -106,7 +108,7 @@ export class EventLogModule extends DataTableModule {
 			this._makeCell(event.StarSystem),
 			this._makeCell(event.StarPos ? RegionMap.findRegion(...event.StarPos).name ?? "" : ""),
 			this._makeCell(`${event.header.gameversion}${event.header.gamebuild ? ` - ${event.header.gamebuild}` : ""}`),
-			this._makeCell(event.$schemaRef.replace(/^https:\/\/eddn\.edcd\.io\/schemas\//, ""))
+			this._makeCell(event.$schemaRef.replace(RX_SCHEMAREF_EDDN, ""))
 		);
 		this._addRow(row);
 

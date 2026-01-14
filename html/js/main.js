@@ -56,6 +56,7 @@ eddn.connect();
 
 
 // Reflect websocket activity in page icon
+// TODO: quick succession of changes on load can get the displayed icon stuck on "idle"
 const activity = new CachedPageIconActivity(window.icon, 2300);
 eddn.addEventListener("open", () => activity.idle());
 eddn.addEventListener("close", () => activity.off());

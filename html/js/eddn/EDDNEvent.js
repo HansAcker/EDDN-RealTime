@@ -116,8 +116,8 @@ export class EDDNEvent extends Event {
 			// https://github.com/EDCD/EDDN/blob/live/docs/Developers.md#horizons-and-odyssey-flags
 			const msg = data.message;
 			return msg.odyssey ? "Odyssey" : msg.horizons ? "Horizons" : msg.horizons === false ? "Base" : "Unknown";
-		} catch (error) {
-			console.error("gameversion error:", error);
+		} catch (err) {
+			console.error("gameversion error:", err);
 			return "Unknown";
 		}
 	}

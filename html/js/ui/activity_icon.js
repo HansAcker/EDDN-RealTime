@@ -118,8 +118,8 @@ class CachedPageIconActivity extends PageIconActivity {
 				const blobUrl = URL.createObjectURL(blob);
 				this.#cache.set(state, blobUrl);
 				console.debug(`CachedPageIconActivity: cached icon: ${path} for state: ${state.toString()}`);
-			} catch (e) {
-				console.warn(`CachedPageIconActivity: failed to preload icon: ${path} for state: ${state.toString()}:`, e);
+			} catch (err) {
+				console.warn(`CachedPageIconActivity: failed to preload icon: ${path} for state: ${state.toString()}:`, err);
 			}
 		});
 

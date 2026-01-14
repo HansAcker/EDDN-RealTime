@@ -120,8 +120,8 @@ export class EDDNClient extends EventTarget {
 			else {
 				throw new Error(`Unexpected message format (${typeof rawData})`);
 			}
-		} catch (e) {
-			this.dispatchEvent(new ErrorEvent("eddn:error", { message: "Message parse error", error: e }));
+		} catch (err) {
+			this.dispatchEvent(new ErrorEvent("eddn:error", { message: "Message parse error", error: err }));
 			return;
 		}
 
@@ -145,8 +145,8 @@ export class EDDNClient extends EventTarget {
 			if (!event.eventType) {
 				throw new Error("Unknown event type");
 			}
-		} catch (e) {
-			this.dispatchEvent(new ErrorEvent("eddn:error", { message: "Message content error", error: e }));
+		} catch (err) {
+			this.dispatchEvent(new ErrorEvent("eddn:error", { message: "Message content error", error: err }));
 			return;
 		}
 

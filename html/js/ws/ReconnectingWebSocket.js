@@ -172,8 +172,8 @@ class ReconnectingWebSocket extends EventTarget {
 				}
 			}, this.connectionTimeout);
 
-		} catch (e) {
-			if (e instanceof SyntaxError) {
+		} catch (err) {
+			if (err instanceof SyntaxError) {
 				this.close(1006, "Fatal Syntax Error");
 				this.dispatchEvent(new Event("error"));
 				return;

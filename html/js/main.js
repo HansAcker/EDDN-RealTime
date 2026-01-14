@@ -1,4 +1,6 @@
 
+import { Config } from "#config.js";
+
 import { EDDNClient } from "#eddn/EDDNClient.js";
 import { MessageRouter } from "#eddn/MessageRouter.js";
 
@@ -39,7 +41,7 @@ window.board.addEventListener("click", (ev) => {
 
 // The EDDN event bus
 const eddn = new EDDNClient({
-	url: "wss://ws.eddn-realtime.space/eddn",
+	url: Config.websocket_url,
 
 	// reset websocket connection after 5min without messages
 	resetTimeout: 300 * 1000,
@@ -48,15 +50,13 @@ const eddn = new EDDNClient({
 	WebSocketClass: ReconnectingWebSocket,
 
 	// pass only a subset of messages to display modules
-	// TODO: remove global defined in index.html. something else?
-	filter: (typeof globalEventFilter === "function" ? globalEventFilter : null), // eslint-disable-line no-undef
+	filter: Config.globalEventFilter,
 });
-
-eddn.connect();
 
 
 // Reflect websocket activity in page icon
 // TODO: quick succession of changes on load can get the displayed icon stuck on "idle"
+//       - await ready before connect for now
 const activity = new CachedPageIconActivity(window.icon, 2300);
 eddn.addEventListener("open", () => activity.idle());
 eddn.addEventListener("close", () => activity.off());
@@ -69,17 +69,17 @@ eddn.addEventListener("eddn:error", () => activity.error()); // parse errors
 
 // block here until all loaded
 // await RegionMap.ready;
-// await CachedPageIconActivity.ready;
+await CachedPageIconActivity.ready;
 
 // wait for CSS to finish loading
 if (document.readyState === "loading") {
 	await new Promise((resolve) => window.addEventListener("load", resolve, { once: true }));
 }
 
-
 console.debug("Main: load done");
 
 
+eddn.connect();
 
 
 // TODO: - a Dashboard component that handles the modules, their containers and order

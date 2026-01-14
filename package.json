@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"build:bundle": "esbuild html/js/main.js --outdir=html/js/dist/ --bundle --format=esm --mangle-props='^[#_]' --minify --sourcemap --analyze",
+		"build:bundle": "esbuild html/js/main.js --outdir=html/js-dist/ --bundle --format=esm --mangle-props='^[#_]' --minify --sourcemap --analyze",
 		"build": "npm run build:bundle",
 		"watch": "npm run build:bundle -- --watch",
 		"lint:js": "eslint html/js",

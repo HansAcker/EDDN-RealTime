@@ -28,6 +28,7 @@ export class EventLogModule extends DataTableModule {
 
 		const uploaderID = event.header.uploaderID;
 		const idCell = this._makeCell(uploaderID);
+		idCell.classList.add("dashboard__table--idcell");
 
 /*
 		// hex chars to braille patterns
@@ -51,12 +52,10 @@ export class EventLogModule extends DataTableModule {
 		}
 
 		const bar = document.createElement("span");
-		bar.className = "dashboard__table--idcell";
 		bar.style.background = `linear-gradient(to right, ${stops.join(",")})`;
+		bar.textContent = String.fromCharCode(160); // &nbsp;
 
-		// bar.textContent = idCell.textContent;
 		idCell.replaceChildren(bar);
-
 
 		row.append(
 			this._makeCell(formatRelativeTime(event.age)),

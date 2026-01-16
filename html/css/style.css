@@ -113,10 +113,14 @@ body {
 	display: none;
 }
 
+.dashboard__table td.dashboard__table--idcell {
+	padding: 0 0;
+}
+
 /* "background: linear-gradient(...)"  added by EventLogModule */
-.dashboard__table .dashboard__table--idcell {
+.dashboard__table--idcell span {
 	display: inline-block;
-	height: 1em;
+	height: 100%;
 	width: 100%;
 	/* min-width: 100px; */
 }

@@ -23,7 +23,6 @@ export class GameStatsModule extends DataTableModule {
 			"Multicrew": 0,
 			"Old": 0,
 			"New": 0,
-			"Ignored": 0,
 //			"Last timestamp": "",
 //			"Max jump range": ""
 		}});

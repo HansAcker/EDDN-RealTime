@@ -105,7 +105,7 @@ function formatRelativeTime(diffMs) {
         for (const { unit, seconds } of time_units) {
             if (Math.abs(diffSec) >= seconds || unit === 'second') {
                 const value = Math.round(diffSec / seconds);
-                return Config.relTimeFormat.format(value, unit);
+                return Config._relTimeFormat.format(value, unit);
             }
         }
     } catch (err) {

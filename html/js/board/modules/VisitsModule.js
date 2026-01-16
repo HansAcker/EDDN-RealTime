@@ -16,7 +16,7 @@ export class VisitsModule extends DataTableModule {
 
 			row.append(
 				this._makeCell(event.StarSystem),
-				this._makeCell(Config.numberFormat.format(message.Population ?? 0)),
+				this._makeCell(Config._numberFormat.format(message.Population ?? 0)),
 				this._makeCell(message.SystemAllegiance),
 				this._makeCell(faction.Name ?? ""),
 				this._makeCell(faction.FactionState ?? "")

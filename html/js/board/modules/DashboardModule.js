@@ -122,7 +122,7 @@ export class DataTableModule extends DashboardModule {
 		this.#renderQueue.push(row);
 
 		// drop overflowing rows eventually, the page is likely inactive
-		this.#cutQueue(this.listLength, this.listLength * this.cullFactor);
+		this.#trimQueue(this.listLength, this.listLength * this.cullFactor);
 
 		// only update the DOM when the page is on display and ready to paint
 		if (!this.#renderScheduled && this.#renderQueue.length) {
@@ -142,7 +142,7 @@ export class DataTableModule extends DashboardModule {
 			return;
 		}
 
-		if (this.#cutQueue(this.listLength)) {
+		if (this.#trimQueue(this.listLength)) {
 			// clear table for full replacement
 			this._container.replaceChildren();
 			queueLength = this.listLength;
@@ -172,7 +172,7 @@ export class DataTableModule extends DashboardModule {
 	}
 
 
-	#cutQueue(hardLimit, softLimit) {
+	#trimQueue(hardLimit, softLimit) {
 		const queueLength = this.#renderQueue.length;
 
 		if (queueLength > (softLimit ?? hardLimit)) {

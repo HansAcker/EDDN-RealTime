@@ -113,6 +113,13 @@ body {
 	display: none;
 }
 
+/* "background: linear-gradient(...)"  added by EventLogModule */
+.dashboard__table .dashboard__table--idcell {
+	display: inline-block;
+	height: 1em;
+	width: 100%;
+	/* min-width: 100px; */
+}
 
 .dashboard__table .Odyssey {
 	background-color: #05b;

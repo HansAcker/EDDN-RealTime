@@ -48,17 +48,11 @@ export class EventLogModule extends DataTableModule {
 			const color = hex_colors[uploaderID[i]] ?? "#000";
 			// Hard stops for blocky look: color starts at i*step, ends at (i+1)*step
 			stops.push(`${color} ${i * step}% ${(i + 1) * step}%`);
-//			stops.push(`${color} ${(i + 1) * step}%`);
 		}
 
 		const bar = document.createElement("span");
-		bar.style = `
-			display: inline-block;
-			height: 1em;
-			width: 100%;
-			/* min-width: 100px; */
-			background: linear-gradient(to right, ${stops.join(",")});
-		`;
+		bar.className = "dashboard__table--idcell";
+		bar.style.background = `linear-gradient(to right, ${stops.join(",")})`;
 
 		// bar.textContent = idCell.textContent;
 		idCell.replaceChildren(bar);

@@ -38,11 +38,16 @@ jobs:
         with:
           cache: 'npm'
 
+      - name: Install packages
+        run: npm ci
+
       - name: Run esbuild
+        run: npm run build
+
+      - name: Replace JS files
         run: |
-          npm ci &&
-          npm run build &&
-          cp html/js-dist/* html/js/
+          rm -v html/js/**/*.js &&
+          cp -v html/js-dist/* html/js/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

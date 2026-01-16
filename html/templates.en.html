@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+
+<template data-dashboard__module="FSDJump">
+<table class="narrow">
+<caption>FSD Jumps</caption>
+<thead><tr><th>FSD Jump
+<tbody>
+</table>
+</template>
+
+<template data-dashboard__module="EventLog">
+<table class="full">
+<caption>Event Log</caption>
+<thead><tr><th style="width: 6%;">Time<th style="width: 12%;">Uploader<th style="width: 10%;">Event<th style="width: 15%;">Software<th style="width: 6%;">Version<th>System<th style="width: 12%;">Region<th style="width: 10%;">Game Build<th style="width: 10%;">$schemaRef
+<tbody>
+</table>
+</template>
+
+<template data-dashboard__module="NavRoute">
+<table class="wide">
+<caption>Routes Plotted</caption>
+<thead><tr><th style="width: 25%;">Route From<th>To<th style="width: 10%;">Jumps<th style="width: 14%;">Distance<th style="width: 14%;">Total<th style="width: 12%;">Max
+<tbody>
+</table>
+</template>
+
+<template data-dashboard__module="NewStars">
+<table class="narrow">
+<caption>Stars discovered</caption>
+<thead><tr><th>Discovered Star<th style="width: 20%;">Class
+<tbody>
+</table>
+</template>
+
+<template data-dashboard__module="NewBodies">
+<table class="wide">
+<caption>Planets discovered</caption>
+<thead><tr><th>Discovered Body<th style="width: 25%;">Class<th style="width: 20%;">Atmosphere<th style="width: 15%;">Landable
+<tbody>
+</table>
+</template>
+
+<template data-dashboard__module="Scan">
+<table>
+<caption>Scanned Bodies</caption>
+<thead><tr><th>Scanned Body<th style="width: 30%;">Scan Type
+<tbody>
+</table>
+</template>
+
+<template data-dashboard__module="Approach">
+<table>
+<caption>Settlement Approach</caption>
+<thead><tr><th style="width: 50%;">Settlement Approach<th>System
+<tbody>
+</table>
+</template>
+
+<template data-dashboard__module="Location">
+<table>
+<caption>Docking and Locations</caption>
+<thead><tr><th style="width: 40%;">Docked At<th style="width: 25%;">Type<th>System
+<tbody>
+</table>
+</template>
+
+<template data-dashboard__module="Updates">
+<table>
+<caption>Tables updated</caption>
+<thead><tr><th style="width: 25%;">Updated<th style="width: 40%;">Station<th>System
+<tbody>
+</table>
+</template>
+
+<template data-dashboard__module="Visits">
+<table class="wider">
+<caption>Jumps to inhabited systems</caption>
+<thead><tr><th style="width: 25%;">System Visited<th style="width: 15%;">Population<th style="width: 15%;">Allegiance<th>Faction<th style="width: 10%;">State<!-- <th>Conflicts-->
+<tbody>
+</table>
+</template>
+
+<template data-dashboard__module="CodexEntry">
+<table class="wider">
+<caption>Codex Discoveries</caption>
+<thead><tr><th>System<th style="width: 10%;">Body<th style="width: 20%;">Codex Category<th style="width: 25%;">Type<th style="width: 20%;">Region
+<tbody>
+</table>
+</template>
+
+<template data-dashboard__module="EventStats">
+<table>
+<caption>Event Stats</caption>
+<thead><tr><th>Event<th style="width: 25%;">Count
+<tbody>
+</table>
+</template>
+
+<template data-dashboard__module="InfoBox">
+<div class="infobox">
+	<div class="infobox__header">
+		<button class="infobox__button infobox__button--copy-msg" data-infobox__action="copy-msg">Copy message</button>
+		<button class="infobox__button infobox__button--copy-gts" data-infobox__action="copy-gts">Copy gateway timestamp</button>
+		<button class="infobox__button infobox__button--copy-uid" data-infobox__action="copy-uid">Copy uploader ID</button>
+		<button class="infobox__button infobox__button--close" data-infobox__action="close">Close window</button>
+	</div>
+	<div class="infobox__contentbox">
+		<pre class="infobox__content"></pre>
+	</div>
+</div>
+</template>

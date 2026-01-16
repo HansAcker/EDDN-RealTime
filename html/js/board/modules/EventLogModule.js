@@ -5,7 +5,7 @@ import { RegionMap } from "#ed/RegionMap.js";
 
 // 16 colors per nibble
 // TODO: improve this "high-contrast" selection?
-const hex_colors = {
+const hex_colors = Object.freeze({
 	"0": "#F2F3F4", "1": "#222222", "2": "#F3C300", "3": "#875692",
 	"4": "#F38400", "5": "#A1CAF1", "6": "#BE0032", "7": "#C2B280",
 	"8": "#848482", "9": "#008856",
@@ -14,7 +14,7 @@ const hex_colors = {
 	"e": "#DCD300", "f": "#B3446C",
 	"A": "#E68FAC", "B": "#0067A5",	"C": "#F99379", "D": "#604E97",
 	"E": "#DCD300", "F": "#B3446C"
-};
+});
 
 
 export class EventLogModule extends DataTableModule {
@@ -77,14 +77,14 @@ export class EventLogModule extends DataTableModule {
 const RX_SCHEMAREF_EDDN = /^https:\/\/eddn\.edcd\.io\/schemas\//;
 
 // time rounding units in seconds
-const time_units = [
+const time_units = Object.freeze([
 	{ unit: 'year', seconds: 31536000 },
 	{ unit: 'month', seconds: 2592000 },
 	{ unit: 'day', seconds: 86400 },
 	{ unit: 'hour', seconds: 3600 },
 	{ unit: 'minute', seconds: 60 },
 	{ unit: 'second', seconds: 1 }
-];
+]);
 
 /**
  * Formats a given date/time into a relative time string.

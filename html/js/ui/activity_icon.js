@@ -5,12 +5,12 @@
 // changes from ok to idle after idleTimeout, all other states use no timer
 
 class Activity {
-	static _states = {
+	static _states = Object.freeze({
 		_ok: Symbol("ok"),
 		_off: Symbol("off"),
 		_idle: Symbol("idle"),
 		_error: Symbol("error")
-	};
+	});
 
 	#idleTimeout;
 	#idleTimer = null;

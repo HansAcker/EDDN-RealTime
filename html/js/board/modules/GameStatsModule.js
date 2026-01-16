@@ -1,3 +1,4 @@
+import { Config } from "#config.js";
 import { DataTableModule } from "#DashboardModule";
 import { StatsBox } from "#ui/statsbox.js";
 
@@ -41,9 +42,9 @@ export class GameStatsModule extends DataTableModule {
 			this._statsBox.inc("Multicrew");
 		}
 
-		if (event.age > 3600 * 1000) {
+		if (event.age > Config.oldAge) {
 			this._statsBox.inc("Old");
-		} else if (event.age < 180 * -1000) {
+		} else if (event.age < Config.newAge) {
 			this._statsBox.inc("New");
 		}
 

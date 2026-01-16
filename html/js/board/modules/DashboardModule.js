@@ -1,3 +1,5 @@
+import { Config } from "#config.js";
+
 
 export class DashboardModule {
 
@@ -75,6 +77,7 @@ export class DataTableModule extends DashboardModule {
 	}
 
 
+	// TODO: define a full row in the template with slots for content?
 	_setupTemplates() {
 		// row Template
 		this._rowTemplate = document.createElement("tr");
@@ -104,9 +107,9 @@ export class DataTableModule extends DashboardModule {
 			element.classList.add("multicrew");
 		}
 
-		if (event.age > 3600 * 1000) {
+		if (event.age > Config.oldAge) {
 			element.classList.add("old");
-		} else if (event.age < 180 * -1000) {
+		} else if (event.age < Config.newAge) {
 			element.classList.add("new");
 		}
 

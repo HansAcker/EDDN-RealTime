@@ -9,6 +9,10 @@ export const Config = {
 
 	resetTimeout: 300 * 1000,
 
+	// message age thresholds for old/new stats
+	oldAge: 3600 * 1000,
+	newAge: 180 * -1000,
+
 	// load templates from template_XX.html
 	// TODO: define and match against supportedLocales?
 	templateLocale: "en",

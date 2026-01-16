@@ -74,7 +74,6 @@ export class Dashboard {
 
 			// no infobox
 			new EventStatsModule(router, container.querySelector("#EventStats"), { template: templates.querySelector("#EventStatsTemplate") }),
-
 			new GameStatsModule(router, container.querySelector("#GameStats tbody")),
 		];
 

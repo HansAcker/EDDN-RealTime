@@ -92,7 +92,6 @@ class CachedPageIconActivity extends PageIconActivity {
 
 	static get ready() {
 		if (!CachedPageIconActivity.#readyPromise) {
-			console.debug("CachedPageIconActivity: loading activity icons...");
 			CachedPageIconActivity.#readyPromise = CachedPageIconActivity.#preloadIcons();
 		}
 
@@ -111,6 +110,7 @@ class CachedPageIconActivity extends PageIconActivity {
 		const loadPromises = Object.getOwnPropertySymbols(ICON_PATHS).map(async (state) => {
 			const path = ICON_PATHS[state];
 			try {
+				console.debug("CachedPageIconActivity: loading activity icons...");
 				const response = await fetch(path);
 
 				if (!response.ok) {

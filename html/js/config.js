@@ -1,23 +1,26 @@
 // import { RegionMap } from "#ed/RegionMap.js";
 
 
+// default locale from browser settings
+const language = navigator.language ?? "en";
+
 export const Config = {
-	// TODO: use this as default?
-	// locale: navigator.language?.split("-")?.[0]?.toLowerCase() ?? "en",
+	websocket_url: "wss://ws.eddn-realtime.space/eddn",
+
+	resetTimeout: 300 * 1000,
 
 	// load templates from template_XX.html
 	// TODO: define and match against supportedLocales?
 	templateLocale: "en",
+//	templateLocale: language.split("-")[0].toLowerCase(),
 
 	// override options for Intl.NumberFormat
-//	numberLocale: "en",
-//	numberOptions: { notation: "standard", useGrouping: "always" },
+	numberLocale: language,
+//	numberOptions: { notation: "compact" },
 
 	// override options for Intl.RelativeTimeFormat
-//	timeLocale: "en",
+	timeLocale: language,
 	timeOptions: { style: "narrow" },
-
-	websocket_url: "wss://ws.eddn-realtime.space/eddn",
 
 /*
 	// filter events in EDDClient
@@ -25,7 +28,7 @@ export const Config = {
 //		(event.age < 0) || (event.isMulticrew) ||
 		(event.StarSystem.startsWith("HIP ")) ||
 		(event.message?.Route?.some((wp) => wp?.StarSystem?.startsWith("HIP "))) ||
-//		(event.StarPos && RegionMap.findRegion(...event.StarPos).id === 0) ||
+//		(event.StarPos && RegionMap.isReady && RegionMap.findRegion(...event.StarPos).id === 0) ||
 		(event.StarPos && RegionMap.isReady && RegionMap.findRegion(...event.StarPos).id !== 18) ||
 //		(event.StarPos && ["Perseus Arm", "The Abyss", "Elysian Shore"].includes(RegionMap.findRegion(...event.StarPos).name)) ||
 //		(true)

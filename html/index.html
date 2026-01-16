@@ -12,17 +12,17 @@
 
 <div id="board" class="dashboard">
 
-<div id="FSDJump" class="dashboard__table narrow"></div>
-<div id="NavRoute" class="dashboard__table wide"></div>
-<div id="NewStars" class="dashboard__table narrow"></div>
-<div id="NewBodies" class="dashboard__table wide"></div>
+<div id="FSDJump" class="dashboard__table"></div>
+<div id="NavRoute" class="dashboard__table"></div>
+<div id="NewStars" class="dashboard__table"></div>
+<div id="NewBodies" class="dashboard__table"></div>
 <div id="Scan" class="dashboard__table"></div>
 <div id="Approach" class="dashboard__table"></div>
 <div id="Docks" class="dashboard__table"></div>
 <div id="Updates" class="dashboard__table"></div>
-<div id="Visits" class="dashboard__table wider"></div>
-<div id="CodexEntry" class="dashboard__table wider"></div>
-<div id="EventLog" class="dashboard__table full"></div>
+<div id="Visits" class="dashboard__table"></div>
+<div id="CodexEntry" class="dashboard__table"></div>
+<div id="EventLog" class="dashboard__table"></div>
 
 <div id="GameStats" class="dashboard__table">
 <table>
@@ -58,11 +58,8 @@
 </table>
 </div>
 
-</div>
-
-
 <template id="FSDJumpTemplate">
-<table>
+<table class="narrow">
 <caption>FSD Jumps</caption>
 <thead><tr><th>FSD Jump
 <tbody>
@@ -70,7 +67,7 @@
 </template>
 
 <template id="EventLogTemplate">
-<table>
+<table class="full">
 <caption>Event Log</caption>
 <thead><tr><th style="width: 6%;">Time<th style="width: 12%;">Uploader<th style="width: 10%;">Event<th style="width: 15%;">Software<th style="width: 6%;">Version<th>System<th style="width: 12%;">Region<th style="width: 10%;">Game Build<th style="width: 10%;">$schemaRef
 <tbody>

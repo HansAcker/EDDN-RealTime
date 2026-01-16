@@ -59,19 +59,19 @@ body {
 
 
 /* Sizing modifiers */
-.dashboard__table.narrow {
+.dashboard__table:has(.narrow) {
 	flex: 0 1 calc(var(--baseWidth) * 0.6);
 }
 
-.dashboard__table.wide {
+.dashboard__table:has(.wide) {
 	flex: 0 1 calc(var(--baseWidth) * 1.4);
 }
 
-.dashboard__table.wider {
+.dashboard__table:has(.wider) {
 	flex: 0 1 calc(var(--baseWidth) * 2);
 }
 
-.dashboard__table.full {
+.dashboard__table:has(.full) {
 	flex: 0 1 100%;
 }
 

@@ -46,8 +46,8 @@ jobs:
 
       - name: Replace JS files
         run: |
-          rm -v html/js/**/*.js &&
-          cp -v html/js-dist/* html/js/
+          rm -rv html/js &&
+          mv -v html/js-dist html/js
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

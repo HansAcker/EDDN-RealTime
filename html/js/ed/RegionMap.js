@@ -27,7 +27,7 @@ const readyPromise = (async function loadData() {
 		console.debug("RegionMap: loading data...");
 		const response = await fetch(MAP_URL);
 		if (!response.ok) {
-			throw new Error(`Failed to load map data: ${response.statusText}`);
+			throw new Error(`HTTP ${response.status} ${response.statusText}`);
 		}
 
 		const buffer = await response.arrayBuffer();
@@ -56,12 +56,13 @@ const readyPromise = (async function loadData() {
 		rowIndex = new Uint32Array(buffer, 0, offsetCount);
 		rleData = new Uint16Array(buffer, offsetByteSize);
 
+		// last index points to end of rleData
 		if (rleData.length !== rowIndex[MAP_SIZE]) {
 			throw new Error(`Data length mismatch: Got ${rleData.length}, expected ${rowIndex[MAP_SIZE]}`);
 		}
 
 		isReady = true;
-		console.debug("RegionMap: data loaded");
+		console.debug(`RegionMap: load done - ${MAP_SIZE} rows, ${rleData.length / 2} segments`);
 	} catch (err) {
 		console.error("RegionMap: initialization failed:", err);
 		// initialize empty buffers

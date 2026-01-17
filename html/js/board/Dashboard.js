@@ -139,7 +139,7 @@ export class Dashboard {
 
 			const response = await fetch(url);
 			if (!response.ok) {
-				throw new Error(`HTTP ${response.status}`);
+				throw new Error(`HTTP ${response.status} ${response.statusText}`);
 			}
 
 			const doc = new DOMParser().parseFromString(await response.text(), "text/html");
@@ -152,7 +152,7 @@ export class Dashboard {
 			console.debug(`Dashboard: loaded ${templates.length} templates`);
 		}
 		catch (err) {
-				throw new Error("Dashboard: template load failed:", err);
+			throw new Error("Dashboard: template load failed", { cause: err });
 		}
 	}
 

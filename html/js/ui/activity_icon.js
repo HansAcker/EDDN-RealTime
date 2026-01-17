@@ -114,7 +114,7 @@ class CachedPageIconActivity extends PageIconActivity {
 				const response = await fetch(path);
 
 				if (!response.ok) {
-					throw new Error(`HTTP ${response.status}`);
+					throw new Error(`HTTP ${response.status} ${response.statusText}`);
 				}
 
 				// TODO: check that response is SVG?

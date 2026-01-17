@@ -27,10 +27,6 @@ const eddn = new EDDNClient({
 });
 
 
-// The module handler
-const dashboard = new Dashboard(new MessageRouter(eddn), { container: window.board });
-
-
 // Reflect websocket activity in page icon
 // TODO: quick succession of changes on load can get the displayed icon stuck on "idle"
 //       - await ready before connect for now
@@ -42,25 +38,39 @@ eddn.addEventListener("eddn:message", () => activity.ok()); // all valid message
 eddn.addEventListener("eddn:error", () => activity.error()); // parse errors
 
 
+// The module handler
+const dashboard = new Dashboard(new MessageRouter(eddn), { container: window.board });
+
+
 // TODO: dynamic imports etc., progress bar, "Loading..." animation
 
-// block here until all loaded
-//await RegionMap.ready;
-await CachedPageIconActivity.ready;
 
-// TODO: would crash here if template load fails. catch and display error?
-await dashboard.ready;
-dashboard.fromContainer();
-//dashboard.fromArray([{ name: "EventLog", options: { listLength: 100 }}]);
-//document.body.replaceChildren(dashboard.container);
+// block here until all loaded
 
 // wait for CSS to finish loading
 if (document.readyState === "loading") {
 	await new Promise((resolve) => window.addEventListener("load", resolve, { once: true }));
 }
 
+//await RegionMap.ready;
+await CachedPageIconActivity.ready;
+
+// TODO: would crash here if template load fails. catch and display error?
+await dashboard.ready;
+
+//document.querySelector(".dashboard__loader")?.remove();
+
 
 console.debug("Main: load done");
+
+
+// create modules from <div data-dashboard__module="...">
+dashboard.fromContainer();
+
+// create modules from names array
+//dashboard.fromArray(["FSDJump", { name: "EventLog", options: { listLength: 100 }}]);
+
+//dashboard.container.classList.remove("dashboard__loading");
 
 
 eddn.connect();

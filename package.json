@@ -12,6 +12,7 @@
 	"imports": {
 		"#config.js": "./html/js/config.js",
 		"#DashboardModule": "./html/js/board/modules/DashboardModule.js",
+		"#data/*": "./html/data/*",
 		"#board/*": "./html/js/board/*",
 		"#ed/*": "./html/js/ed/*",
 		"#eddn/*": "./html/js/eddn/*",

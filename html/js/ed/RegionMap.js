@@ -1,4 +1,4 @@
-import GalacticRegions from "#ed/GalacticRegions.json" with { type: "json" };
+import GalacticRegions from "#data/GalacticRegions.json" with { type: "json" };
 
 
 // Sol-centered coordinate system
@@ -24,7 +24,7 @@ const readyPromise = (async function loadData() {
 	try {
 		// hypothetically, someone could browse the site on an IBM Z mainframe...
 		const isLittleEndian = new Uint8Array(new Uint32Array([0x12345678]).buffer)[0] === 0x78;
-		const MAP_URL = `./js/ed/RegionMapData${isLittleEndian ? "" : "_BE"}.bin`;
+		const MAP_URL = `./data/RegionMapData${isLittleEndian ? "" : "_BE"}.bin`;
 
 		console.debug("RegionMap: loading data...");
 		const response = await fetch(MAP_URL);

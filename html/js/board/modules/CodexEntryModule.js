@@ -1,5 +1,5 @@
 import { DataTableModule } from "#DashboardModule";
-import GalacticRegions from "#ed/GalacticRegions.json" with { type: "json" };
+import GalacticRegions from "#data/GalacticRegions.json" with { type: "json" };
 
 
 export class CodexEntryModule extends DataTableModule {

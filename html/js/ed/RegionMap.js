@@ -22,9 +22,7 @@ let isReady = false; // set to true after data load
 // Layout: [RowIndex (Uint32)...] [RLE Data (Uint16)...]
 const readyPromise = (async function loadData() {
 	try {
-		// hypothetically, someone could browse the site on an IBM Z mainframe...
-		const isLittleEndian = new Uint8Array(new Uint32Array([0x12345678]).buffer)[0] === 0x78;
-		const MAP_URL = `./data/RegionMapData${isLittleEndian ? "" : "_BE"}.bin`;
+		const MAP_URL = "./data/RegionMapData.bin";
 
 		console.debug("RegionMap: loading data...");
 		const response = await fetch(MAP_URL);
@@ -36,6 +34,23 @@ const readyPromise = (async function loadData() {
 
 		const offsetCount = MAP_SIZE + 1;
 		const offsetByteSize = offsetCount * 4;
+
+		// hypothetically, someone could browse the site on an IBM Z mainframe...
+		const isLittleEndian = new Uint8Array(new Uint32Array([0x12345678]).buffer)[0] === 0x78;
+		if (!isLittleEndian) {
+			console.debug("RegionMap: converting byte-order");
+			const view = new DataView(buffer);
+
+			// Uint32 index section
+			for (let i = 0; i < offsetByteSize; i += 4) {
+				view.setUint32(i, view.getUint32(i, true));
+			}
+
+			// Uint16 data section
+			for (let i = offsetByteSize; i < buffer.byteLength; i += 2) {
+				view.setUint16(i, view.getUint16(i, true));
+			}
+		}
 
 		// map data view onto byte buffer
 		rowIndex = new Uint32Array(buffer, 0, offsetCount);

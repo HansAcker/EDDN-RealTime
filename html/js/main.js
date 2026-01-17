@@ -28,7 +28,7 @@ const eddn = new EDDNClient({
 
 
 // The module handler
-const dashboard = new Dashboard(window.board, new MessageRouter(eddn), {});
+const dashboard = new Dashboard(new MessageRouter(eddn), { container: window.board });
 
 
 // Reflect websocket activity in page icon
@@ -45,11 +45,14 @@ eddn.addEventListener("eddn:error", () => activity.error()); // parse errors
 // TODO: dynamic imports etc., progress bar, "Loading..." animation
 
 // block here until all loaded
-// await RegionMap.ready;
+//await RegionMap.ready;
 await CachedPageIconActivity.ready;
 
 // TODO: would crash here if template load fails. catch and display error?
 await dashboard.ready;
+dashboard.fromContainer();
+//dashboard.fromArray([{ name: "EventLog", options: { listLength: 100 }}]);
+//document.body.replaceChildren(dashboard.container);
 
 // wait for CSS to finish loading
 if (document.readyState === "loading") {

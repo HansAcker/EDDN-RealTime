@@ -2,10 +2,14 @@ import { Config } from "#config.js";
 
 
 export class DashboardModule {
-
-	// TODO: allow empty topics for wildcard?
 	constructor(router, topics) {
-		if (router === undefined || topics === undefined) {
+		// allow empty router for DummyModule
+		if (!router) {
+			return;
+		}
+
+		// TODO: allow empty topic for wildcard?
+		if (!topics) {
 			throw new Error("DashboardModule: missing required arguments");
 		}
 
@@ -13,9 +17,8 @@ export class DashboardModule {
 	}
 
 
-	_handleEvent(event) {
+	_handleEvent(_event) {
 		// base class
-		console.log(event.type, event.eventName, event.receiveTimestamp);
 	}
 }
 
@@ -33,11 +36,11 @@ export class DataTableModule extends DashboardModule {
 	_rowTemplate; // DOM elements to be cloned by makeCell()/makeRow()
 	_cellTemplate;
 
-	listLength = 20;
+	listLength = Config.listLength ?? 20;
 	cullFactor = 2; // cut back #renderQueue if > listLength * cullFactor // TODO: rename
 
 
-	constructor(router, topics, container, options = {}) {
+	constructor(router, topics, options = {}) {
 		const { listLength, cullFactor, template, infobox } = options;
 
 		if (listLength && !Number.isInteger(listLength)) {
@@ -58,22 +61,24 @@ export class DataTableModule extends DashboardModule {
 
 		// TODO: this calls _setupXX() in inheriting classes before their class definition is ready
 		//       - Dashboard should call setup later
-		this._container = this._setupContainer(container);
+//		this._container = this._setupContainer(container);
 		this._setupTemplates();
 	}
 
 
-	_setupContainer(container) {
+	_setupContainer() {
 		if (!this._tableTemplate) {
-			return container;
+			return null;
 		}
 
 		const table = document.importNode(this._tableTemplate.content, true);
 		const tbody = table.querySelector("tbody"); // TODO: check
-		tbody.innerHTML = "<tr><td>&nbsp;</td></tr>".repeat(this.listLength);
+		if (!tbody.childElementCount && this.listLength) {
+			tbody.innerHTML = "<tr><td>&nbsp;</td></tr>".repeat(this.listLength);
+		}
 
-		container.replaceChildren(table);
-		return tbody;
+		this._container = tbody;
+		return table;
 	}
 
 
@@ -191,6 +196,14 @@ export class DataTableModule extends DashboardModule {
 		return 0;
 	}
 }
+
+
+export class DummyTableModule extends DataTableModule {
+	constructor(router, options) {
+		super(null, null, options);
+	}
+}
+
 
 
 export default DashboardModule;

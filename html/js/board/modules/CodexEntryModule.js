@@ -3,8 +3,8 @@ import GalacticRegions from "#data/GalacticRegions.json" with { type: "json" };
 
 
 export class CodexEntryModule extends DataTableModule {
-	constructor(router, container, options) {
-		super(router, ["codexentry"], container, options);
+	constructor(router, options) {
+		super(router, ["codexentry"], options);
 	}
 
 

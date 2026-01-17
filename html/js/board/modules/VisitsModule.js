@@ -3,8 +3,8 @@ import { DataTableModule } from "#DashboardModule";
 
 
 export class VisitsModule extends DataTableModule {
-	constructor(router, container, options) {
-		super(router, ["journal:fsdjump"], container, options);
+	constructor(router, options) {
+		super(router, ["journal:fsdjump"], options);
 	}
 
 

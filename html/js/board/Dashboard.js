@@ -12,73 +12,113 @@ import LocationModule from "#modules/LocationModule.js";
 import NavRouteModule from "#modules/NavRouteModule.js";
 import NewBodiesModule from "#modules/NewBodiesModule.js";
 import NewStarsModule from "#modules/NewStarsModule.js";
+import SoftwareStatsModule from "#modules/SoftwareStatsModule.js";
 import ScanModule from "#modules/ScanModule.js";
 import UpdatesModule from "#modules/UpdatesModule.js";
 import VisitsModule from "#modules/VisitsModule.js";
 
+import { DummyTableModule } from "#DashboardModule";
+
+
+const defaultModules = {
+	"Approach": ApproachModule,
+	"CodexEntry": CodexEntryModule,
+	"EventLog": EventLogModule,
+	"EventStats": EventStatsModule,
+	"FSDJump": FSDJumpModule,
+	"GameStats": GameStatsModule,
+	"Legend": DummyTableModule,
+	"Location": LocationModule,
+	"NavRoute": NavRouteModule,
+	"NewBodies": NewBodiesModule,
+	"NewStars": NewStarsModule,
+	"Scan": ScanModule,
+	"SoftwareStats": SoftwareStatsModule,
+	"Updates": UpdatesModule,
+	"Visits": VisitsModule,
+};
+
 
 export class Dashboard {
-	#container;
-	#router;
-	#infobox;
+	#router; // MessageRouter instance
+	#container; // new modules appended here
+	#infoBox; // data map
 
 	#templates = new Map();
 	#readyPromise = null;
 
-	#modules = new Map();
 
-
-	constructor(container, router, options) {
-		this.#container = container;
+	constructor(router, options = {}) {
 		this.#router = router;
 
+		const { container, infoBox } = options;
 
-		// use templates from index.html for now
-		const templates = container;
-		const infobox_template = templates.querySelector("#infotemplate");
+		if (container) {
+			this.#container = container;
+		} else {
+			// TODO: template?
+			const newContainer = document.createElement("div");
+			newContainer.className = "dashboard";
+			this.#container = newContainer;
+		}
 
-		// import modules...
-
-
-		// Data window
-		const infobox = new InfoBox(container, infobox_template);
-		this.#infobox = infobox;
-
-		container.addEventListener("click", (ev) => {
-			const target = ev.target.closest(".data");
-
-			if (target && infobox.has(target)) {
-				infobox.show(target);
-			}
-		});
-
-
-
-		// statically create and connect modules here for now
-		const commonOptions = { infobox, listLength: 20 };
-
-		const _modules = // eslint-disable-line no-unused-vars
-		[
-			new FSDJumpModule(router, container.querySelector("#FSDJump"), { ...commonOptions, template: templates.querySelector("#FSDJumpTemplate") }),
-			new NavRouteModule(router, container.querySelector("#NavRoute"), { ...commonOptions, template: templates.querySelector("#NavRouteTemplate") }),
-			new ScanModule(router, container.querySelector("#Scan"), { ...commonOptions, template: templates.querySelector("#ScanTemplate") }),
-			new LocationModule(router, container.querySelector("#Docks"), { ...commonOptions, template: templates.querySelector("#LocationTemplate") }),
-			new CodexEntryModule(router, container.querySelector("#CodexEntry"), { ...commonOptions, template: templates.querySelector("#CodexEntryTemplate") }),
-			new UpdatesModule(router, container.querySelector("#Updates"), { ...commonOptions, template: templates.querySelector("#UpdatesTemplate") }),
-			new ApproachModule(router, container.querySelector("#Approach"), { ...commonOptions, template: templates.querySelector("#ApproachTemplate") }),
-			new VisitsModule(router, container.querySelector("#Visits"), { ...commonOptions, template: templates.querySelector("#VisitsTemplate") }),
-			new NewStarsModule(router, container.querySelector("#NewStars"), { ...commonOptions, template: templates.querySelector("#NewStarsTemplate") }),
-			new NewBodiesModule(router, container.querySelector("#NewBodies"), { ...commonOptions, template: templates.querySelector("#NewBodiesTemplate") }),
-
-			new EventLogModule(router, container.querySelector("#EventLog"), { ...commonOptions, template: templates.querySelector("#EventLogTemplate"), listLength: 30 }),
-
-			// no infobox
-			new EventStatsModule(router, container.querySelector("#EventStats"), { template: templates.querySelector("#EventStatsTemplate") }),
-			new GameStatsModule(router, container.querySelector("#GameStats tbody")),
-		];
-
+		if (infoBox) {
+			this.#infoBox = infoBox;
+		}
 
 		void this.ready;
+	}
+
+
+	get container() { return this.#container; }
+
+
+	fromContainer() {
+		this.#createInfoBox();
+
+		const divs = this.#container.querySelectorAll("div[data-dashboard__module]");
+		for (const div of divs) {
+			const moduleName = div.dataset["dashboard__module"];
+/*
+			const moduleOptions = div.dataset["dashboard__options"];
+			// JSON parse options
+*/
+			const moduleOptions = {};
+
+			const moduleClass = defaultModules[moduleName];
+			if (!moduleClass) {
+				throw new Error(`Dashboard: no class for module ${moduleName}`);
+			}
+
+			div.replaceChildren(this.#createModule(moduleName, moduleClass, moduleOptions));
+		}
+	}
+
+
+	fromArray(modules) {
+		this.#createInfoBox();
+
+		for (const module of modules) {
+			let moduleName, moduleOptions;
+
+			if (typeof module === "string") {
+				moduleName = module;
+				moduleOptions = {};
+			} else {
+				({ name: moduleName, options: moduleOptions = {} } = module);
+			}
+
+			const moduleClass = defaultModules[moduleName];
+			if (!moduleClass) {
+				throw new Error(`Dashboard: no class for module ${moduleName}`);
+			}
+
+			const moduleContainer = document.createElement("div");
+			moduleContainer.className = "dashboard__table";
+			moduleContainer.append(this.#createModule(moduleName, moduleClass, moduleOptions));
+
+			this.#container.append(moduleContainer);
+		}
 	}
 
 
@@ -117,18 +157,39 @@ export class Dashboard {
 	}
 
 
-	#addModule(name, Module, options) {
-		const commonOptions = { infobox: this.#infobox, listLength: Config.listLength ?? 20, ...options };
+	#createModule(name, Module, options) {
+		const commonOptions = { infobox: this.#infoBox };
 
 		const template = this.#templates.get(name);
+
 		if (!template) {
-			throw new Error(`Dashboard: no template for module name "${name}"`);
+			console.warn(`Dashboard: no template for module "${name}"`);
 		}
 
-		const module = new Module({ ...commonOptions, template });
+		const module = new Module(this.#router, { ...commonOptions, template, ...options });
 		const moduleContainer = module._setupContainer();
 
-		this.#container.append(moduleContainer);
-		this.#modules.set(name, module);
+		return moduleContainer;
+	}
+
+
+	#createInfoBox() {
+		if (!this.#infoBox) {
+			const infoBox_template = this.#templates.get("InfoBox");
+			if (!infoBox_template) {
+				throw new Error("Dashboard: no template for InfoBox");
+			}
+
+			const infoBox = new InfoBox(this.#container, infoBox_template);
+			this.#infoBox = infoBox;
+
+			this.#container.addEventListener("click", (ev) => {
+				const target = ev.target.closest(".data");
+
+				if (target && infoBox.has(target)) {
+					infoBox.show(target);
+				}
+			});
+		}
 	}
 }

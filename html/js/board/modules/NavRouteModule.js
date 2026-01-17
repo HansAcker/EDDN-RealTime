@@ -2,8 +2,8 @@ import { DataTableModule } from "#DashboardModule";
 
 
 export class NavRouteModule extends DataTableModule {
-	constructor(router, container, options) {
-		super(router, ["navroute"], container, options);
+	constructor(router, options) {
+		super(router, ["navroute"], options);
 	}
 
 

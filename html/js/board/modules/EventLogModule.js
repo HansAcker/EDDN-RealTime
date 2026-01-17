@@ -18,8 +18,8 @@ const hex_colors = Object.freeze({
 
 
 export class EventLogModule extends DataTableModule {
-	constructor(router, container, options) {
-		super(router, ["*"], container, options);
+	constructor(router, options) {
+		super(router, ["*"], options);
 	}
 
 

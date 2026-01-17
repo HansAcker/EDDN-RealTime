@@ -2,8 +2,8 @@ import { DataTableModule } from "#DashboardModule";
 
 
 export class ApproachModule extends DataTableModule {
-	constructor(router, container, options) {
-		super(router, ["approachsettlement"], container, options);
+	constructor(router, options) {
+		super(router, ["approachsettlement"], options);
 	}
 
 

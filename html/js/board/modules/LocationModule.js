@@ -2,8 +2,8 @@ import { DataTableModule } from "#DashboardModule";
 
 
 export class LocationModule extends DataTableModule {
-	constructor(router, container, options) {
-		super(router, ["journal:location", "journal:docked"], container, options);
+	constructor(router, options) {
+		super(router, ["journal:location", "journal:docked"], options);
 	}
 
 

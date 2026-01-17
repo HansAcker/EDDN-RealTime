@@ -6,14 +6,14 @@ export class EventStatsModule extends DataTableModule {
 	// TODO: don't declare it here because of the way _setupContainer() is called by super constructor
 	//_statsBox;
 
-	constructor(router, container, options) {
-		super(router, ["*"], container, options);
+	constructor(router, options) {
+		super(router, ["*"], options);
 	}
 
-	_setupContainer(container) {
-		const tbody = super._setupContainer(container);
-		this._statsBox = new SortedStatsBox(tbody);
-		return tbody;
+	_setupContainer() {
+		const table = super._setupContainer();
+		this._statsBox = new SortedStatsBox(this._container);
+		return table;
 	}
 
 	_handleEvent(event) {

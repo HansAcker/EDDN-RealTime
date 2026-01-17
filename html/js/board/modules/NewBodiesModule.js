@@ -2,8 +2,8 @@ import { DataTableModule } from "#DashboardModule";
 
 
 export class NewBodiesModule extends DataTableModule {
-	constructor(router, container, options) {
-		super(router, ["journal:scan"], container, options);
+	constructor(router, options) {
+		super(router, ["journal:scan"], options);
 	}
 
 

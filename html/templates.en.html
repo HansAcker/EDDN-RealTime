@@ -10,14 +10,6 @@
 </table>
 </template>
 
-<template data-dashboard__module="EventLog">
-<table class="full">
-<caption>Event Log</caption>
-<thead><tr><th style="width: 6%;">Time<th style="width: 12%;">Uploader<th style="width: 10%;">Event<th style="width: 15%;">Software<th style="width: 6%;">Version<th>System<th style="width: 12%;">Region<th style="width: 10%;">Game Build<th style="width: 10%;">$schemaRef
-<tbody>
-</table>
-</template>
-
 <template data-dashboard__module="NavRoute">
 <table class="wide">
 <caption>Routes Plotted</caption>
@@ -90,6 +82,14 @@
 </table>
 </template>
 
+<template data-dashboard__module="EventLog">
+<table class="full">
+<caption>Event Log</caption>
+<thead><tr><th style="width: 6%;">Time<th style="width: 12%;">Uploader<th style="width: 10%;">Event<th style="width: 15%;">Software<th style="width: 6%;">Version<th>System<th style="width: 12%;">Region<th style="width: 10%;">Game Build<th style="width: 10%;">$schemaRef
+<tbody>
+</table>
+</template>
+
 <template data-dashboard__module="EventStats">
 <table>
 <caption>Event Stats</caption>
@@ -97,6 +97,40 @@
 <tbody>
 </table>
 </template>
+
+<template data-dashboard__module="GameStats">
+<table>
+<caption>Stats</caption>
+<thead><tr><th>Stats<th>Count
+<tbody>
+</table>
+</template>
+
+<template data-dashboard__module="SoftwareStats">
+<table>
+<caption>Software Stats</caption>
+<thead><tr><th>Software<th style="width: 25%;">Count
+<tbody>
+</table>
+</template>
+
+
+<template data-dashboard__module="Legend">
+<table>
+<caption>Legend</caption>
+<thead><tr><th>Legend
+<tbody style="text-align: center;">
+    <tr class="Odyssey"><td>Odyssey
+    <tr class="Horizons"><td>Horizons
+    <tr class="Legacy"><td>Legacy
+    <tr class="Base"><td>A bug (Live but not Horizons)
+    <tr class="Unknown"><td>Unknown
+    <tr class="Odyssey taxi"><td>Taxi (Apex/Frontline)
+    <tr class="Odyssey old"><td>Older than 1h
+    <tr class="Odyssey new"><td>In the future
+</table>
+</template>
+
 
 <template data-dashboard__module="InfoBox">
 <div class="infobox">

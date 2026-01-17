@@ -7,13 +7,13 @@ export class GameStatsModule extends DataTableModule {
 	// TODO: don't declare it here because of the way _setupContainer() is called by super constructor
 	//_statsBox;
 
-	constructor(router, container, options) {
-		super(router, ["*"], container, options);
+	constructor(router, options) {
+		super(router, ["*"], options);
 	}
 
-	_setupContainer(container) {
-		const tbody = super._setupContainer(container);
-		this._statsBox = new StatsBox(tbody, { values: {
+	_setupContainer() {
+		const table = super._setupContainer();
+		this._statsBox = new StatsBox(this._container, { values: {
 			"Total": 0,
 			"Odyssey": 0,
 			"Horizons": 0,
@@ -27,7 +27,7 @@ export class GameStatsModule extends DataTableModule {
 //			"Last timestamp": "",
 //			"Max jump range": ""
 		}});
-		return tbody;
+		return table;
 	}
 
 	_handleEvent(event) {

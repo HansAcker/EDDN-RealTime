@@ -2,8 +2,8 @@ import { DataTableModule } from "#DashboardModule";
 
 
 export class UpdatesModule extends DataTableModule {
-	constructor(router, container, options) {
-		super(router, ["commodity", "outfitting", "shipyard"], container, options);
+	constructor(router, options) {
+		super(router, ["commodity", "outfitting", "shipyard"], options);
 	}
 
 

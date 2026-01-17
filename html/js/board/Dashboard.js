@@ -98,6 +98,8 @@ export class Dashboard {
 	fromArray(modules) {
 		this.#createInfoBox();
 
+		const newModules = document.createDocumentFragment();
+
 		for (const module of modules) {
 			let moduleName, moduleOptions;
 
@@ -117,8 +119,10 @@ export class Dashboard {
 			moduleContainer.className = "dashboard__table";
 			moduleContainer.append(this.#createModule(moduleName, moduleClass, moduleOptions));
 
-			this.#container.append(moduleContainer);
+			newModules.append(moduleContainer);
 		}
+
+		this.#container.append(newModules);
 	}
 
 

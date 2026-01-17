@@ -90,6 +90,7 @@ export class Dashboard {
 				throw new Error(`Dashboard: no class for module ${moduleName}`);
 			}
 
+			div.classList.add("dashboard__table");
 			div.replaceChildren(this.#createModule(moduleName, moduleClass, moduleOptions));
 		}
 	}

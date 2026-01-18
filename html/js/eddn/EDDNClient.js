@@ -107,12 +107,12 @@ export class EDDNClient extends EventTarget {
 		let payload;
 
 		try {
-			// Text frames
+			// JSON in Text frames
 			if (typeof rawData === "string") {
 				payload = JSON.parse(rawData);
 			}
 
-			// ArrayBuffer binary frames
+			// JSON in binary frames
 			else if (rawData instanceof ArrayBuffer) {
 				payload = JSON.parse((this.#textDecoder ?? (this.#textDecoder = new TextDecoder("utf-8"))).decode(rawData));
 			}

@@ -89,11 +89,15 @@ export class EDDNEvent extends Event {
 	 * TODO: return "outfitting/2/test" etc. with -test suffix?
 	 */
 	static getEventType(data) {
-		let eventType = data?.$schemaRef?.match(RX_SCHEMAREF)?.[1] ?? "";
+		if (!data?.$schemaRef) {
+			return "";
+		}
+
+		let eventType = data.$schemaRef.match(RX_SCHEMAREF)?.[1] ?? "";
 
 		// If it's a journal schema, append the specific game event
 		// Journal events (FSDJump, Docked) are defined inside the 'message.event' property
-		if (eventType === "journal" && data?.message?.event) {
+		if (eventType === "journal" && data.message?.event) {
 			eventType = `journal:${data.message.event}`;
 		}
 

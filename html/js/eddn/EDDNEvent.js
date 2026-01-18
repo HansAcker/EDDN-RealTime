@@ -35,18 +35,14 @@ export class EDDNEvent extends Event {
 	constructor(type, data) {
 		super(type);
 
-		const { $schemaRef, header, message } = data;
-
-		this.$schemaRef = $schemaRef;
-		this.header = header;
-		this.message = message;
-		this.data = data;
+		({ $schemaRef: this.$schemaRef, header: this.header, message: this.message } = this.data = data);
 
 		// store a number here, make it a Date object on request
 		this.#receiveTimestamp = Date.now();
 	}
 
 
+	// TODO: make it return the number instead of Date? nothing uses this, yet
 	get receiveTimestamp() {
 		return new Date(this.#receiveTimestamp);
 	}
@@ -76,7 +72,8 @@ export class EDDNEvent extends Event {
 	}
 
 	get StarSystem() {
-		return this.#starSystem ?? (this.#starSystem = this.message?.StarSystem ?? this.message?.systemName ?? this.message?.SystemName ?? this.message?.System ?? this.message?.Route?.[0]?.StarSystem ?? "");
+		return this.#starSystem ?? (this.#starSystem = this.message?.StarSystem ?? this.message?.systemName ??
+			this.message?.SystemName ?? this.message?.System ?? this.message?.Route?.[0]?.StarSystem ?? "");
 	}
 
 	get StarPos() {

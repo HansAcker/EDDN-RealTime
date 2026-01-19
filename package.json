@@ -1,0 +1,27 @@
+{
+	"name": "EDDN-RealTime",
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"build:bundle": "esbuild html/js/main.js --outdir=html/dist-js/ --bundle --format=esm --mangle-props='^[#_]' --minify --sourcemap --analyze",
+		"build": "npm run build:bundle",
+		"watch": "npm run build:bundle -- --watch",
+		"lint:js": "eslint html/js",
+		"lint": "npm run lint:js"
+	},
+	"imports": {
+		"#config.js": "./html/js/config.js",
+		"#DashboardModule": "./html/js/board/modules/DashboardModule.js",
+		"#data/*": "./html/data/*",
+		"#board/*": "./html/js/board/*",
+		"#ed/*": "./html/js/ed/*",
+		"#eddn/*": "./html/js/eddn/*",
+		"#modules/*": "./html/js/board/modules/*",
+		"#ui/*": "./html/js/ui/*",
+		"#ws/*": "./html/js/ws/*"
+	},
+	"devDependencies": {
+		"esbuild": "^0.27",
+		"eslint": "^9"
+	}
+}

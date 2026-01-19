@@ -1,13 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
+<meta charset="UTF-8">
 <link rel="icon" sizes="any" href="img/activity-icon/activity-icon--state-off.svg" id="icon">
 <link rel="preload" href="fonts/orbitron/orbitron-light-webfont.woff" as="font" type="font/woff" crossorigin>
-<link rel="modulepreload" href="js/reconnecting-websocket.js">
-<link rel="modulepreload" href="js/activity_icon.js">
-<link rel="modulepreload" href="js/statsbox.js">
-<link rel="modulepreload" href="js/infobox.js">
-<link rel="modulepreload" href="js/utils.js">
-<link rel="modulepreload" href="js/board.js">
 <link rel="stylesheet" href="css/style.css">
 
 <!-- https://github.com/HansAcker/EDDN-RealTime -->
@@ -15,139 +10,47 @@
 <meta name="description" content="Live Events from the Elite Dangerous Data Network">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<div id="board">
 
-<table class="narrow">
-<caption>FSD Jumps
-<thead><tr><th>FSD Jump
-<tbody id="jumps">
-</table>
+<div class="dashboard">
 
-<table class="wide">
-<caption>Routes Plotted
-<thead><tr><th style="width: 25%;">Route From<th>To<th style="width: 10%;">Jumps<th style="width: 14%;">Distance<th style="width: 14%;">Total<th style="width: 12%;">Max
-<tbody id="routes">
-</table>
+<div data-dashboard__module="FSDJump"></div>
+<div data-dashboard__module="NavRoute"></div>
+<div data-dashboard__module="NewStars"></div>
+<div data-dashboard__module="NewBodies"></div>
 
-<table class="narrow">
-<caption>Stars discovered
-<thead><tr><th>Discovered Star<th style="width: 20%;">Class
-<tbody id="newstars">
-</table>
+<div data-dashboard__module="Scan"></div>
+<div data-dashboard__module="Approach"></div>
+<div data-dashboard__module="Location"></div>
+<div data-dashboard__module="Updates"></div>
 
-<table class="wide">
-<caption>Planets discovered
-<thead><tr><th>Discovered Body<th style="width: 25%;">Class<th style="width: 20%;">Atmosphere<th style="width: 15%;">Landable
-<tbody id="newplanets">
-</table>
+<div data-dashboard__module="Visits"></div>
+<div data-dashboard__module="CodexEntry"></div>
 
-<table>
-<caption>Scanned Bodies
-<thead><tr><th>Scanned Body<th style="width: 30%;">Scan Type
-<tbody id="scanbods">
-</table>
+<div data-dashboard__module="EventLog"></div>
 
-<table>
-<caption>Settlement Approach
-<thead><tr><th style="width: 50%;">Settlement Approach<th>System
-<tbody id="asett">
-</table>
-
-<table>
-<caption>Docking and Locations
-<thead><tr><th style="width: 40%;">Docked At<th style="width: 25%;">Type<th>System
-<tbody id="docks">
-</table>
-
-<table>
-<caption>Tables updated
-<thead><tr><th style="width: 25%;">Updated<th style="width: 40%;">Station<th>System
-<tbody id="updates">
-</table>
-
-<table class="wider">
-<caption>Jumps to inhabited systems
-<thead><tr><th style="width: 25%;">System Visited<th style="width: 15%;">Population<th style="width: 15%;">Allegiance<th>Faction<th style="width: 10%;">State<!-- <th>Conflicts-->
-<tbody id="visits">
-</table>
-
-<table class="wider">
-<caption>Codex Discoveries
-<thead><tr><th>System<th style="width: 10%;">Body<th style="width: 20%;">Codex Category<th style="width: 25%;">Type<th style="width: 20%;">Region
-<tbody id="codex">
-</table>
-
-<table>
-<caption>Stats
-<thead><tr><th>Stats<th>Count
-<tbody id="statsbody">
-</table>
-
-<table>
-<caption>Event Stats
-<thead><tr><th>Event<th style="width: 25%;">Count
-<tbody id="eventsbody">
-</table>
-
-<table>
-<caption>Software Stats
-<thead><tr><th>Software<th style="width: 25%;">Count
-<tbody id="softbody">
-</table>
-
-<table>
-<caption>Legend
-<thead><tr><th>Legend
-<tbody style="text-align: center;">
-	<tr class="Odyssey"><td>Odyssey
-	<tr class="Horizons"><td>Horizons
-	<tr class="Legacy"><td>Legacy
-	<tr class="Base"><td>A bug (Live but not Horizons)
-	<tr class="Unknown"><td>Unknown
-	<tr class="Odyssey taxi"><td>Taxi (Apex/Frontline)
-	<tr class="Odyssey old"><td>Older than 1h
-	<tr class="Odyssey new"><td>In the future
-</table>
+<div data-dashboard__module="GameStats"></div>
+<div data-dashboard__module="EventStats"></div>
+<div data-dashboard__module="SoftwareStats"></div>
+<div data-dashboard__module="Legend"></div>
 
 </div>
 
-<template id="infotemplate">
-<div class="infobox">
-	<div class="infobox__header">
-		<button class="infobox__button infobox__button--copy-msg" data-infobox__action="copy-msg">Copy message</button>
-		<button class="infobox__button infobox__button--copy-gts" data-infobox__action="copy-gts">Copy gateway timestamp</button>
-		<button class="infobox__button infobox__button--copy-uid" data-infobox__action="copy-uid">Copy uploader ID</button>
-		<button class="infobox__button infobox__button--close" data-infobox__action="close">Close window</button>
-	</div>
-	<div class="infobox__contentbox">
-		<pre class="infobox__content"></pre>
-	</div>
-</div>
-</template>
 
-<script>
-"use strict";
-
-const socketUrl = "wss://ws.eddn-realtime.space/eddn";
-const listLength = 20;
-
-const idleTimeout = 2300;
-const resetTimeout = 300000;
-
-// set th title attributes
-for (const th of window.board.querySelectorAll("th")) {
-	th.title = th.textContent;
-}
-
-// fill tables with listLength * empty rows
-// TODO: use style?
+<script type="importmap">
 {
-	const tbHTML = "<tr><td>&nbsp;".repeat(listLength);
-	for (const tb of window.board.querySelectorAll("tbody")) {
-		if (!tb.childElementCount) {
-			tb.innerHTML = tbHTML;
-		}
+	"imports": {
+		"#config.js": "./js/config.js",
+		"#DashboardModule": "./js/board/modules/DashboardModule.js",
+
+		"#board/": "./js/board/",
+		"#ed/": "./js/ed/",
+		"#eddn/": "./js/eddn/",
+		"#modules/": "./js/board/modules/",
+		"#ui/": "./js/ui/",
+		"#ws/": "./js/ws/",
+
+		"#data/": "./data/"
 	}
 }
 </script>
-<script type="module" src="js/board.js"></script>
+<script type="module" src="js/main.js"></script>

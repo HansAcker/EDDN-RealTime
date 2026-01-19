@@ -2,6 +2,7 @@
 - extend Dashboard component
   - save/load/share layout, config, dynamic imports
 - interactive config overlay
+- add a "loading" indicator / messages
 - revert the dynamic template fetch, integrate them back into index.html?
   - message details are mostly in English, anyway
 - use complete row/cell templates, assign slots for data

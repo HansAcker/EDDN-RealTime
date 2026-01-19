@@ -107,10 +107,10 @@ class CachedPageIconActivity extends PageIconActivity {
 			[Activity._states._error]: "img/activity-icon/activity-icon--state-error.svg"
 		};
 
+		console.debug("CachedPageIconActivity: loading activity icons...");
 		const loadPromises = Object.getOwnPropertySymbols(ICON_PATHS).map(async (state) => {
 			const path = ICON_PATHS[state];
 			try {
-				console.debug("CachedPageIconActivity: loading activity icons...");
 				const response = await fetch(path);
 
 				if (!response.ok) {

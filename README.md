@@ -24,7 +24,7 @@ https://eddn-realtime.space/
 ### How to edit locally
 
 Javascript modules cannot load from file:// URLs, so you need a webserver for
-the html directory. One simple way is to use Python's HTTP server module:
+the html directory. One way is to use Python's HTTP server module:
 
 ```
 git clone https://github.com/HansAcker/EDDN-RealTime
@@ -37,7 +37,7 @@ locally while the data websocket still connects to the server at
 eddn-realtime.space.
 
 
-To run the websocket service, it is easy to set up a local environment to
+To run the websocket service, you can set up a local environment to
 install the required packages:
 
 ```
@@ -48,7 +48,7 @@ pip install -r requirements.txt
 python3 ./eddnws.py -v
 ```
 
-Then just change the `socketUrl` option in the index.html to
+Then change the `websocket_url` option in `js/config.js` to
 `ws://127.0.0.1:8081`.
 
 

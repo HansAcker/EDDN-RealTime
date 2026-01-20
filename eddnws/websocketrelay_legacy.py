@@ -97,9 +97,6 @@ class WebsocketRelay:
 		task.add_done_callback(self._background_tasks.discard)
 
 
-	# TODO: this method changed between websockets 13 and 14
-	# In v13: (path, request_headers)
-	# In v14: (connection, request)
 	async def _process_request_legacy(self, path: str, request_headers: websockets.Headers) -> Optional[Tuple[int, websockets.HeadersLike, bytes]]:
 		"""
 		Intercept the WebSocket handshake to handle HTTP requests (e.g., health checks).
@@ -233,6 +230,7 @@ class WebsocketRelay:
 			self._logger.exception("Iterator error, relay task exiting")
 
 		finally:
+			# Also terminate the server if the iterator ends
 			if self._relay_task and not self.stop.done():
 				self.stop.set_result("Iterator EOF")
 

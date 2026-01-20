@@ -11,12 +11,10 @@ from typing import Any, Dict, Optional, Type
 
 from eddnreceiver import EDDNReceiver
 
-# TODO: update websocketrelay
-from websocketrelay_legacy import WebsocketRelay
-#try:
-#	from websocketrelay import WebsocketRelay
-#except ImportError:
-#	from websocketrelay_legacy import WebsocketRelay
+try:
+	from websocketrelay import WebsocketRelay
+except ImportError:
+	from websocketrelay_legacy import WebsocketRelay
 
 
 def parse_args() -> Dict[str, Any]:

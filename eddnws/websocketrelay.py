@@ -7,7 +7,7 @@ import zlib
 from dataclasses import dataclass
 
 # TODO: python >=3.9 supports dict, set, tuple
-from typing import Any, AsyncIterable, Callable, Coroutine, Dict, Set, Tuple, Optional
+from typing import Any, AsyncIterable, Callable, Coroutine, Dict, Set, Tuple, Optional, Union
 
 import websockets
 import websockets.asyncio.server as websockets_server
@@ -45,12 +45,12 @@ class WebsocketRelay:
 		client_check_interval: int = 0 # client buffer limit check interval
 
 
-	def __init__(self, iter_factory: Callable[[], AsyncIterable[bytes]], *, logger: Optional[logging.Logger] = None, sock: Optional[socket.socket] = None, **kwargs) -> None:
+	def __init__(self, iter_factory: Callable[[], AsyncIterable[Union[bytes, str]]], *, logger: Optional[logging.Logger] = None, sock: Optional[socket.socket] = None, **kwargs) -> None:
 		"""
 		Initialize the WebsocketRelay.
 
 		Args:
-			iter_factory: A callable that returns an AsyncIterable[bytes].
+			iter_factory: A callable that returns an AsyncIterable[bytes | str].
 				This factory is called to create a new upstream iterator whenever
 				the first client connects (or reconnects after a full shutdown).
 			logger: Custom logger instance. Defaults to __name__.
@@ -62,7 +62,7 @@ class WebsocketRelay:
 		self.options = WebsocketRelay.Options(**kwargs)
 
 		self._iter_factory = iter_factory
-		self._iter: Optional[AsyncIterable[bytes]] = None
+		self._iter: Optional[AsyncIterable[Union[bytes, str]]] = None
 
 		self._logger = logger or logging.getLogger(__name__)
 
@@ -224,7 +224,10 @@ class WebsocketRelay:
 
 
 	# a cut-down version of websockets.broadcast()
-	def _broadcast(self, message: bytes) -> None:
+	def _broadcast(self, message: Union[bytes, str]) -> None:
+		if isinstance(message, str):
+			message = message.encode()
+
 		# check write buffers here if not monitored periodically
 		buffer_limit = self.options.client_buffer_limit if self.options.client_check_interval <= 0 else 0
 
@@ -358,7 +361,8 @@ class WebsocketRelay:
 			self._logger.info(f"socket path: {self.options.listen_path}")
 			# TODO: set umask for socket permissions
 			# TODO: remove stale socket file?
-			server = websockets_server.unix_serve(self._ws_handler, self.options.listen_path, **ws_args)
+			# mypy: unix_serve and serve types differ slightly in the wrapper
+			server = websockets_server.unix_serve(self._ws_handler, self.options.listen_path, **ws_args) # type: ignore[assignment]
 
 		else:
 			self._logger.info(f"TCP address: {self.options.listen_addr}:{self.options.listen_port}")

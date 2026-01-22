@@ -10,11 +10,7 @@ from functools import partial
 from typing import Any, Dict, Optional, Type
 
 from eddnreceiver import EDDNReceiver
-
-try:
-	from websocketrelay import WebsocketRelay
-except ImportError:
-	from websocketrelay_legacy import WebsocketRelay
+from websocketrelay import WebsocketRelay
 
 
 def parse_args() -> Dict[str, Any]:

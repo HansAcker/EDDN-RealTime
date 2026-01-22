@@ -7,12 +7,10 @@ import zlib
 from dataclasses import dataclass
 
 # TODO: python >=3.9 supports dict, set, tuple
-from typing import Any, AsyncIterable, Callable, Coroutine, Dict, Set, Tuple, Optional
+from typing import Any, AsyncIterable, Callable, Coroutine, Dict, Set, Tuple, Optional, Union
 
 import websockets
-
-if (float(websockets.__version__) >= 14):
-	raise ImportError("Websockets < 14 required")
+import websockets.asyncio.server as websockets_server
 
 
 class WebsocketRelay:
@@ -43,16 +41,16 @@ class WebsocketRelay:
 		# default safety limits
 		connection_limit: int = 1000 # max. number of active websockets accepted by ws_handler
 
-		client_buffer_limit: int = 2 * 1024 * 1024 # per-client send buffer limit (bytes)
-		client_check_interval: int = 1 # client buffer limit check interval
+		client_buffer_limit: int = 1 * 1024 * 1024 # per-client send buffer limit (bytes)
+		client_check_interval: int = 0 # client buffer limit check interval
 
 
-	def __init__(self, iter_factory: Callable[[], AsyncIterable[bytes]], *, logger: Optional[logging.Logger] = None, sock: Optional[socket.socket] = None, **kwargs) -> None:
+	def __init__(self, iter_factory: Callable[[], AsyncIterable[Union[bytes, str]]], *, logger: Optional[logging.Logger] = None, sock: Optional[socket.socket] = None, **kwargs) -> None:
 		"""
 		Initialize the WebsocketRelay.
 
 		Args:
-			iter_factory: A callable that returns an AsyncIterable[bytes].
+			iter_factory: A callable that returns an AsyncIterable[bytes | str].
 				This factory is called to create a new upstream iterator whenever
 				the first client connects (or reconnects after a full shutdown).
 			logger: Custom logger instance. Defaults to __name__.
@@ -64,14 +62,14 @@ class WebsocketRelay:
 		self.options = WebsocketRelay.Options(**kwargs)
 
 		self._iter_factory = iter_factory
-		self._iter: Optional[AsyncIterable[bytes]] = None
+		self._iter: Optional[AsyncIterable[Union[bytes, str]]] = None
 
 		self._logger = logger or logging.getLogger(__name__)
 
 		self._sock: Optional[socket.socket] = sock
 
 		# active websocket connections
-		self._ws_conns: Set[websockets.WebSocketServerProtocol] = set()
+		self._ws_conns: Set[websockets_server.ServerConnection] = set()
 
 		# asyncio Tasks
 		self._relay_task: Optional[asyncio.Task] = None
@@ -97,37 +95,24 @@ class WebsocketRelay:
 		task.add_done_callback(self._background_tasks.discard)
 
 
-	# TODO: this method changed between websockets 13 and 14
-	# In v13: (path, request_headers)
-	# In v14: (connection, request)
-	async def _process_request_legacy(self, path: str, request_headers: websockets.Headers) -> Optional[Tuple[int, websockets.HeadersLike, bytes]]:
+	async def _process_request(self, connection: websockets_server.ServerConnection, request: websockets.http11.Request) -> Optional[websockets.http11.Response]:
 		"""
 		Intercept the WebSocket handshake to handle HTTP requests (e.g., health checks).
 
 		This hook is called by the websockets library before the handshake is completed.
 		It allows the server to return a standard HTTP response (preventing the upgrade)
 		or None to allow the upgrade to proceed.
-
-		Args:
-			path (str): The request path (URI).
-			request_headers (websockets.Headers): The HTTP request headers.
-
-		Returns:
-			Optional[Tuple[int, websockets.HeadersLike, bytes]]:
-				A tuple containing (HTTP Status Code, Headers, Response Body) if the request
-				is intercepted (e.g., for /ping).
-				Returns None to let the WebSocket handshake proceed normally.
 		"""
 		# Answer health checks with a hardcoded HTTP 200 response
-		if self.options.ping_path and path == self.options.ping_path:
-			return (200, [("Content-Type", "text/plain")], b"OK\n")
+		if self.options.ping_path and request.path == self.options.ping_path:
+			return connection.respond(200, "OK\n")
 
 		# Enforce connection limits strictly at the HTTP Upgrade level
 		# This avoids the overhead of completing the WebSocket handshake just to close it immediately
-		if "Upgrade" in request_headers and request_headers["Upgrade"] == "websocket":
+		if "Upgrade" in request.headers and request.headers["Upgrade"] == "websocket":
 			if self.options.connection_limit > 0 and len(self._ws_conns) >= self.options.connection_limit:
 				self._logger.info(f"client rejected, connection limit reached ({len(self._ws_conns)} active)")
-				return (503, [("Content-Type", "text/plain")], b"Connection limit reached\n")
+				return connection.respond(503, "Connection limit reached\n")
 
 		return None
 
@@ -219,7 +204,7 @@ class WebsocketRelay:
 			async for data in self._iter:
 				try:
 					# stream compression runs on the main thread
-					websockets.broadcast(self._ws_conns, data.decode("utf-8"))
+					self._broadcast(data)
 					# yield to loop, in case of message bursts
 					await asyncio.sleep(0)
 				except Exception as e:
@@ -233,11 +218,40 @@ class WebsocketRelay:
 			self._logger.exception("Iterator error, relay task exiting")
 
 		finally:
+			# Also terminate the server if the iterator ends
 			if self._relay_task and not self.stop.done():
 				self.stop.set_result("Iterator EOF")
 
 
-	async def _ws_handler(self, websocket: websockets.WebSocketServerProtocol) -> None:
+	# a cut-down version of websockets.broadcast()
+	def _broadcast(self, message: Union[bytes, str]) -> None:
+		if isinstance(message, str):
+			message = message.encode()
+
+		# check write buffers here if not monitored periodically
+		buffer_limit = self.options.client_buffer_limit if self.options.client_check_interval <= 0 else 0
+
+		# TODO: use tuple(connections) if the loop ever awaits anything
+		for connection in self._ws_conns:
+			protocol = connection.protocol
+			transport = connection.transport
+
+			if protocol.state is not websockets.protocol.OPEN or not transport:
+				continue
+
+			if buffer_limit > 0 and buffer_limit <= transport.get_write_buffer_size():
+				self._logger.info(f"client {connection.id} write buffer limit exceeded, disconnecting")
+				self._create_task(connection.close(1008, "Write buffer overrun"))
+				continue
+
+			try:
+				protocol.send_text(message)
+				connection.send_data()
+			except Exception as e:
+				self._logger.warning("websockets write error: %s (%s)", e, connection.id)
+
+
+	async def _ws_handler(self, websocket: websockets_server.ServerConnection) -> None:
 		"""
 		Handle the lifecycle of a single WebSocket client connection.
 
@@ -245,7 +259,7 @@ class WebsocketRelay:
 		and waits for the client to disconnect.
 
 		Args:
-			websocket (websockets.WebSocketServerProtocol): The active client connection.
+			websocket (websockets.ServerConnection): The active client connection.
 		"""
 
 		# Secondary limit check: a burst of multiple handshakes could complete simultaneously,
@@ -272,7 +286,7 @@ class WebsocketRelay:
 			await websocket.wait_closed()
 
 		except Exception as e:
-			self._logger.warning(f"websocket error {websocket.id}: {e}")
+			self._logger.warning("websocket error: %s (%s)", e, websocket.id)
 
 		finally:
 			self._ws_conns.discard(websocket)
@@ -289,15 +303,19 @@ class WebsocketRelay:
 
 		If a client exceeds the limit, they are disconnected with code 1008 (Policy Violation).
 		"""
-		while True:
-			# Iterate over a copy of ws_conns
-			for websocket in list(self._ws_conns):
-				# Check if the library-internal transport buffer is full.
-				if websocket.open and websocket.transport and websocket.transport.get_write_buffer_size() > self.options.client_buffer_limit:
-					self._logger.info(f"client {websocket.id} write buffer limit exceeded, disconnecting")
-					self._create_task(websocket.close(1008, "Write buffer overrun"))
+		try:
+			while True:
+				# Iterate over a copy of ws_conns
+				for websocket in tuple(self._ws_conns):
+					# Check if the library-internal transport buffer is full.
+					if websocket.state == websockets.protocol.OPEN and websocket.transport and websocket.transport.get_write_buffer_size() > self.options.client_buffer_limit:
+						self._logger.info(f"client {websocket.id} write buffer limit exceeded, disconnecting")
+						self._create_task(websocket.close(1008, "Write buffer overrun"))
 
-			await asyncio.sleep(self.options.client_check_interval)
+				await asyncio.sleep(self.options.client_check_interval)
+		except Exception as e:
+			# TODO: move into loop and log or terminate server?
+			self._logger.exception("Monitor exception, monitor task exiting")
 
 
 	async def serve(self, stop_future: Optional[asyncio.Future] = None) -> None:
@@ -317,7 +335,7 @@ class WebsocketRelay:
 		# Configuration for the websockets library
 		ws_args: Dict[str, Any] = {
 			# Hook to handle HTTP requests (e.g. /ping) before WebSocket upgrade
-			"process_request": self._process_request_legacy,
+			"process_request": self._process_request,
 
 			# TODO: make origin check configurable (currently allows all origins)
 			"origins": None,
@@ -325,7 +343,6 @@ class WebsocketRelay:
 			# Queue limits. The server processes only incoming pongs from clients.
 			"max_size": 4 * 1024, # limit incoming messages to 4k
 			"max_queue": 4, # limit buffer to 4 messages
-			"write_limit": 128 * 1024, # (Unused. broadcast() bypasses this limit)
 
 			"extensions": [
 				# set compression window size to 32k (2^15)
@@ -338,17 +355,18 @@ class WebsocketRelay:
 
 		if self._sock:
 			self._logger.info(f"Using socket: {self._sock.getsockname()}")
-			server = websockets.serve(self._ws_handler, sock=self._sock, **ws_args)
+			server = websockets_server.serve(self._ws_handler, sock=self._sock, **ws_args)
 
 		elif self.options.listen_path:
 			self._logger.info(f"socket path: {self.options.listen_path}")
 			# TODO: set umask for socket permissions
 			# TODO: remove stale socket file?
-			server = websockets.unix_serve(self._ws_handler, self.options.listen_path, **ws_args)
+			# mypy: unix_serve and serve types differ slightly in the wrapper
+			server = websockets_server.unix_serve(self._ws_handler, self.options.listen_path, **ws_args) # type: ignore[assignment]
 
 		else:
 			self._logger.info(f"TCP address: {self.options.listen_addr}:{self.options.listen_port}")
-			server = websockets.serve(self._ws_handler, self.options.listen_addr, self.options.listen_port, **ws_args)
+			server = websockets_server.serve(self._ws_handler, self.options.listen_addr, self.options.listen_port, **ws_args)
 
 		# Run the server context until the stop signal is received
 		async with server:

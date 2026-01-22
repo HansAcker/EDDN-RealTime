@@ -308,7 +308,7 @@ class WebsocketRelay:
 				# Iterate over a copy of ws_conns
 				for websocket in tuple(self._ws_conns):
 					# Check if the library-internal transport buffer is full.
-					if websocket.state != websockets.protocol.OPEN and websocket.transport and websocket.transport.get_write_buffer_size() > self.options.client_buffer_limit:
+					if websocket.state == websockets.protocol.OPEN and websocket.transport and websocket.transport.get_write_buffer_size() > self.options.client_buffer_limit:
 						self._logger.info(f"client {websocket.id} write buffer limit exceeded, disconnecting")
 						self._create_task(websocket.close(1008, "Write buffer overrun"))
 

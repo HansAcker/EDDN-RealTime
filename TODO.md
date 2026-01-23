@@ -28,9 +28,11 @@
 - re-think monitor_task lifecycle
   - is monitoring the write buffer actually needed? missing pongs would disconnect a stalled client soon
 - possibly use Event or similar to implement the lazy disconnect?
-- use SO_REUSEPORT on websocket to attach multiple script instances to the same port
 - InterpreterPoolExecutor could be better suited to offload JSON, requires python >=3.14
 - run a profiler to find the actual hot spots
+  - orjson vs json does not make much of a difference for small message sizes
+  - orjson saves a bytes -> str -> bytes conversion
+  - offload_threshold/run_in_executor is probably not needed
 - continue to ignore signal handler incompatibility with native Windows, the server works under WSL
 - keep compatibility with python 3.8 for now
 - review LLM-generated docstrings

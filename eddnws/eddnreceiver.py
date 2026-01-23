@@ -49,7 +49,7 @@ class EDDNReceiver:
 
 		msg_size_limit: int = 0 # decompressed JSON size limit (bytes) if > 0
 		ignore_decode_errors: bool = True # ignore decoding errors and continue
-		offload_threshold: int = 10 * 1024 # max. compressed message size to decode on main thread
+		offload_threshold: int = 100 * 1024 # max. compressed message size to decode on main thread
 
 		zmq_CONNECT_TIMEOUT: float = 0
 		zmq_HEARTBEAT_IVL: float = 180

@@ -38,6 +38,8 @@ class WebsocketRelay:
 		close_delay: float = 3.3
 		ping_path: Optional[str] = None # respond to health-checks if set, e.g. "/ping"
 
+		send_text: bool = True # send iterator data in Text or Binary frames
+
 		# default safety limits
 		connection_limit: int = 1000 # max. number of active websockets accepted by ws_handler
 
@@ -225,8 +227,9 @@ class WebsocketRelay:
 		"""
 		A cut-down version of websockets.broadcast().
 
-		It sends Text frames from either bytes or str input to all connected clients.
+		Send Text or Binary frames from either bytes or str input to all connected clients.
 		"""
+		send_text = self.options.send_text
 
 		# encode to bytes if necessary
 		if isinstance(message, str):
@@ -237,8 +240,9 @@ class WebsocketRelay:
 
 		# TODO: use tuple(connections) if the loop ever awaits anything
 		for connection in self._ws_conns:
-			protocol = connection.protocol
 			transport = connection.transport
+			protocol = connection.protocol
+			send_method = protocol.send_text if send_text else protocol.send_binary
 
 			if protocol.state is not websockets.protocol.OPEN or not transport:
 				continue
@@ -250,7 +254,7 @@ class WebsocketRelay:
 
 			try:
 				# compress and serialize frame, pass on to transport
-				protocol.send_text(message)
+				send_method(message)
 				connection.send_data()
 			except Exception as e:
 				self._logger.warning("websockets write error: %s (%s)", e, connection.id)

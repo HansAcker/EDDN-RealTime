@@ -21,8 +21,6 @@
 
 ## Websocket server TODO: possibly...
 - type-safe constructor args instead of **kwargs
-- support sending both binary and text frames in WebsocketRelay for generic purposes
-- add an "always on" option to WebsocketRelay to start the relay loop immediately and never stop
 - handle/discard incoming client messages
   - the current client should not send anything and would just get itself disconnected for missing pongs
 - re-think monitor_task lifecycle

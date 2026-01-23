@@ -35,7 +35,7 @@ class WebsocketRelay:
 		listen_port: int = 8081
 		listen_path: Optional[str] = None # listen on socket path instead of TCP, e.g. "/run/eddn/eddnws.sock"
 
-		close_delay: float = 3.3
+		close_delay: float = 0 # >= 0: start/stop iterator on demand, -1: immediate start
 		ping_path: Optional[str] = None # respond to health-checks if set, e.g. "/ping"
 
 		send_text: bool = True # send iterator data in Text or Binary frames
@@ -280,12 +280,13 @@ class WebsocketRelay:
 			await websocket.close(1013, "Connection limit reached")
 			return
 
-		# Client connected: Cancel any pending shutdown of the upstream source
-		self._relay_close_cancel()
+		if self.options.close_delay >= 0:
+			# Client connected: Cancel any pending shutdown of the upstream source
+			self._relay_close_cancel()
 
-		# If this is the first client (or the first after a grace period), start the upstream
-		if self._relay_task is None or self._relay_task.done():
-			self._relay_start()
+			# If this is the first client (or the first after a grace period), start the upstream
+			if self._relay_task is None or self._relay_task.done():
+				self._relay_start()
 
 		# Wait until client disconnects
 		try:
@@ -302,7 +303,7 @@ class WebsocketRelay:
 			self._logger.info(f"client disconnected: {websocket.id} {websocket.remote_address} ({len(self._ws_conns)} active)")
 
 			# If this was the last client, schedule the upstream source for shutdown
-			if not self._ws_conns and self._relay_task:
+			if not self._ws_conns and self._relay_task and self.options.close_delay >= 0:
 				self._relay_close()
 
 
@@ -379,6 +380,9 @@ class WebsocketRelay:
 
 		# Run the server context until the stop signal is received
 		async with server:
+			if self.options.close_delay < 0:
+				self._relay_start()
+
 			stop_signal = await self.stop
 			self._relay_stop()
 

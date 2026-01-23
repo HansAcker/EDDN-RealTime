@@ -7,7 +7,7 @@ import zlib
 from dataclasses import dataclass
 
 # TODO: python >=3.9 supports dict, set, tuple
-from typing import Any, AsyncIterable, Callable, Coroutine, Dict, Set, Tuple, Optional, Union
+from typing import Any, AsyncIterable, Callable, Coroutine, Dict, Set, Optional, Union
 
 import websockets
 import websockets.asyncio.server as websockets_server
@@ -144,6 +144,7 @@ class WebsocketRelay:
 		if self.options.client_check_interval > 0 and self.options.client_buffer_limit > 0:
 			self._monitor_task = asyncio.create_task(self._monitor_client_buffers())
 
+
 	def _relay_stop(self) -> None:
 		"""
 		Stop the upstream data iterator and broadcasting task.
@@ -168,6 +169,7 @@ class WebsocketRelay:
 
 		self._iter = None
 
+
 	def _relay_close(self) -> None:
 		"""
 		Schedule the relay shutdown after a configured delay.
@@ -180,6 +182,7 @@ class WebsocketRelay:
 			self._relay_close_handler.cancel()
 
 		self._relay_close_handler = asyncio.get_running_loop().call_later(self.options.close_delay, self._relay_stop)
+
 
 	def _relay_close_cancel(self) -> None:
 		"""
@@ -374,5 +377,6 @@ class WebsocketRelay:
 		async with server:
 			stop_signal = await self.stop
 			self._relay_stop()
+
 			self._logger.info(f"received '{stop_signal}', stopping websocket server")
 			# Note: asyncio cleanup will handle closing individual connections

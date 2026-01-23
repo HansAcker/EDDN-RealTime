@@ -223,8 +223,14 @@ class WebsocketRelay:
 				self.stop.set_result("Iterator EOF")
 
 
-	# a cut-down version of websockets.broadcast()
 	def _broadcast(self, message: Union[bytes, str]) -> None:
+		"""
+		A cut-down version of websockets.broadcast().
+
+		It sends Text frames from either bytes or str input to all connected clients.
+		"""
+
+		# encode to bytes if necessary
 		if isinstance(message, str):
 			message = message.encode()
 
@@ -245,6 +251,7 @@ class WebsocketRelay:
 				continue
 
 			try:
+				# compress and serialize frame, pass on to transport
 				protocol.send_text(message)
 				connection.send_data()
 			except Exception as e:

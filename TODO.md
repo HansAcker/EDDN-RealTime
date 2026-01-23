@@ -21,12 +21,8 @@
 
 ## Websocket server TODO: possibly...
 - type-safe constructor args instead of **kwargs
-- rework for websockets >=14
-  - ws_handler() should cope with the argument type change (DeprecationWarning), could be adapted for type-checking
-  - process_request() needs to be changed - support both with version switch?
-  - the text=True argument to send() would allow a custom broadcast function
-    - pass bytes from orjson.dumps() without .decode().encode() overhead
-    - that would also give direct control over slow client buffers without the monitor task
+- support sending both binary and text frames in WebsocketRelay for generic purposes
+- add an "always on" option to WebsocketRelay to start the relay loop immediately and never stop
 - handle/discard incoming client messages
   - the current client should not send anything and would just get itself disconnected for missing pongs
 - re-think monitor_task lifecycle
@@ -35,6 +31,6 @@
 - use SO_REUSEPORT on websocket to attach multiple script instances to the same port
 - InterpreterPoolExecutor could be better suited to offload JSON, requires python >=3.14
 - run a profiler to find the actual hot spots
-- continue to ignore signal handler incompatibility with native Windows, the script runs under WSL
+- continue to ignore signal handler incompatibility with native Windows, the server works under WSL
 - keep compatibility with python 3.8 for now
 - review LLM-generated docstrings

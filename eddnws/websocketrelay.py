@@ -202,15 +202,10 @@ class WebsocketRelay:
 
 		try:
 			async for data in self._iter:
-				try:
-					# stream compression runs on the main thread
-					self._broadcast(data)
-					# yield to loop, in case of message bursts
-					await asyncio.sleep(0)
-				except Exception as e:
-					self._logger.exception("websockets relay error")
-					# avoid busy error loop
-					await asyncio.sleep(0.1)
+				# stream compression runs on the main thread
+				self._broadcast(data)
+				# yield to loop, in case of message bursts
+				await asyncio.sleep(0)
 
 		except Exception as e:
 			# If the upstream iterator fails, terminate the server process,

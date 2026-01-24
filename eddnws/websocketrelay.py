@@ -388,3 +388,36 @@ class WebsocketRelay:
 
 			self._logger.info(f"received '{stop_signal}', stopping websocket server")
 			# Note: asyncio cleanup will handle closing individual connections
+
+
+
+
+async def stdinter():
+	"""Yields lines from stdin asynchronously."""
+	reader = asyncio.StreamReader()
+	protocol = asyncio.StreamReaderProtocol(reader)
+	await asyncio.get_running_loop().connect_read_pipe(lambda: protocol, sys.stdin)
+
+	while True:
+		line = await reader.readline()
+		if not line:
+			break
+		yield line
+
+
+if __name__ == "__main__":
+	import sys
+
+	# use uvloop if available
+	try:
+		import uvloop
+		uvloop.install()
+	except ImportError:
+		pass
+
+	logging.basicConfig(level=logging.INFO,	format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+
+	try:
+		asyncio.run(WebsocketRelay(stdinter, close_delay=-1).serve())
+	except KeyboardInterrupt:
+		pass

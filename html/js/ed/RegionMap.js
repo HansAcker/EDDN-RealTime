@@ -136,6 +136,7 @@ export class RegionMap {
 
 	static sectorsToCoords(xs, ys, zs, massClass = 0, xb = 0, yb = 0, zb = 0) {
 		// 1280ly per sector, 10ly (A) to 1280ly (H) per boxel
+		// TODO: return center coords instead of corner
 		const x = ((xs << 7) | (xb << massClass)) * 10 + X0;
 		const y = ((ys << 7) | (yb << massClass)) * 10 + Y0;
 		const z = ((zs << 7) | (zb << massClass)) * 10 + Z0;

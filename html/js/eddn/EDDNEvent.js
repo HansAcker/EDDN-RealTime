@@ -108,11 +108,11 @@ export class EDDNEvent extends Event {
 		// If it's a journal schema, append the specific game event
 		// Journal events (FSDJump, Docked) are defined inside the 'message.event' property
 		if (eventType === "journal" && data.message?.event) {
-			eventType = `journal:${data.message.event}`;
+			eventType = `journal:${data.message.event.toLowerCase()}`;
 		}
 
 		// Otherwise, just return the schema name (e.g., "commodity", "shipyard", "outfitting")
-		return eventType.toLowerCase();
+		return eventType;
 	}
 
 	static getGameType(data) {

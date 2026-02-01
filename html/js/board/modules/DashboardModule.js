@@ -60,8 +60,6 @@ export class DataTableModule extends DashboardModule {
 		this._tableTemplate = template;
 
 		// TODO: this calls _setupXX() in inheriting classes before their class definition is ready
-		//       - Dashboard should call setup later
-//		this._container = this._setupContainer(container);
 		this._setupTemplates();
 	}
 

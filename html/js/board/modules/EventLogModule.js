@@ -55,29 +55,34 @@ const time_units = Object.freeze([
 	{ unit: 'month', seconds: 2592000 },
 	{ unit: 'day', seconds: 86400 },
 	{ unit: 'hour', seconds: 3600 },
-	{ unit: 'minute', seconds: 60 },
-	{ unit: 'second', seconds: 1 }
+	{ unit: 'minute', seconds: 60 }
 ]);
 
 /**
- * Formats a given date/time into a relative time string.
- * @param {Date | number | string} inputDate - Date object, timestamp (ms), or date string.
+ * Formats a number of ms into a relative time string.
+ * @param {number} diffMs - Relative time in ms (positive: past, negative: future)
  * @returns {string} - Relative time string (e.g., "5 minutes ago", "in 2 hours").
  */
 function formatRelativeTime(diffMs) {
-    try {
-        const diffSec = Math.round(-diffMs / 1000);
+	try {
+		const diffSec = Math.round(-diffMs / 1000);
+		const diffAbs = Math.abs(diffSec);
 
-        for (const { unit, seconds } of time_units) {
-            if (Math.abs(diffSec) >= seconds || unit === 'second') {
-                const value = Math.round(diffSec / seconds);
-                return Config._relTimeFormat.format(value, unit);
-            }
-        }
-    } catch (err) {
-        console.error(err.message);
-        return "Invalid date";
-    }
+		if (diffAbs < 60) {
+			return Config._relTimeFormat.format(diffSec, "second");
+		}
+
+		// TODO: reverse the lookup, "minutes ago" happens more often than "years ago"
+		for (const { unit, seconds } of time_units) {
+			if (diffAbs >= seconds || unit === "minute") {
+				const value = Math.round(diffSec / seconds);
+				return Config._relTimeFormat.format(value, unit);
+			}
+		}
+	} catch (err) {
+		console.error(err.message);
+		return "Invalid date";
+	}
 }
 
 

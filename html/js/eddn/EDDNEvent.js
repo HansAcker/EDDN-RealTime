@@ -1,3 +1,5 @@
+import { RegionMap } from "#ed/RegionMap.js";
+
 /**
  * A standardized event wrapper for all EDDN messages.
  */
@@ -23,6 +25,8 @@ export class EDDNEvent extends Event {
 
 	#starPos; // derived from message.StarPos or first .Route hop, defaults to undefined, set by get StarPos()
 	#gotStarPos = false;
+
+	#region; // RegionMap.findRegion(...#starPos), empty {} if StarPos is undefined, set by get Region()
 
 
 	/**
@@ -80,6 +84,10 @@ export class EDDNEvent extends Event {
 	get StarPos() {
 		return this.#gotStarPos ? this.#starPos :
 			(this.#gotStarPos = true, this.#starPos = this.message?.StarPos ?? this.message?.Route?.[0]?.StarPos);
+	}
+
+	get Region() {
+		return this.#region ??= (this.StarPos ? RegionMap.findRegion(...this.StarPos) : {});
 	}
 
 

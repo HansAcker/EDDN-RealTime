@@ -1,6 +1,5 @@
 import { Config } from "#config.js";
 import { DataTableModule } from "#DashboardModule";
-import { RegionMap } from "#ed/RegionMap.js";
 
 
 // 16 colors per nibble
@@ -38,7 +37,7 @@ export class EventLogModule extends DataTableModule {
 			this._makeCell(event.header.softwareName),
 			this._makeCell(event.header.softwareVersion),
 			this._makeCell(event.StarSystem),
-			this._makeCell(event.StarPos ? RegionMap.findRegion(...event.StarPos).name ?? "" : ""),
+			this._makeCell(event.Region.name ?? ""),
 			this._makeCell(`${event.header.gameversion}${event.header.gamebuild ? ` - ${event.header.gamebuild}` : ""}`),
 			this._makeCell(event.$schemaRef.replace(RX_SCHEMAREF_EDDN, ""))
 		);

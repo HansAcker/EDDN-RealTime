@@ -1,6 +1,3 @@
-// import { RegionMap } from "#ed/RegionMap.js";
-
-
 // default locale from browser settings
 const language = navigator.language ?? "en";
 
@@ -30,15 +27,14 @@ export const Config = {
 	timeLocale: language,
 	timeOptions: { style: "narrow" },
 
-/*
 	// filter events in EDDClient
+/*
 	globalEventFilter: (event) => (
 //		(event.age < 0) || (event.isMulticrew) ||
 		(event.StarSystem.startsWith("HIP ")) ||
 		(event.message?.Route?.some((wp) => wp?.StarSystem?.startsWith("HIP "))) ||
-//		(event.StarPos && RegionMap.isReady && RegionMap.findRegion(...event.StarPos).id === 0) ||
-		(event.StarPos && RegionMap.isReady && RegionMap.findRegion(...event.StarPos).id !== 18) ||
-//		(event.StarPos && ["Perseus Arm", "The Abyss", "Elysian Shore"].includes(RegionMap.findRegion(...event.StarPos).name)) ||
+		(event.Region.id && event.Region.id !== 18) ||
+//		(event.StarPos && ["Perseus Arm", "The Abyss", "Elysian Shore"].includes(event.Region.name)) ||
 //		(true)
 		(false)
 	),

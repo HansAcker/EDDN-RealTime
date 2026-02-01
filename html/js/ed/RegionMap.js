@@ -113,9 +113,7 @@ export class RegionMap {
 			const runLength = rleData[i];
 			if (remainingX < runLength) {
 				const regionId = rleData[i + 1];
-				return regionId === 0 
-					? { id: 0, name: null } 
-					: { id: regionId, name: GalacticRegions[regionId] };
+				return { id: regionId, name: GalacticRegions[regionId] };
 			}
 	
 			// skip to next segment

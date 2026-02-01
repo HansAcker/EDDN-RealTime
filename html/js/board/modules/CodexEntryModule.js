@@ -15,9 +15,10 @@ export class CodexEntryModule extends DataTableModule {
 		row.append(
 			this._makeCell(message.System),
 			this._makeCell(trimPrefix(message.BodyName ?? "", message.System)), // strip system name from body name
-			this._makeCell(message.SubCategory.replace(RX_SUB_CATEGORY, "$1").replaceAll("_", " ")), // reformat keys
-			this._makeCell(message.Name.replace(RX_CODEX_NAME, "$1").replaceAll("_", " ")),
-			this._makeCell(GalacticRegions[+(message.Region.replace(RX_REGION_NAME, "$1"))])); // look up region name from number
+			this._makeCell(formatCodexKey(message.SubCategory, RX_SUB_CATEGORY)), // reformat keys
+			this._makeCell(formatCodexKey(message.Name, RX_CODEX_NAME)),
+			this._makeCell(GalacticRegions[+(RX_REGION_NAME.exec(message.Region)?.[1] ?? 0)])
+		);
 
 		this._addRow(row);
 	}
@@ -27,6 +28,8 @@ export class CodexEntryModule extends DataTableModule {
 const RX_SUB_CATEGORY = /^\$Codex_SubCategory_(.*);$/;
 const RX_CODEX_NAME = /^\$Codex_Ent_(.*)_Name;$/;
 const RX_REGION_NAME = /^\$Codex_RegionName_(.*);$/;
+
+const formatCodexKey = (str, regex) => regex.exec(str)?.[1]?.replaceAll("_", " ") ?? str;
 
 const trimPrefix = (str, prefix) => (str.startsWith(prefix) ? str.slice(prefix.length) : str).trim();
 

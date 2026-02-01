@@ -1,4 +1,7 @@
 ## Frontend TODO: possibly...
+- pause/buffer tables
+  - make the tables a few rows longer than displayed
+  - on scroll down, pause updates / buffer new rows until a scroll/jump to top
 - extend Dashboard component
   - save/load/share layout, config, dynamic imports
 - interactive config overlay

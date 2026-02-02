@@ -47,10 +47,14 @@ export class Dashboard {
 	#templates = new Map();
 	#readyPromise = null;
 
+	get ready() { return this.#readyPromise ??= this.#loadTemplates(); }
+	get container() { return this.#container; }
+
 
 	constructor(router, options = {}) {
 		this.#router = router;
 
+		// TODO: add per-instance modules/templates/template file name to options?
 		const { container, infoBox } = options;
 
 		if (container) {
@@ -68,9 +72,6 @@ export class Dashboard {
 
 		void this.ready;
 	}
-
-
-	get container() { return this.#container; }
 
 
 	fromContainer() {
@@ -124,15 +125,6 @@ export class Dashboard {
 		}
 
 		this.#container.append(newModules);
-	}
-
-
-	get ready() {
-		if (!this.#readyPromise) {
-			this.#readyPromise = this.#loadTemplates();
-		}
-
-		return this.#readyPromise;
 	}
 
 

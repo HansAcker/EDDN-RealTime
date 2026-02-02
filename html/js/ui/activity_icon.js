@@ -74,11 +74,14 @@ class CachedPageIconActivity extends PageIconActivity {
 	static #cache = new Map(); // state -> blob
 	static #readyPromise = null;  // `await CachedPageIconActivity.ready`
 
+	static get ready() { return this.#readyPromise ??= this.#preloadIcons(); }
+
+
 	constructor(element, idleTimeout) {
 		super(element, idleTimeout);
 
 		// start async fetches on first run
-		void CachedPageIconActivity.ready;
+		void this.ready;
 	}
 
 	_changeState(newState, oldState) {
@@ -88,14 +91,6 @@ class CachedPageIconActivity extends PageIconActivity {
 			console.debug(`CachedPageIconActivity: no cache for ${newState.toString()}`);
 			super._changeState(newState, oldState);
 		}
-	}
-
-	static get ready() {
-		if (!CachedPageIconActivity.#readyPromise) {
-			CachedPageIconActivity.#readyPromise = CachedPageIconActivity.#preloadIcons();
-		}
-
-		return CachedPageIconActivity.#readyPromise;
 	}
 
 	static async #preloadIcons() {

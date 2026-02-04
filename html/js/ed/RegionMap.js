@@ -1,7 +1,7 @@
 import GalacticRegions from "#data/GalacticRegions.json" with { type: "json" };
 
 
-// Sol-centered coordinate system
+// lower-left corner coordinates of region map in ly, relative to Sol
 const X0 = -49985;
 const Y0 = -40985;
 const Z0 = -24105;
@@ -20,7 +20,7 @@ let isReady = false; // set to true after data load
 // fetch arraybuffer data on module init
 // binary data created from RegionMapData.json: https://github.com/klightspeed/EliteDangerousRegionMap
 // Layout: [RowIndex (Uint32)...] [RLE Data (Uint16)...]
-const readyPromise = (async function loadData() {
+const readyPromise = (async function() {
 	try {
 		const MAP_URL = "./data/RegionMapData.bin";
 
@@ -65,14 +65,11 @@ const readyPromise = (async function loadData() {
 		console.debug(`RegionMap: load done - ${MAP_SIZE} rows, ${rleData.length / 2} segments`);
 	} catch (err) {
 		console.error("RegionMap: initialization failed:", err);
-		// initialize empty buffers
-		rowIndex = new Uint32Array(MAP_SIZE + 1);
-		rleData = new Uint16Array(0);
 	}
 })();
 
 
-const bitMask = (field, bits, shift) => (field >> shift) & (~(~0n << bits));
+const bitMask = (field, bits, shift = 0n) => (field >> shift) & (~(~0n << bits));
 
 
 export class RegionMap {
@@ -103,11 +100,11 @@ export class RegionMap {
 
 		// fetch rleData index for this and the next z-row
 		const start = rowIndex[pz];
-		const end = rowIndex[pz + 1];
+		const end = rowIndex[pz + 1] - 1; // rows should have even length, ensure that [i+1] is always in range
 
 		// array data is [Length, ID, Length, ID...]
 		let remainingX = px;
-		for (let i = start; i < end-1; i += 2) {
+		for (let i = start; i < end; i += 2) {
 
 			// find the length/region tuple that contains px
 			const runLength = rleData[i];
@@ -174,10 +171,10 @@ export class RegionMap {
 	static decodeId64(id64) {
 		const _id64 = BigInt(id64);
 
-		const SystemAddress = bitMask(_id64, 55n, 0n);
+		const SystemAddress = bitMask(_id64, 55n);
 		const BodyId = Number(_id64 >> 55n);
 
-		const massClass = Number(bitMask(_id64, 3n, 0n));
+		const massClass = Number(bitMask(_id64, 3n));
 		const boxelBits = BigInt(7 - massClass);
 		let shift = 3n;
 

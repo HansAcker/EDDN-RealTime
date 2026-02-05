@@ -139,7 +139,7 @@ export class DataTableModule extends DashboardModule {
 		this.#renderScheduled = false;
 
 		if (!this.#renderQueue.length) {
-			console.warn("DashboardModule: render scheduled on empty queue");
+			console.warn("DataTableModule: render scheduled on empty queue");
 			return;
 		}
 
@@ -157,7 +157,7 @@ export class DataTableModule extends DashboardModule {
 			const { event, cells } = item;
 
 			if (!event || !cells) {
-				console.warn("DashboardModule: missing properties in render queue item");
+				console.warn("DataTableModule: missing properties in render queue item");
 				continue;
 			}
 

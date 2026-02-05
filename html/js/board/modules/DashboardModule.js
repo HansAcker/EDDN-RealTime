@@ -91,9 +91,9 @@ export class DataTableModule extends DashboardModule {
 	}
 
 
-	_makeCell(textContent = "") {
+	_makeCell(textContent) {
 		const element = this._cellTemplate.cloneNode(false);
-		element.textContent = element.title = textContent;
+		element.textContent = element.title = textContent ?? "";
 		return element;
 	}
 
@@ -166,7 +166,11 @@ export class DataTableModule extends DashboardModule {
 			const newRow = this._makeRow(event);
 
 			for (const cell of cells) {
-				newRow.append((cell instanceof Node) ? cell : this._makeCell(cell ?? ""));
+				newRow.append(
+					(cell instanceof Node) ? cell : // DOM element created in handler
+					(typeof cell === "function") ? invoke(cell) ?? this._makeCell() : // callback into module
+					this._makeCell(cell) // text string
+				);
 			}
 
 			// store event data reference within node namespace
@@ -211,6 +215,16 @@ export class DataTableModule extends DashboardModule {
 export class DummyTableModule extends DataTableModule {
 	constructor(router, options) {
 		super(null, null, options);
+	}
+}
+
+
+function invoke(cb) {
+	try {
+		return cb();
+	} catch (err) {
+		console.error("DataTableModule: Error in cell callback:", err);
+		return undefined;
 	}
 }
 

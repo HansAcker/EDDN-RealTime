@@ -11,7 +11,7 @@ export class EventLogModule extends DataTableModule {
 	_handleEvent(event) {
 		this._addRow({ event, cells: [
 			formatRelativeTime(event.age),
-			this.#idCell(event.header.uploaderID),
+			() => this.#idCell(event.header.uploaderID),
 			event.eventName,
 			event.header.softwareName,
 			event.header.softwareVersion,

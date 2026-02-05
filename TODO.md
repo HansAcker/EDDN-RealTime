@@ -5,6 +5,8 @@
 - extend Dashboard component
   - save/load/share layout, config, dynamic imports
 - interactive config overlay
+  - drag / resize components
+  - general config for locales / formats / other options
 - add a "loading" indicator / messages
 - revert the dynamic template fetch, integrate them back into index.html?
   - message details are mostly in English, anyway

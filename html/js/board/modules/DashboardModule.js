@@ -116,9 +116,6 @@ export class DataTableModule extends DashboardModule {
 			element.classList.add("new");
 		}
 
-		// key data by weak ref to table row, used in click event
-		this._infobox?.set(element, event.data);
-
 		return element;
 	}
 
@@ -141,26 +138,41 @@ export class DataTableModule extends DashboardModule {
 	#render() {
 		this.#renderScheduled = false;
 
-		let queueLength = this.#renderQueue.length;
-
-		if (queueLength === 0) {
+		if (!this.#renderQueue.length) {
 			console.warn("DashboardModule: render scheduled on empty queue");
 			return;
 		}
 
+		// clear table for full replacement if queueLength > listLength
 		if (this.#trimQueue(this.listLength)) {
-			// clear table for full replacement
 			this._container.replaceChildren();
-			queueLength = this.listLength;
 		}
 
 		// read current element count
-		const dropCount = (this._container.childElementCount + queueLength) - this.listLength;
+		const dropCount = (this._container.childElementCount + this.#renderQueue.length) - this.listLength;
 
 		// batch updates into one DocumentFragment
 		const fragment = document.createDocumentFragment();
-		for (let i = 0; i < queueLength; i++) {
-			fragment.prepend(this.#renderQueue[i]);
+		for (const item of this.#renderQueue) {
+			const { event, cells } = item;
+
+			if (!event || !cells) {
+				console.warn("DashboardModule: missing properties in render queue item");
+				continue;
+			}
+
+			// TODO: check that `item.event instanceof EDDNEvent`?
+			// TODO: support full row/rowFactory in queue?
+			const newRow = this._makeRow(event);
+
+			for (const cell of cells) {
+				newRow.append((cell instanceof Node) ? cell : this._makeCell(cell ?? ""));
+			}
+
+			// key data by weak ref to table row, used in click event
+			this._infobox?.set(newRow, item.event.data);
+
+			fragment.prepend(newRow);
 		}
 
 		// reset queue
@@ -201,7 +213,6 @@ export class DummyTableModule extends DataTableModule {
 		super(null, null, options);
 	}
 }
-
 
 
 export default DashboardModule;

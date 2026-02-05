@@ -8,10 +8,8 @@ export class LocationModule extends DataTableModule {
 
 
 	_handleEvent(event) {
-		const row = this._makeRow(event);
 		const message = event.message;
-		row.append(this._makeCell(message.StationName ?? ""), this._makeCell(message.StationType ?? ""), this._makeCell(event.StarSystem));
-		this._addRow(row);
+		this._addRow({ event, cells: [ message.StationName, message.StationType, event.StarSystem ]});
 	}
 }
 

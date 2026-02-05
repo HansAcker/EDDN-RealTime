@@ -9,18 +9,14 @@ export class CodexEntryModule extends DataTableModule {
 
 
 	_handleEvent(event) {
-		const row = this._makeRow(event);
 		const message = event.message;
-
-		row.append(
-			this._makeCell(message.System),
-			this._makeCell(trimPrefix(message.BodyName ?? "", message.System)), // strip system name from body name
-			this._makeCell(formatCodexKey(message.SubCategory, RX_SUB_CATEGORY)), // reformat keys
-			this._makeCell(formatCodexKey(message.Name, RX_CODEX_NAME)),
-			this._makeCell(GalacticRegions[+(RX_REGION_NAME.exec(message.Region)?.[1] ?? 0)])
-		);
-
-		this._addRow(row);
+		this._addRow({ event, cells: [
+			message.System,
+			trimPrefix(message.BodyName ?? "", message.System), // strip system name from body name
+			formatCodexKey(message.SubCategory, RX_SUB_CATEGORY), // reformat keys
+			formatCodexKey(message.Name, RX_CODEX_NAME),
+			GalacticRegions[+(RX_REGION_NAME.exec(message.Region)?.[1] ?? 0)]
+		]});
 	}
 }
 

@@ -8,12 +8,10 @@ export class ScanModule extends DataTableModule {
 
 
 	_handleEvent(event) {
-		const row = this._makeRow(event);
-		row.append(
-			this._makeCell(event.message.BodyName),
-			this._makeCell(event.message.ScanType)
-		);
-		this._addRow(row);
+		this._addRow({ event, cells: [
+			event.message.BodyName,
+			event.message.ScanType
+		]});
 	}
 }
 

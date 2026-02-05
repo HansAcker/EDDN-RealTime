@@ -8,21 +8,16 @@ export class UpdatesModule extends DataTableModule {
 
 
 	_handleEvent(event) {
-		const row = this._makeRow(event);
 		const message = event.message;
 
-		row.append(
-			this._makeCell(
-				event.eventType === "commodity" ? "Market" :
-				event.eventType === "shipyard" ? "Shipyard" :
-				event.eventType === "outfitting" ? "Outfitting" :
-				""
-			),
-			this._makeCell(message.stationName),
-			this._makeCell(message.systemName)
-		);
-
-		this._addRow(row);
+		this._addRow({ event, cells: [
+			event.eventType === "commodity" ? "Market" :
+			event.eventType === "shipyard" ? "Shipyard" :
+			event.eventType === "outfitting" ? "Outfitting" :
+			"",
+			message.stationName,
+			message.systemName
+		]});
 	}
 }
 

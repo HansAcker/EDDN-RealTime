@@ -9,26 +9,24 @@ export class EventLogModule extends DataTableModule {
 
 
 	_handleEvent(event) {
-		const row = this._makeRow(event);
+		this._addRow({ event, cells: [
+			formatRelativeTime(event.age),
+			() => this.#idCell(event.header.uploaderID),
+			event.eventName,
+			event.header.softwareName,
+			event.header.softwareVersion,
+			event.StarSystem,
+			event.Region.name,
+			`${event.header.gameversion ?? ""}${event.header.gamebuild ? ` - ${event.header.gamebuild}` : ""}`,
+			event.$schemaRef.replace(RX_SCHEMAREF_EDDN, "")
+		]});
+	}
 
-		const uploaderID = event.header.uploaderID;
+	#idCell(uploaderID) {
 		const idCell = this._makeCell(uploaderID);
 		idCell.classList.add("dashboard__table--idcell");
 		idCell.replaceChildren(hex2bar(uploaderID));
-
-		row.append(
-			this._makeCell(formatRelativeTime(event.age)),
-			idCell,
-			this._makeCell(event.eventName),
-			this._makeCell(event.header.softwareName),
-			this._makeCell(event.header.softwareVersion),
-			this._makeCell(event.StarSystem),
-			this._makeCell(event.Region.name ?? ""),
-			this._makeCell(`${event.header.gameversion ?? ""}${event.header.gamebuild ? ` - ${event.header.gamebuild}` : ""}`),
-			this._makeCell(event.$schemaRef.replace(RX_SCHEMAREF_EDDN, ""))
-		);
-
-		this._addRow(row);
+		return idCell;
 	}
 }
 

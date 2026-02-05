@@ -17,13 +17,10 @@ export class NewStarsModule extends DataTableModule {
 			return;
 		}
 
-		const row = this._makeRow(event);
-		row.append(
-			this._makeCell(message.BodyName),
-			this._makeCell(`${message.StarType} ${message.Subclass}`)
-		);
-
-		this._addRow(row);
+		this._addRow({ event, cells: [
+			message.BodyName,
+			`${message.StarType} ${message.Subclass}`
+		]});
 	}
 }
 

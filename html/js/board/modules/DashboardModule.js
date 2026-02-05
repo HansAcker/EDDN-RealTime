@@ -26,11 +26,12 @@ export class DashboardModule {
 // TODO: keep and re-use a pool of DOM nodes?
 
 export class DataTableModule extends DashboardModule {
+	static DATA_KEY = Symbol(); // unique key for event data in DOM node namespace
+
 	#renderQueue = []; // array of elements to add in next paint cycle
 	#renderScheduled = false;
 
 	_container;
-	_infobox;
 
 	_tableTemplate;
 	_rowTemplate; // DOM elements to be cloned by makeCell()/makeRow()
@@ -41,7 +42,7 @@ export class DataTableModule extends DashboardModule {
 
 
 	constructor(router, topics, options = {}) {
-		const { listLength, cullFactor, template, infobox } = options;
+		const { listLength, cullFactor, template } = options;
 
 		if (listLength && !Number.isInteger(listLength)) {
 			throw new Error("listLength must be an integer");
@@ -56,7 +57,6 @@ export class DataTableModule extends DashboardModule {
 		listLength && (this.listLength = listLength);
 		cullFactor && (this.cullFactor = parseFloat(cullFactor));
 
-		this._infobox = infobox;
 		this._tableTemplate = template;
 
 		// TODO: this calls _setupXX() in inheriting classes before their class definition is ready
@@ -91,9 +91,9 @@ export class DataTableModule extends DashboardModule {
 	}
 
 
-	_makeCell(textContent = "") {
+	_makeCell(textContent) {
 		const element = this._cellTemplate.cloneNode(false);
-		element.textContent = element.title = textContent;
+		element.textContent = element.title = textContent ?? "";
 		return element;
 	}
 
@@ -115,9 +115,6 @@ export class DataTableModule extends DashboardModule {
 		} else if (event.age < Config.newAge) {
 			element.classList.add("new");
 		}
-
-		// key data by weak ref to table row, used in click event
-		this._infobox?.set(element, event.data);
 
 		return element;
 	}
@@ -141,26 +138,45 @@ export class DataTableModule extends DashboardModule {
 	#render() {
 		this.#renderScheduled = false;
 
-		let queueLength = this.#renderQueue.length;
-
-		if (queueLength === 0) {
-			console.warn("DashboardModule: render scheduled on empty queue");
+		if (!this.#renderQueue.length) {
+			console.warn("DataTableModule: render scheduled on empty queue");
 			return;
 		}
 
+		// clear table for full replacement if queueLength > listLength
 		if (this.#trimQueue(this.listLength)) {
-			// clear table for full replacement
 			this._container.replaceChildren();
-			queueLength = this.listLength;
 		}
 
 		// read current element count
-		const dropCount = (this._container.childElementCount + queueLength) - this.listLength;
+		const dropCount = (this._container.childElementCount + this.#renderQueue.length) - this.listLength;
 
 		// batch updates into one DocumentFragment
 		const fragment = document.createDocumentFragment();
-		for (let i = 0; i < queueLength; i++) {
-			fragment.prepend(this.#renderQueue[i]);
+		for (const item of this.#renderQueue) {
+			const { event, cells } = item;
+
+			// TODO: check that `event instanceof EDDNEvent`?
+			if (!event || !Array.isArray(cells)) {
+				console.warn("DataTableModule: missing or invalid properties in render queue item");
+				continue;
+			}
+
+			// TODO: support full row/rowFactory in queue?
+			const newRow = this._makeRow(event);
+
+			for (const cell of cells) {
+				newRow.append(
+					(cell instanceof Node) ? cell : // DOM element created in handler
+					(typeof cell === "function") ? invoke(cell) ?? this._makeCell() : // callback into module
+					this._makeCell(cell) // text string
+				);
+			}
+
+			// store event data reference within node namespace
+			newRow[DataTableModule.DATA_KEY] = event.data;
+
+			fragment.prepend(newRow);
 		}
 
 		// reset queue
@@ -202,6 +218,15 @@ export class DummyTableModule extends DataTableModule {
 	}
 }
 
+
+function invoke(cb) {
+	try {
+		return cb();
+	} catch (err) {
+		console.error("DataTableModule: Error in cell callback:", err);
+		return undefined;
+	}
+}
 
 
 export default DashboardModule;

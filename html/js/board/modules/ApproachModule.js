@@ -8,12 +8,7 @@ export class ApproachModule extends DataTableModule {
 
 
 	_handleEvent(event) {
-		const row = this._makeRow(event);
-		row.append(
-			this._makeCell(event.message.Name),
-			this._makeCell(event.StarSystem)
-		);
-		this._addRow(row);
+		this._addRow({ event, cells: [ event.message.Name, event.StarSystem ]});
 	}
 }
 

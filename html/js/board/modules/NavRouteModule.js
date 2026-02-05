@@ -19,19 +19,19 @@ export class NavRouteModule extends DataTableModule {
 		let dist = 0;
 		let longest = 0;
 
-		const row = this._makeRow(event);
+		const cells = [];
 
-		row.append(
-			this._makeCell(route[0].StarSystem),
-			this._makeCell(route[route.length-1].StarSystem),
-			this._makeCell(`${route.length-1}j`)
+		cells.push(
+			route[0].StarSystem,
+			route[route.length-1].StarSystem,
+			`${route.length-1}j`
 		);
 
 		if (route.length === 2) {
 			// single-jump route
 
 			dist = longest = distance3(route[0].StarPos, route[1].StarPos);
-			row.append(this._makeCell(`${dist.toFixed(2)}ly`), this._makeCell(""));
+			cells.push(`${dist.toFixed(2)}ly`, "");
 		} else {
 			// sum jump distances
 
@@ -41,7 +41,7 @@ export class NavRouteModule extends DataTableModule {
 					// start system
 					cur = wp.StarPos;
 					// distance to destination system
-					row.append(this._makeCell(`${distance3(cur, route[route.length-1].StarPos).toFixed(2)}ly`));
+					cells.push(`${distance3(cur, route[route.length-1].StarPos).toFixed(2)}ly`);
 					continue;
 				}
 
@@ -56,7 +56,7 @@ export class NavRouteModule extends DataTableModule {
 				cur = hop;
 			}
 
-			row.append(this._makeCell(`${dist.toFixed(2)}ly`));
+			cells.push(`${dist.toFixed(2)}ly`);
 		}
 
 /*
@@ -72,9 +72,9 @@ export class NavRouteModule extends DataTableModule {
 			cell.classList.add("longjump");
 		}
 
-		row.append(cell);
+		cells.push(cell);
 
-		this._addRow(row);
+		this._addRow({ event, cells });
 	}
 }
 

@@ -5,7 +5,6 @@
 export class InfoBox {
 	#container; // new InfoBox appended here
 	#template; // InfoBox <template> element
-	#infoMap = new WeakMap(); // only keep data while the key object exists
 
 	/**
 	 * Creates an instance of InfoBox.
@@ -17,37 +16,8 @@ export class InfoBox {
 		this.#template = template;
 	}
 
-	/**
-	 * Associates a UI element (key) with a data object (value).
-	 * @param {HTMLElement} key - The UI element (e.g., a row div) to use as the key.
-	 * @param {Object} val - The EDDN message object associated with the element.
-	 * @returns {WeakMap<HTMLElement, Object>} The updated WeakMap.
-	 */
-	set(key, val) { return this.#infoMap.set(key, val); }
 
-	/**
-	 * Retrieves the data object associated with a UI element.
-	 * @param {HTMLElement} key - The UI element to look up.
-	 * @returns {Object|undefined} The associated EDDN message object, or undefined if not found.
-	 */
-	get(key) { return this.#infoMap.get(key); }
-
-	/**
-	 * Checks if a UI element has associated data.
-	 * @param {HTMLElement} key - The UI element to check.
-	 * @returns {boolean} True if the element exists in the map, false otherwise.
-	 */
-	has(key) { return this.#infoMap.has(key); }
-
-	/**
-	 * Displays the InfoBox for a specific UI element.
-	 * Retrieves the data associated with the key, populates the template, and appends it to the container.
-	 * @param {HTMLElement} key - The UI element (row) that was clicked.
-	 * @returns {void}
-	 */
-	show(key) {
-		const msg = this.get(key);
-
+	show(msg) {
 		if (!msg) {
 			return;
 		}

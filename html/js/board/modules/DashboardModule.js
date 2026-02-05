@@ -26,11 +26,12 @@ export class DashboardModule {
 // TODO: keep and re-use a pool of DOM nodes?
 
 export class DataTableModule extends DashboardModule {
+	static DATA_KEY = Symbol(); // unique key for event data in DOM node namespace
+
 	#renderQueue = []; // array of elements to add in next paint cycle
 	#renderScheduled = false;
 
 	_container;
-	_infobox;
 
 	_tableTemplate;
 	_rowTemplate; // DOM elements to be cloned by makeCell()/makeRow()
@@ -41,7 +42,7 @@ export class DataTableModule extends DashboardModule {
 
 
 	constructor(router, topics, options = {}) {
-		const { listLength, cullFactor, template, infobox } = options;
+		const { listLength, cullFactor, template } = options;
 
 		if (listLength && !Number.isInteger(listLength)) {
 			throw new Error("listLength must be an integer");
@@ -56,7 +57,6 @@ export class DataTableModule extends DashboardModule {
 		listLength && (this.listLength = listLength);
 		cullFactor && (this.cullFactor = parseFloat(cullFactor));
 
-		this._infobox = infobox;
 		this._tableTemplate = template;
 
 		// TODO: this calls _setupXX() in inheriting classes before their class definition is ready
@@ -169,8 +169,8 @@ export class DataTableModule extends DashboardModule {
 				newRow.append((cell instanceof Node) ? cell : this._makeCell(cell ?? ""));
 			}
 
-			// key data by weak ref to table row, used in click event
-			this._infobox?.set(newRow, item.event.data);
+			// store event data reference within node namespace
+			newRow[DataTableModule.DATA_KEY] = event.data;
 
 			fragment.prepend(newRow);
 		}

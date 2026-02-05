@@ -17,7 +17,7 @@ import ScanModule from "#modules/ScanModule.js";
 import UpdatesModule from "#modules/UpdatesModule.js";
 import VisitsModule from "#modules/VisitsModule.js";
 
-import { DummyTableModule } from "#DashboardModule";
+import { DataTableModule, DummyTableModule } from "#DashboardModule";
 
 
 const defaultModules = {
@@ -155,15 +155,13 @@ export class Dashboard {
 
 
 	#createModule(name, Module, options) {
-		const commonOptions = { infobox: this.#infoBox };
-
 		const template = this.#templates.get(name);
 
 		if (!template) {
 			console.warn(`Dashboard: no template for module "${name}"`);
 		}
 
-		const module = new Module(this.#router, { ...commonOptions, template, ...options });
+		const module = new Module(this.#router, { template, ...options });
 		const moduleContainer = module._setupContainer();
 
 		return moduleContainer;
@@ -182,9 +180,10 @@ export class Dashboard {
 
 			this.#container.addEventListener("click", (ev) => {
 				const target = ev.target.closest(".data");
+				const data = target?.[DataTableModule.DATA_KEY];
 
-				if (target && infoBox.has(target)) {
-					infoBox.show(target);
+				if (data) {
+					infoBox.show(data);
 				}
 			});
 		}

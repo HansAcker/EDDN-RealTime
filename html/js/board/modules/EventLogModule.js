@@ -24,7 +24,7 @@ export class EventLogModule extends DataTableModule {
 			this._makeCell(event.header.softwareVersion),
 			this._makeCell(event.StarSystem),
 			this._makeCell(event.Region.name ?? ""),
-			this._makeCell(`${event.header.gameversion}${event.header.gamebuild ? ` - ${event.header.gamebuild}` : ""}`),
+			this._makeCell(`${event.header.gameversion ?? ""}${event.header.gamebuild ? ` - ${event.header.gamebuild}` : ""}`),
 			this._makeCell(event.$schemaRef.replace(RX_SCHEMAREF_EDDN, ""))
 		);
 

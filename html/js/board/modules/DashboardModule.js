@@ -156,12 +156,12 @@ export class DataTableModule extends DashboardModule {
 		for (const item of this.#renderQueue) {
 			const { event, cells } = item;
 
-			if (!event || !cells) {
-				console.warn("DataTableModule: missing properties in render queue item");
+			// TODO: check that `event instanceof EDDNEvent`?
+			if (!event || !Array.isArray(cells)) {
+				console.warn("DataTableModule: missing or invalid properties in render queue item");
 				continue;
 			}
 
-			// TODO: check that `item.event instanceof EDDNEvent`?
 			// TODO: support full row/rowFactory in queue?
 			const newRow = this._makeRow(event);
 

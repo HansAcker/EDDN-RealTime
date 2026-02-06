@@ -204,6 +204,7 @@ export class DataTableModule extends DashboardModule {
 	 */
 	#render() {
 		const queue = this.#renderQueue;
+		const container = this._container;
 		this.#renderScheduled = false;
 
 		if (!queue.length) {
@@ -213,11 +214,11 @@ export class DataTableModule extends DashboardModule {
 
 		// clear table for full replacement if queueLength > listLength
 		if (this.#trimQueue(this.listLength)) {
-			this._container.replaceChildren();
+			container.replaceChildren();
 		}
 
 		// read current element count
-		const dropCount = (this._container.childElementCount + queue.length) - this.listLength;
+		const dropCount = (container.childElementCount + queue.length) - this.listLength;
 
 		// batch updates into one DocumentFragment
 		const fragment = document.createDocumentFragment();
@@ -253,12 +254,12 @@ export class DataTableModule extends DashboardModule {
 		// remove older rows from table
 		if (dropCount > 0) {
 			for (let i = 0; i < dropCount; i++) {
-				this._container.lastElementChild?.remove();
+				container.lastElementChild?.remove();
 			}
 		}
 
 		// insert new rows
-		this._container.prepend(fragment);
+		container.prepend(fragment);
 	}
 
 

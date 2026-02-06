@@ -83,12 +83,15 @@ export class NavRouteModule extends DataTableModule {
 		}
 */
 
-		const cell = this._makeCell(`${longest.toFixed(2)}ly`);
-		if (longest >= 200) {
+		// TODO: why is this not configurable?
+		if (longest < 200) {
+			cells.push(`${longest.toFixed(2)}ly`);
+		} else {
+			// custom node with extra CSS class
+			const cell = this._makeCell(`${longest.toFixed(2)}ly`);
 			cell.classList.add("longjump");
+			cells.push(cell);
 		}
-
-		cells.push(cell);
 
 		this._addRow({ event, cells });
 	}

@@ -222,8 +222,7 @@ export class DataTableModule extends DashboardModule {
 
 		// batch updates into one DocumentFragment
 		const fragment = document.createDocumentFragment();
-		for (const item of queue) {
-			const { event, cells } = item;
+		for (const { event, cells } of queue) {
 
 			// TODO: check that `event instanceof EDDNEvent`?
 			if (!event || !Array.isArray(cells)) {

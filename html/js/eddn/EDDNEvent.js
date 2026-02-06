@@ -1,7 +1,11 @@
 import { RegionMap } from "#ed/RegionMap.js";
 
 /**
- * A standardized event wrapper for all EDDN messages.
+ * A standardized event wrapper for all EDDN messages. Extends the native
+ * {@link Event} class with lazily computed properties for schema type, game
+ * metadata, star system coordinates, and galactic region lookup.
+ *
+ * @extends Event
  */
 export class EDDNEvent extends Event {
 	$schemaRef;

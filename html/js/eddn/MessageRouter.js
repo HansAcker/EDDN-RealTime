@@ -26,6 +26,8 @@ export class MessageRouter {
 	 * If no topics are provided, or if the topic is "*", the callback acts as a wildcard listener.
 	 * @param {Function} callback - The function to invoke when a matching message is received.
 	 * @param {string|Iterable<string>} [topics] - A single topic string, an iterable of strings, or undefined for wildcard.
+	 * @param {Object} [options={}] - Optional configuration.
+	 * @param {AbortSignal} [options.signal] - An AbortSignal that, when aborted, unregisters the callback from the specified topics.
 	 */
 	register(callback, topics, options = {}) {
 		const { signal } = options;

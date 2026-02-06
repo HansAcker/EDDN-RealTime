@@ -1,7 +1,18 @@
 import { Config } from "#config.js";
 
 
+/**
+ * Base class for all dashboard modules. Registers a callback with the
+ * {@link MessageRouter} for the specified topics and delegates incoming
+ * events to {@link DashboardModule#_handleEvent}.
+ */
 export class DashboardModule {
+	/**
+	 * Creates a new DashboardModule.
+	 *
+	 * @param {MessageRouter|null} router - The message router to subscribe to, or `null` for dummy modules.
+	 * @param {string|Iterable<string>} topics - Topic(s) to subscribe to (e.g. `"journal:fsdjump"`, `"*"`).
+	 */
 	constructor(router, topics) {
 		// allow empty router for DummyModule
 		if (!router) {
@@ -17,12 +28,26 @@ export class DashboardModule {
 	}
 
 
+	/**
+	 * Processes an incoming EDDN event. Override in subclasses to implement
+	 * module-specific behaviour.
+	 *
+	 * @param {EDDNEvent} _event - The EDDN event to handle.
+	 */
 	_handleEvent(_event) {
 		// base class
 	}
 }
 
 
+/**
+ * A {@link DashboardModule} subclass that renders incoming events as table
+ * rows inside a `<tbody>`. Provides batched rendering via
+ * `requestAnimationFrame`, overflow trimming, and helper methods for
+ * constructing table cells and rows.
+ *
+ * @extends DashboardModule
+ */
 // TODO: keep and re-use a pool of DOM nodes?
 
 export class DataTableModule extends DashboardModule {
@@ -41,6 +66,16 @@ export class DataTableModule extends DashboardModule {
 	cullFactor = 2; // cut back #renderQueue if > listLength * cullFactor // TODO: rename
 
 
+	/**
+	 * Creates a new DataTableModule.
+	 *
+	 * @param {MessageRouter|null} router - The message router to subscribe to.
+	 * @param {string|Iterable<string>|null} topics - Topic(s) to subscribe to.
+	 * @param {Object} [options={}] - Configuration options.
+	 * @param {number} [options.listLength] - Maximum number of visible rows.
+	 * @param {number} [options.cullFactor] - Multiplier of `listLength` for the render-queue overflow threshold.
+	 * @param {HTMLTemplateElement} [options.template] - The HTML `<template>` element for this module's table.
+	 */
 	constructor(router, topics, options = {}) {
 		const { listLength, cullFactor, template } = options;
 
@@ -64,6 +99,12 @@ export class DataTableModule extends DashboardModule {
 	}
 
 
+	/**
+	 * Clones the module's `<template>`, locates the `<tbody>`, fills it with
+	 * placeholder rows if empty, and stores a reference for later rendering.
+	 *
+	 * @returns {DocumentFragment|null} The cloned template DOM, or `null` if no template is set.
+	 */
 	_setupContainer() {
 		if (!this._tableTemplate) {
 			return null;
@@ -80,6 +121,10 @@ export class DataTableModule extends DashboardModule {
 	}
 
 
+	/**
+	 * Initialises the default row and cell template elements used by
+	 * {@link DataTableModule#_makeRow} and {@link DataTableModule#_makeCell}.
+	 */
 	// TODO: define a full row in the template with slots for content?
 	_setupTemplates() {
 		// row Template
@@ -91,6 +136,12 @@ export class DataTableModule extends DashboardModule {
 	}
 
 
+	/**
+	 * Creates a `<td>` element populated with the given text.
+	 *
+	 * @param {string} [textContent] - Text content for the cell.
+	 * @returns {HTMLTableCellElement}
+	 */
 	_makeCell(textContent) {
 		const element = this._cellTemplate.cloneNode(false);
 		element.textContent = element.title = textContent ?? "";
@@ -98,6 +149,13 @@ export class DataTableModule extends DashboardModule {
 	}
 
 
+	/**
+	 * Creates a `<tr>` element styled according to the event's game type,
+	 * taxi/multicrew status, and message age.
+	 *
+	 * @param {EDDNEvent} event - The EDDN event providing classification data.
+	 * @returns {HTMLTableRowElement}
+	 */
 	_makeRow(event) {
 		const element = this._rowTemplate.cloneNode(false);
 		element.classList.add(event.gameType);
@@ -120,6 +178,12 @@ export class DataTableModule extends DashboardModule {
 	}
 
 
+	/**
+	 * Queues a new row for rendering. The row will be painted in the next
+	 * animation frame.
+	 *
+	 * @param {{event: EDDNEvent, cells: Array<string|Node|Function>}} row - An object containing the source event and an array of cell descriptors.
+	 */
 	_addRow(row) {
 		// add row to queue
 		this.#renderQueue.push(row);
@@ -135,6 +199,9 @@ export class DataTableModule extends DashboardModule {
 	}
 
 
+	/**
+	 * Flushes the render queue into the DOM. Called via `requestAnimationFrame`.
+	 */
 	#render() {
 		this.#renderScheduled = false;
 
@@ -194,6 +261,14 @@ export class DataTableModule extends DashboardModule {
 	}
 
 
+	/**
+	 * Trims the render queue to at most `hardLimit` entries when the queue
+	 * length exceeds `softLimit` (or `hardLimit` if `softLimit` is omitted).
+	 *
+	 * @param {number} hardLimit - Maximum queue length after trimming.
+	 * @param {number} [softLimit] - Queue length threshold that triggers trimming.
+	 * @returns {number} The number of dropped entries, or `0` if no trimming occurred.
+	 */
 	#trimQueue(hardLimit, softLimit) {
 		const queueLength = this.#renderQueue.length;
 
@@ -212,13 +287,32 @@ export class DataTableModule extends DashboardModule {
 }
 
 
+/**
+ * A no-op {@link DataTableModule} subclass used for placeholder or
+ * legend-only modules that do not subscribe to any events.
+ *
+ * @extends DataTableModule
+ */
 export class DummyTableModule extends DataTableModule {
+	/**
+	 * Creates a DummyTableModule that renders a static table without subscribing
+	 * to any EDDN topics.
+	 *
+	 * @param {MessageRouter} router - Unused; passed as `null` to the parent.
+	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
+	 */
 	constructor(router, options) {
 		super(null, null, options);
 	}
 }
 
 
+/**
+ * Safely invokes a cell callback, returning `undefined` on error.
+ *
+ * @param {Function} cb - The callback to execute.
+ * @returns {Node|undefined} The result of the callback, or `undefined` if it threw.
+ */
 function invoke(cb) {
 	try {
 		return cb();

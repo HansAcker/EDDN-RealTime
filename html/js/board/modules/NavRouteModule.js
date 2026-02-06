@@ -1,12 +1,28 @@
 import { DataTableModule } from "#DashboardModule";
 
 
+/**
+ * Dashboard module that displays navigation route events, including start
+ * and end systems, jump count, total distance, and longest single jump.
+ *
+ * @extends DataTableModule
+ */
 export class NavRouteModule extends DataTableModule {
+	/**
+	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
+	 */
 	constructor(router, options) {
 		super(router, ["navroute"], options);
 	}
 
 
+	/**
+	 * Renders a row showing start/end systems, jump count, total distance,
+	 * route distance, and longest jump (highlighted for jumps ≥ 200 ly).
+	 *
+	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 */
 	_handleEvent(event) {
 		const route = event.message.Route ?? [];
 

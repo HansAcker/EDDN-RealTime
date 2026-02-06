@@ -1,3 +1,11 @@
+/**
+ * @module RegionMap
+ * @description Provides galactic region lookups for Elite Dangerous star
+ * positions. Loads a binary run-length-encoded region map on module
+ * initialisation and exposes static helpers to resolve coordinates or
+ * System ID64 values to named galactic regions.
+ */
+
 import GalacticRegions from "#data/GalacticRegions.json" with { type: "json" };
 
 
@@ -69,18 +77,53 @@ const readyPromise = (async function() {
 })();
 
 
+/**
+ * Extracts a bit field from a BigInt value.
+ *
+ * @param {bigint} field - The source value.
+ * @param {bigint} bits - Number of bits to extract.
+ * @param {bigint} [shift=0n] - Bit offset to shift before masking.
+ * @returns {bigint} The extracted bit field.
+ */
 const bitMask = (field, bits, shift = 0n) => (field >> shift) & (~(~0n << bits));
 
 
+/**
+ * Static utility class for resolving galactic coordinates and System ID64
+ * values to Elite Dangerous galactic regions using a pre-loaded binary
+ * region map.
+ */
 export class RegionMap {
+	/**
+	 * Promise that resolves when the binary region-map data has finished loading.
+	 *
+	 * @type {Promise<void>}
+	 */
 	static get ready() { return readyPromise; } // `await RegionMap.ready;`
+
+	/**
+	 * Whether the region map data has been loaded and is ready for lookups.
+	 *
+	 * @type {boolean}
+	 */
 	static get isReady() { return isReady; }
 
+	/** @type {number} X-axis origin of the region map in light-years relative to Sol. */
 	static get X0() { return X0; }
+	/** @type {number} Y-axis origin of the region map in light-years relative to Sol. */
 	static get Y0() { return Y0; }
+	/** @type {number} Z-axis origin of the region map in light-years relative to Sol. */
 	static get Z0() { return Z0; }
 
 
+	/**
+	 * Looks up the galactic region for the given coordinates.
+	 *
+	 * @param {number} x - X coordinate in light-years relative to Sol.
+	 * @param {number} _y - Y coordinate (unused in the 2-D region map).
+	 * @param {number} z - Z coordinate in light-years relative to Sol.
+	 * @returns {{id: number, name: string|null}} Region object, or `{id: 0, name: null}` if not found.
+	 */
 	// find region for galactic coordinates
 	static findRegion(x, _y, z) {
 		if (!isReady || x === undefined || z === undefined) {
@@ -122,6 +165,13 @@ export class RegionMap {
 	}
 
 
+	/**
+	 * Finds the galactic region for a given System ID64 by first decoding it
+	 * into boxel coordinates.
+	 *
+	 * @param {string|bigint} id64 - The 64-bit system identifier.
+	 * @returns {{id: number, name: string|null}} Region object.
+	 */
 	// id64 should be String or BigInt
 	static findRegionForId64(id64) {
 		const { BoxelPos } = this.decodeId64(id64);
@@ -129,6 +179,19 @@ export class RegionMap {
 	}
 
 
+	/**
+	 * Converts sector and boxel coordinates to galactic coordinates in
+	 * light-years relative to Sol.
+	 *
+	 * @param {number} xs - X sector coordinate.
+	 * @param {number} ys - Y sector coordinate.
+	 * @param {number} zs - Z sector coordinate.
+	 * @param {number} [massClass=0] - Mass class (0–7, corresponding to A–H).
+	 * @param {number} [xb=0] - X boxel coordinate.
+	 * @param {number} [yb=0] - Y boxel coordinate.
+	 * @param {number} [zb=0] - Z boxel coordinate.
+	 * @returns {{x: number, y: number, z: number}} Galactic coordinates.
+	 */
 	static sectorsToCoords(xs, ys, zs, massClass = 0, xb = 0, yb = 0, zb = 0) {
 		// 1280ly per sector, 10ly (A) to 1280ly (H) per boxel
 		// TODO: return center coords instead of corner
@@ -167,6 +230,13 @@ export class RegionMap {
 	depending on the mass code.
 	*/
 
+	/**
+	 * Decodes a 64-bit system identifier into its component parts including
+	 * sector/boxel coordinates, mass class, body ID, and galactic position.
+	 *
+	 * @param {string|bigint} id64 - The 64-bit system identifier.
+	 * @returns {{SystemAddress: bigint, BoxelPos: number[], BodyId: number, massClass: number, xs: number, ys: number, zs: number, xb: number, yb: number, zb: number, n2: number}}
+	 */
 	// id64 should be String or BigInt. Number type could garble the critical lower bits
 	static decodeId64(id64) {
 		const _id64 = BigInt(id64);
@@ -211,6 +281,17 @@ export class RegionMap {
 	https://docs.google.com/spreadsheets/d/1hJVYIKc2EKjA119qQNCyMOR0PC5xreSjB85zNnkzKTA
 	*/
 
+	/**
+	 * Generates the procedural suffix of a system name from its boxel
+	 * coordinates and sequence number.
+	 *
+	 * @param {number} massClass - Mass class (0–7).
+	 * @param {number} xb - X boxel coordinate.
+	 * @param {number} yb - Y boxel coordinate.
+	 * @param {number} zb - Z boxel coordinate.
+	 * @param {number} n2 - Within-boxel sequence number.
+	 * @returns {string} The procedural system-name suffix (e.g. `"AB-C a1-23"`).
+	 */
 	static procSystemName(massClass, xb, yb, zb, n2) {
 		let id = xb | (yb << 7) | (zb << 14);
 

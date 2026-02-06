@@ -270,14 +270,15 @@ export class DataTableModule extends DashboardModule {
 	 * @returns {number} The number of dropped entries, or `0` if no trimming occurred.
 	 */
 	#trimQueue(hardLimit, softLimit) {
-		const queueLength = this.#renderQueue.length;
+		const queue = this.#renderQueue;
+		const queueLength = queue.length;
 
 		if (queueLength > (softLimit ?? hardLimit)) {
 			const dropCount = queueLength - hardLimit;
 
 			// move queue tail up front ([dropCount]... -> [0]...)
-			this.#renderQueue.copyWithin(0, dropCount);
-			this.#renderQueue.length = hardLimit;
+			queue.copyWithin(0, dropCount);
+			queue.length = hardLimit;
 
 			return dropCount;
 		}

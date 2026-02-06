@@ -203,9 +203,10 @@ export class DataTableModule extends DashboardModule {
 	 * Flushes the render queue into the DOM. Called via `requestAnimationFrame`.
 	 */
 	#render() {
+		const queue = this.#renderQueue;
 		this.#renderScheduled = false;
 
-		if (!this.#renderQueue.length) {
+		if (!queue.length) {
 			console.warn("DataTableModule: render scheduled on empty queue");
 			return;
 		}
@@ -216,11 +217,11 @@ export class DataTableModule extends DashboardModule {
 		}
 
 		// read current element count
-		const dropCount = (this._container.childElementCount + this.#renderQueue.length) - this.listLength;
+		const dropCount = (this._container.childElementCount + queue.length) - this.listLength;
 
 		// batch updates into one DocumentFragment
 		const fragment = document.createDocumentFragment();
-		for (const item of this.#renderQueue) {
+		for (const item of queue) {
 			const { event, cells } = item;
 
 			// TODO: check that `event instanceof EDDNEvent`?
@@ -247,7 +248,7 @@ export class DataTableModule extends DashboardModule {
 		}
 
 		// reset queue
-		this.#renderQueue.length = 0;
+		queue.length = 0;
 
 		// remove older rows from table
 		if (dropCount > 0) {

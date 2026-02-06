@@ -1,12 +1,26 @@
 import { DataTableModule } from "#DashboardModule";
 
 
+/**
+ * Dashboard module that displays all scan events.
+ *
+ * @extends DataTableModule
+ */
 export class ScanModule extends DataTableModule {
+	/**
+	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
+	 */
 	constructor(router, options) {
 		super(router, ["journal:scan"], options);
 	}
 
 
+	/**
+	 * Renders a row showing the body name and scan type.
+	 *
+	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 */
 	_handleEvent(event) {
 		this._addRow({ event, cells: [
 			event.message.BodyName,

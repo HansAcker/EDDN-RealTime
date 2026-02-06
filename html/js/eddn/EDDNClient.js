@@ -1,6 +1,19 @@
 import { EDDNEvent } from "#eddn/EDDNEvent.js";
 
 
+/**
+ * WebSocket client that connects to an EDDN relay, parses incoming messages
+ * into {@link EDDNEvent} instances, and re-dispatches them as DOM-style events.
+ *
+ * Emitted events:
+ * - `open`          – the underlying WebSocket connection opened.
+ * - `close`         – the underlying WebSocket connection closed.
+ * - `error`         – a WebSocket-level error occurred.
+ * - `eddn:message`  – a valid EDDN message was received (dispatched as {@link EDDNEvent}).
+ * - `eddn:error`    – an EDDN message could not be parsed or validated.
+ *
+ * @extends EventTarget
+ */
 export class EDDNClient extends EventTarget {
 	#WebSocketClass; // the WebSocket class prototype used to create a new connection, defaults to WebSocket
 
@@ -20,6 +33,16 @@ export class EDDNClient extends EventTarget {
 	resetTimeout = 0; // idle timeout (ms) before watchdog reconnects the socket, 0 to disable watchdog
 
 
+	/**
+	 * Creates a new EDDNClient.
+	 *
+	 * @param {Object} [options={}] - Configuration options.
+	 * @param {string} [options.url] - WebSocket URL to connect to.
+	 * @param {number} [options.resetTimeout] - Idle timeout in ms before the watchdog reconnects.
+	 * @param {Function} [options.filter] - Predicate applied to each {@link EDDNEvent}; returning `false` suppresses dispatch.
+	 * @param {typeof WebSocket} [options.WebSocketClass] - WebSocket constructor to use (defaults to the global `WebSocket`).
+	 * @param {AbortSignal} [options.signal] - An AbortSignal that, when aborted, closes the connection.
+	 */
 	constructor(options = {}) {
 		super();
 
@@ -52,6 +75,10 @@ export class EDDNClient extends EventTarget {
 	}
 
 
+	/**
+	 * Opens a new WebSocket connection. If a connection is already open it is
+	 * closed first.
+	 */
 	connect() {
 		// close and clear old socket on reconnect
 		if (this.#socket) {
@@ -72,6 +99,10 @@ export class EDDNClient extends EventTarget {
 	}
 
 
+	/**
+	 * Closes the current WebSocket connection, stops the watchdog timer,
+	 * detaches all event handlers, and dispatches a synthetic `close` event.
+	 */
 	close() {
 		console.debug("EDDNClient: closing");
 
@@ -97,6 +128,12 @@ export class EDDNClient extends EventTarget {
 	}
 
 
+	/**
+	 * Handles a raw WebSocket `message` event by parsing the data and
+	 * forwarding it to {@link EDDNClient##handleEDDNMessage}.
+	 *
+	 * @param {MessageEvent} originalEvent - The WebSocket message event.
+	 */
 	#handleMessage(originalEvent) {
 		if (this.#socket !== originalEvent.target) {
 			console.warn("EDDNClient: spurious `message` from unknown socket:", originalEvent);
@@ -128,6 +165,12 @@ export class EDDNClient extends EventTarget {
 		this.#handleEDDNMessage(data);
 	}
 
+	/**
+	 * Validates an EDDN payload, wraps it in an {@link EDDNEvent}, applies the
+	 * filter function, and dispatches it if accepted.
+	 *
+	 * @param {Object} data - Parsed EDDN message object.
+	 */
 	#handleEDDNMessage(data) {
 		// TODO: if validation fails, pass on the received data as a field on a custom EDDNErrorEvent
 
@@ -164,6 +207,12 @@ export class EDDNClient extends EventTarget {
 	}
 
 
+	/**
+	 * Handles the WebSocket `open` event. Resets the watchdog and dispatches
+	 * an `open` event to listeners.
+	 *
+	 * @param {Event} originalEvent - The WebSocket open event.
+	 */
 	#handleOpen(originalEvent) {
 		// TODO: an unexpected open should not happen. close()?
 		if (this.#socket !== originalEvent.target) {
@@ -183,6 +232,12 @@ export class EDDNClient extends EventTarget {
 	}
 
 
+	/**
+	 * Handles the WebSocket `close` event. Stops the watchdog and dispatches a
+	 * `close` event to listeners.
+	 *
+	 * @param {CloseEvent} originalEvent - The WebSocket close event.
+	 */
 	#handleClose(originalEvent) {
 		if (this.#socket !== originalEvent.target) {
 			console.warn("EDDNClient: spurious `close` from unknown socket:", originalEvent);
@@ -211,6 +266,11 @@ export class EDDNClient extends EventTarget {
 	}
 
 
+	/**
+	 * Handles the WebSocket `error` event and dispatches an `error` event to listeners.
+	 *
+	 * @param {Event} originalEvent - The WebSocket error event.
+	 */
 	#handleError(originalEvent) {
 		if (this.#socket !== originalEvent.target) {
 			console.warn("EDDNClient: spurious `error` from unknown socket:", originalEvent);
@@ -222,6 +282,12 @@ export class EDDNClient extends EventTarget {
 	}
 
 
+	/**
+	 * Attaches WebSocket event handlers to the given target.
+	 *
+	 * @param {WebSocket} target - The WebSocket instance to listen on.
+	 * @param {AbortSignal} signal - Signal used to automatically remove the handlers.
+	 */
 	#attachEventHandlers(target, signal) {
 		target.addEventListener("open", (ev) => this.#handleOpen(ev), { signal });
 		target.addEventListener("close", (ev) => this.#handleClose(ev), { signal });
@@ -230,6 +296,10 @@ export class EDDNClient extends EventTarget {
 	}
 
 
+	/**
+	 * Periodic watchdog that reconnects the WebSocket if no valid message has
+	 * been received within {@link EDDNClient#resetTimeout} milliseconds.
+	 */
 	#watchdog() {
 		// terminate watch when the socket is gone or resetTimeout changed to 0
 		if (!this.#socket || this.resetTimeout <= 0) {
@@ -254,6 +324,9 @@ export class EDDNClient extends EventTarget {
 	}
 
 
+	/**
+	 * Stops the watchdog timer and resets the last-event timestamp.
+	 */
 	#stopWatchdog() {
 		clearTimeout(this.#watchdogTimer);
 		this.#watchdogTimer = null;

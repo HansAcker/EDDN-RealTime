@@ -2,12 +2,29 @@ import { Config } from "#config.js";
 import { DataTableModule } from "#DashboardModule";
 
 
+/**
+ * Dashboard module that displays a detailed log of every incoming EDDN event,
+ * including age, uploader ID bar, event name, software, system, region, and
+ * game version.
+ *
+ * @extends DataTableModule
+ */
 export class EventLogModule extends DataTableModule {
+	/**
+	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
+	 */
 	constructor(router, options) {
 		super(router, ["*"], options);
 	}
 
 
+	/**
+	 * Renders a row with relative time, coloured uploader-ID bar, event name,
+	 * software details, star system, region, game version, and schema reference.
+	 *
+	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 */
 	_handleEvent(event) {
 		this._addRow({ event, cells: [
 			formatRelativeTime(event.age),
@@ -22,6 +39,13 @@ export class EventLogModule extends DataTableModule {
 		]});
 	}
 
+	/**
+	 * Creates a table cell displaying a colour-bar visualisation of the
+	 * uploader's hex ID.
+	 *
+	 * @param {string} uploaderID - The uploader's hex identifier.
+	 * @returns {HTMLTableCellElement}
+	 */
 	#idCell(uploaderID) {
 		const idCell = this._makeCell(uploaderID);
 		idCell.classList.add("dashboard__table--idcell");
@@ -84,6 +108,13 @@ const hex_colors = Object.freeze({
 	"E": "#DCD300", "F": "#B3446C"
 });
 
+/**
+ * Converts a hex identifier string into a `<span>` element with a
+ * linear-gradient background where each hex character maps to a colour.
+ *
+ * @param {string} id - The hex identifier string.
+ * @returns {HTMLSpanElement}
+ */
 function hex2bar(id) {
 	// hex chars to colored blocks
 	const len = id.length;

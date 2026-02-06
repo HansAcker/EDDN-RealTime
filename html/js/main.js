@@ -1,3 +1,9 @@
+/**
+ * @module main
+ * @description Application entry point. Initialises the EDDN WebSocket client,
+ * wires up the activity icon, loads dashboard templates, creates dashboard
+ * modules from the DOM, and starts the connection.
+ */
 
 import { Config } from "#config.js";
 

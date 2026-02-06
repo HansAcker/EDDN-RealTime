@@ -1,12 +1,27 @@
 import { DataTableModule } from "#DashboardModule";
 
 
+/**
+ * Dashboard module that displays station update events (commodity, outfitting,
+ * and shipyard data uploads).
+ *
+ * @extends DataTableModule
+ */
 export class UpdatesModule extends DataTableModule {
+	/**
+	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
+	 */
 	constructor(router, options) {
 		super(router, ["commodity", "outfitting", "shipyard"], options);
 	}
 
 
+	/**
+	 * Renders a row showing the update type, station name, and system name.
+	 *
+	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 */
 	_handleEvent(event) {
 		const message = event.message;
 

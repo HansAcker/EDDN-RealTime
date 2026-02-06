@@ -39,6 +39,11 @@ const defaultModules = {
 };
 
 
+/**
+ * Manages the lifecycle of dashboard modules. Loads HTML templates, creates
+ * module instances from either DOM elements or a configuration array, and
+ * wires them into a {@link MessageRouter} for receiving EDDN events.
+ */
 export class Dashboard {
 	#router; // MessageRouter instance
 	#container; // new modules appended here
@@ -47,10 +52,29 @@ export class Dashboard {
 	#templates = new Map();
 	#readyPromise = null;
 
+	/**
+	 * Promise that resolves when all HTML templates have been loaded.
+	 *
+	 * @type {Promise<void>}
+	 */
 	get ready() { return this.#readyPromise ??= this.#loadTemplates(); }
+
+	/**
+	 * The DOM container element that holds all dashboard modules.
+	 *
+	 * @type {HTMLElement}
+	 */
 	get container() { return this.#container; }
 
 
+	/**
+	 * Creates a new Dashboard.
+	 *
+	 * @param {MessageRouter} router - The message router that dispatches EDDN events to modules.
+	 * @param {Object} [options={}] - Configuration options.
+	 * @param {HTMLElement} [options.container] - An existing DOM container; a new `<div>` is created if omitted.
+	 * @param {InfoBox} [options.infoBox] - An existing InfoBox instance to reuse.
+	 */
 	constructor(router, options = {}) {
 		this.#router = router;
 
@@ -74,6 +98,11 @@ export class Dashboard {
 	}
 
 
+	/**
+	 * Creates dashboard modules from `<div data-dashboard__module="...">` elements
+	 * found inside the container. Each matching element is replaced with the
+	 * rendered module output.
+	 */
 	fromContainer() {
 		this.#createInfoBox();
 
@@ -97,6 +126,12 @@ export class Dashboard {
 	}
 
 
+	/**
+	 * Creates dashboard modules from an array of module descriptors and appends
+	 * them to the container.
+	 *
+	 * @param {Array<string|{name: string, options?: Object}>} modules - Module descriptors. Each entry is either a module name string or an object with `name` and optional `options`.
+	 */
 	fromArray(modules) {
 		this.#createInfoBox();
 
@@ -128,6 +163,12 @@ export class Dashboard {
 	}
 
 
+	/**
+	 * Fetches and parses the HTML template file for the configured locale.
+	 * Populates the internal template map keyed by `data-dashboard__module`.
+	 *
+	 * @returns {Promise<void>}
+	 */
 	async #loadTemplates() {
 		try {
 			const url =`templates.${encodeURIComponent(Config.templateLocale)}.html`;
@@ -154,6 +195,14 @@ export class Dashboard {
 	}
 
 
+	/**
+	 * Instantiates a single dashboard module and returns its DOM subtree.
+	 *
+	 * @param {string} name - The module name (used for template lookup).
+	 * @param {typeof DashboardModule} Module - The module class constructor.
+	 * @param {Object} options - Options forwarded to the module constructor.
+	 * @returns {DocumentFragment|null} The rendered module DOM, or `null` if no template exists.
+	 */
 	#createModule(name, Module, options) {
 		const template = this.#templates.get(name);
 
@@ -168,6 +217,11 @@ export class Dashboard {
 	}
 
 
+	/**
+	 * Creates the shared {@link InfoBox} instance (if not already provided)
+	 * and attaches a click handler to the container that shows the info box
+	 * for any clicked data row.
+	 */
 	#createInfoBox() {
 		if (!this.#infoBox) {
 			const infoBox_template = this.#templates.get("InfoBox");

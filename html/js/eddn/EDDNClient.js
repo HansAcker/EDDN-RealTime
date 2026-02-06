@@ -130,7 +130,7 @@ export class EDDNClient extends EventTarget {
 
 	/**
 	 * Handles a raw WebSocket `message` event by parsing the data and
- * forwarding it to {@link EDDNClient#handleEDDNMessage}.
+	 * forwarding it to {@link EDDNClient#handleEDDNMessage}.
 	 *
 	 * @param {MessageEvent} originalEvent - The WebSocket message event.
 	 */

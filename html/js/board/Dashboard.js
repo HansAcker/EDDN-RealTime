@@ -1,5 +1,5 @@
 /**
- * @module board/Dashboard
+ * @module Dashboard
  * @description Manages the lifecycle of dashboard modules. Loads HTML templates,
  * creates module instances from either DOM elements or a configuration array, and
  * wires them into a {@link MessageRouter} for receiving EDDN events.

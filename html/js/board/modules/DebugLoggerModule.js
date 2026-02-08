@@ -1,5 +1,5 @@
 /**
- * @module board/modules/DebugLoggerModule
+ * @module DebugLoggerModule
  * @description Dashboard module that logs every incoming {@link EDDNEvent}
  * message to the browser console. Useful for development and debugging.
  */

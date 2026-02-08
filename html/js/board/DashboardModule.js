@@ -1,5 +1,5 @@
 /**
- * @module board/DashboardModule
+ * @module DashboardModule
  * @description Base class for all dashboard modules. Registers callbacks with the
  * {@link MessageRouter} for specified topics and delegates incoming
  * {@link EDDNEvent} events to subclass handlers. Includes specialized

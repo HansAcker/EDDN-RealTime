@@ -1,5 +1,5 @@
 /**
- * @module eddn/EDDNClient
+ * @module EDDNClient
  * @description WebSocket client for connecting to EDDN relay servers, parsing
  * incoming messages into {@link EDDNEvent} instances, and re-dispatching them
  * as DOM-style events. Includes connection watchdog and optional message filtering.

@@ -1,5 +1,5 @@
 /**
- * @module ui/infobox
+ * @module infobox
  * @description Manages the display of EDDN message contents in a popup overlay
  * box with clipboard copy actions. Maps UI elements to their underlying data
  * objects and handles user interactions.

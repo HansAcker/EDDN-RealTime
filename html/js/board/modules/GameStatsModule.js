@@ -1,5 +1,5 @@
 /**
- * @module board/modules/GameStatsModule
+ * @module GameStatsModule
  * @description Dashboard module that displays aggregate statistics about incoming
  * {@link EDDNEvent} events, broken down by game type (Odyssey/Horizons),
  * taxi/multicrew status, and message age. Uses {@link StatsBox}.

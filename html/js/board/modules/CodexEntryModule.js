@@ -1,5 +1,5 @@
 /**
- * @module board/modules/CodexEntryModule
+ * @module CodexEntryModule
  * @description Dashboard module that displays Codex discovery entries with decoded
  * category, name, and galactic region information from {@link RegionMap}.
  * Uses {@link GalacticRegions} data for name resolution.

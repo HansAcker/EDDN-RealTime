@@ -1,5 +1,5 @@
 /**
- * @module board/modules/NewStarsModule
+ * @module NewStarsModule
  * @description Dashboard module that displays newly discovered (unmapped) stars
  * from Elite Dangerous scan events. Filters out previously discovered or mapped
  * bodies and NavBeacon scans, showing only stars (stellar bodies).

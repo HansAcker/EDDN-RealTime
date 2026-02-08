@@ -1,5 +1,5 @@
 /**
- * @module board/modules/SoftwareStatsModule
+ * @module SoftwareStatsModule
  * @description Dashboard module that counts and displays events grouped by uploader
  * software name and version. Uses {@link StatsBox} to track
  * different EDDN client applications.

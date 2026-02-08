@@ -1,5 +1,5 @@
 /**
- * @module board/modules/VisitsModule
+ * @module VisitsModule
  * @description Dashboard module that displays FSD jump events to populated or
  * allegiance systems from Elite Dangerous, showing population, faction information,
  * and system state data.

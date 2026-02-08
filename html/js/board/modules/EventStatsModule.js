@@ -1,5 +1,5 @@
 /**
- * @module board/modules/EventStatsModule
+ * @module EventStatsModule
  * @description Dashboard module that counts and displays events grouped by event
  * name, sorted by frequency. Uses {@link SortedStatsBox} for
  * rendering sorted statistics.

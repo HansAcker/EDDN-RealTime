@@ -1,5 +1,5 @@
 /**
- * @module board/modules/EventLogModule
+ * @module EventLogModule
  * @description Dashboard module that displays a detailed log of every incoming
  * {@link EDDNEvent}, including age, uploader ID, event name, software,
  * system, galactic region from {@link RegionMap}, and game version.

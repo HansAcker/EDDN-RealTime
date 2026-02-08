@@ -1,5 +1,5 @@
 /**
- * @module board/modules/LocationModule
+ * @module LocationModule
  * @description Dashboard module that displays location and docking events from
  * Elite Dangerous, showing station names, station types, and star systems.
  */

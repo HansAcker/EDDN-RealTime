@@ -1,5 +1,5 @@
 /**
- * @module board/modules/ApproachModule
+ * @module ApproachModule
  * @description Dashboard module that displays approach settlement events from
  * Elite Dangerous, showing settlement names and their star systems.
  */

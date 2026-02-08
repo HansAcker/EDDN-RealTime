@@ -1,5 +1,5 @@
 /**
- * @module eddn/MessageRouter
+ * @module MessageRouter
  * @description Routes messages from an event source to registered callbacks based
  * on specific topics. Supports topic subscriptions and wildcard listeners for
  * {@link EDDNEvent} dispatching.

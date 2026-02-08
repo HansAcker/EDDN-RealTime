@@ -1,5 +1,5 @@
 /**
- * @module board/modules/FSDJumpModule
+ * @module FSDJumpModule
  * @description Dashboard module that displays FSD (Frame Shift Drive) jump events
  * showing the destination star system from Elite Dangerous journal events.
  */

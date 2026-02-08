@@ -1,5 +1,5 @@
 /**
- * @module board/modules/UpdatesModule
+ * @module UpdatesModule
  * @description Dashboard module that displays station update events from Elite
  * Dangerous, including commodity market data, outfitting, and shipyard updates.
  */

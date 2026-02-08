@@ -1,5 +1,5 @@
 /**
- * @module board/modules/NavRouteModule
+ * @module NavRouteModule
  * @description Dashboard module that displays navigation route events from Elite
  * Dangerous, including start and end systems, jump count, total distance, and
  * longest single jump with highlighting for long-range jumps (≥ 200 ly).

@@ -2,22 +2,28 @@
 - pause/buffer tables
   - make the tables a few rows longer than displayed
   - on scroll down, pause updates / buffer new rows until a scroll/jump to top
+  - scrolling tables interferes with scrolling the page
+  - hold shift to pause table under cursor? not great on touchpads, either
 - extend Dashboard component
   - save/load/share layout, config, dynamic imports
 - interactive config overlay
   - drag / resize components
   - general config for locales / formats / other options
 - add a "loading" indicator / messages
+  - unless that slows down loading...
+- non-table modules: (2D) map, graphs
+  - Region Pie-Chart Web Component
 - revert the dynamic template fetch, integrate them back into index.html?
   - message details are mostly in English, anyway
 - use complete row/cell templates, assign slots for data
-- rework DataTable modules so that DOM element are only created during #render()
-  - extract/format when messages arrive
-  - create actual DOM nodes only when needed
+  - so that templates can define cell order
 - rework DataTable modules to re-use a pool of DOM nodes
+  - re-using <tr> rows is easy enough, re-fitting their <td> cells more complex
 - listen to visibilitychange events and start/stop/sync page updates
+  - requestAnimationFrame is actually good enough for the tables
 - test/complete the optional AbortController signal logic
-- non-table modules: (2D) map, graphs
+  - not required nor used in current always-on page
+  - mainly needed to detach ReconnectingWebSocket's event handlers from `window`
 - optional EDDNClient SharedWorker where available
   - shared websocket/parsing between multiple tabs
   - filter per tab

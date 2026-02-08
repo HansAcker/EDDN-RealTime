@@ -15,7 +15,7 @@ import { DashboardModule } from "#DashboardModule";
  */
 export class DebugLoggerModule extends DashboardModule {
 	/**
-	 * @param {@link module:eddn/MessageRouter} router - The message router to subscribe to.
+	 * @param {@link MessageRouter} router - The message router to subscribe to.
 	 */
 	constructor(router) {
 		// Subscribe to the generic event to catch everything

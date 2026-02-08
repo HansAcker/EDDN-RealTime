@@ -1,3 +1,9 @@
+/**
+ * @module board/modules/ApproachModule
+ * @description Dashboard module that displays approach settlement events from
+ * Elite Dangerous, showing settlement names and their star systems.
+ */
+
 import { DataTableModule } from "#DashboardModule";
 
 

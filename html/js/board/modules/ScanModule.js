@@ -1,3 +1,9 @@
+/**
+ * @module board/modules/ScanModule
+ * @description Dashboard module that displays all scan events from Elite Dangerous,
+ * showing body names and scan types (Detailed, AutoScan, Basic, NavBeaconDetail).
+ */
+
 import { DataTableModule } from "#DashboardModule";
 
 

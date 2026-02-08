@@ -1,3 +1,10 @@
+/**
+ * @module board/modules/NewBodiesModule
+ * @description Dashboard module that displays newly discovered (unmapped) planetary
+ * bodies from Elite Dangerous scan events. Filters out previously discovered or
+ * mapped bodies and NavBeacon scans.
+ */
+
 import { DataTableModule } from "#DashboardModule";
 
 

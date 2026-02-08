@@ -1,3 +1,10 @@
+/**
+ * @module board/modules/SoftwareStatsModule
+ * @description Dashboard module that counts and displays events grouped by uploader
+ * software name and version. Uses {@link module:ui/statsbox~StatsBox} to track
+ * different EDDN client applications.
+ */
+
 import { DataTableModule } from "#DashboardModule";
 import { StatsBox } from "#ui/statsbox.js";
 

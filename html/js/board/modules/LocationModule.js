@@ -1,3 +1,9 @@
+/**
+ * @module board/modules/LocationModule
+ * @description Dashboard module that displays location and docking events from
+ * Elite Dangerous, showing station names, station types, and star systems.
+ */
+
 import { DataTableModule } from "#DashboardModule";
 
 

@@ -1,3 +1,11 @@
+/**
+ * @module board/DashboardModule
+ * @description Base class for all dashboard modules. Registers callbacks with the
+ * {@link module:eddn/MessageRouter} for specified topics and delegates incoming
+ * {@link module:eddn/EDDNEvent} events to subclass handlers. Includes specialized
+ * {@link DataTableModule} for rendering table-based displays.
+ */
+
 import { Config } from "#config.js";
 
 

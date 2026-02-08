@@ -1,3 +1,10 @@
+/**
+ * @module board/modules/EventLogModule
+ * @description Dashboard module that displays a detailed log of every incoming
+ * {@link module:eddn/EDDNEvent}, including age, uploader ID, event name, software,
+ * system, galactic region from {@link module:ed/RegionMap}, and game version.
+ */
+
 import { Config } from "#config.js";
 import { DataTableModule } from "#DashboardModule";
 

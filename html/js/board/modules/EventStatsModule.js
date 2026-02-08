@@ -1,3 +1,10 @@
+/**
+ * @module board/modules/EventStatsModule
+ * @description Dashboard module that counts and displays events grouped by event
+ * name, sorted by frequency. Uses {@link module:ui/statsbox~SortedStatsBox} for
+ * rendering sorted statistics.
+ */
+
 import { DataTableModule } from "#DashboardModule";
 import { SortedStatsBox } from "#ui/statsbox.js";
 

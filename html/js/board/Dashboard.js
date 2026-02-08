@@ -1,3 +1,10 @@
+/**
+ * @module board/Dashboard
+ * @description Manages the lifecycle of dashboard modules. Loads HTML templates,
+ * creates module instances from either DOM elements or a configuration array, and
+ * wires them into a {@link module:eddn/MessageRouter} for receiving EDDN events.
+ */
+
 import { Config } from "#config.js";
 import { InfoBox } from "#ui/infobox.js";
 

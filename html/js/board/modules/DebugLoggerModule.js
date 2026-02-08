@@ -1,3 +1,9 @@
+/**
+ * @module board/modules/DebugLoggerModule
+ * @description Dashboard module that logs every incoming {@link module:eddn/EDDNEvent}
+ * message to the browser console. Useful for development and debugging.
+ */
+
 import { DashboardModule } from "#DashboardModule";
 
 

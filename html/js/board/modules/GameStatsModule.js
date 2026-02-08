@@ -1,3 +1,10 @@
+/**
+ * @module board/modules/GameStatsModule
+ * @description Dashboard module that displays aggregate statistics about incoming
+ * {@link module:eddn/EDDNEvent} events, broken down by game type (Odyssey/Horizons),
+ * taxi/multicrew status, and message age. Uses {@link module:ui/statsbox~StatsBox}.
+ */
+
 import { Config } from "#config.js";
 import { DataTableModule } from "#DashboardModule";
 import { StatsBox } from "#ui/statsbox.js";

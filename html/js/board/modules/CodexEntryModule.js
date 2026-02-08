@@ -1,3 +1,10 @@
+/**
+ * @module board/modules/CodexEntryModule
+ * @description Dashboard module that displays Codex discovery entries with decoded
+ * category, name, and galactic region information from {@link module:ed/RegionMap}.
+ * Uses {@link GalacticRegions} data for name resolution.
+ */
+
 import { DataTableModule } from "#DashboardModule";
 import GalacticRegions from "#data/GalacticRegions.json" with { type: "json" };
 

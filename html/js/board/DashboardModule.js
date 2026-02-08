@@ -40,7 +40,7 @@ export class DashboardModule {
 	 * Processes an incoming EDDN event. Override in subclasses to implement
 	 * module-specific behaviour.
 	 *
-	 * @param {@link EDDNEvent} _event - The EDDN event to handle.
+	 * @param {EDDNEvent} _event - The EDDN event to handle.
 	 */
 	_handleEvent(_event) {
 		// base class

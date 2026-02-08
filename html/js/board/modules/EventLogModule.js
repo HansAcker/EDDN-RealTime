@@ -14,11 +14,11 @@ import { DataTableModule } from "#DashboardModule";
  * including age, uploader ID bar, event name, software, system, region, and
  * game version.
  *
- * @extends {@link DataTableModule}
+ * @extends DataTableModule
  */
 export class EventLogModule extends DataTableModule {
 	/**
-	 * @param {@link MessageRouter} router - The message router to subscribe to.
+	 * @param {MessageRouter} router - The message router to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -30,7 +30,7 @@ export class EventLogModule extends DataTableModule {
 	 * Renders a row with relative time, coloured uploader-ID bar, event name,
 	 * software details, star system, region, game version, and schema reference.
 	 *
-	 * @param {@link EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming EDDN event.
 	 */
 	_handleEvent(event) {
 		this._addRow({ event, cells: [

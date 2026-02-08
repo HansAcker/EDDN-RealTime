@@ -14,13 +14,13 @@ import { StatsBox } from "#ui/statsbox.js";
  * Dashboard module that displays aggregate statistics about incoming events,
  * broken down by game type, taxi/multicrew status, and message age.
  *
- * @extends {@link DataTableModule}
+ * @extends DataTableModule
  */
 export class GameStatsModule extends DataTableModule {
 	_statsBox;
 
 	/**
-	 * @param {@link MessageRouter} router - The message router to subscribe to.
+	 * @param {MessageRouter} router - The message router to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -55,7 +55,7 @@ export class GameStatsModule extends DataTableModule {
 	 * Increments the relevant counters for the event's game type, taxi/multicrew
 	 * flags, and message age category.
 	 *
-	 * @param {@link EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming EDDN event.
 	 */
 	_handleEvent(event) {
 		this._statsBox.inc("Total");

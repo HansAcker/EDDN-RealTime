@@ -10,11 +10,11 @@ import { DataTableModule } from "#DashboardModule";
 /**
  * Dashboard module that displays approach settlement events.
  *
- * @extends {@link DataTableModule}
+ * @extends DataTableModule
  */
 export class ApproachModule extends DataTableModule {
 	/**
-	 * @param {@link MessageRouter} router - The message router to subscribe to.
+	 * @param {MessageRouter} router - The message router to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -25,7 +25,7 @@ export class ApproachModule extends DataTableModule {
 	/**
 	 * Renders a row showing the settlement name and star system.
 	 *
-	 * @param {@link EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming EDDN event.
 	 */
 	_handleEvent(event) {
 		this._addRow({ event, cells: [ event.message.Name, event.StarSystem ]});

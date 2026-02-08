@@ -11,11 +11,11 @@ import { DataTableModule } from "#DashboardModule";
 /**
  * Dashboard module that displays newly discovered (unmapped) planetary bodies.
  *
- * @extends {@link DataTableModule}
+ * @extends DataTableModule
  */
 export class NewBodiesModule extends DataTableModule {
 	/**
-	 * @param {@link MessageRouter} router - The message router to subscribe to.
+	 * @param {MessageRouter} router - The message router to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -27,7 +27,7 @@ export class NewBodiesModule extends DataTableModule {
 	 * Renders a row for undiscovered planets, filtering out previously
 	 * discovered bodies, mapped bodies, and NavBeacon scans.
 	 *
-	 * @param {@link EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming EDDN event.
 	 */
 	_handleEvent(event) {
 		const message = event.message;

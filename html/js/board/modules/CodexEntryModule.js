@@ -13,11 +13,11 @@ import GalacticRegions from "#data/GalacticRegions.json" with { type: "json" };
  * Dashboard module that displays Codex discovery entries with decoded
  * category, name, and galactic region information.
  *
- * @extends {@link DataTableModule}
+ * @extends DataTableModule
  */
 export class CodexEntryModule extends DataTableModule {
 	/**
-	 * @param {@link MessageRouter} router - The message router to subscribe to.
+	 * @param {MessageRouter} router - The message router to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -28,7 +28,7 @@ export class CodexEntryModule extends DataTableModule {
 	/**
 	 * Renders a row showing the system, body, sub-category, name, and region.
 	 *
-	 * @param {@link EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming EDDN event.
 	 */
 	_handleEvent(event) {
 		const message = event.message;

@@ -77,23 +77,20 @@ export class InfoBox {
 	 * @returns {Promise<void>} A promise that resolves when the operation is complete.
 	 */
 	static #copyToClipboard(text, element) {
-		return new Promise(() => {
-			// clipboard not available in insecure (HTTP) context and others
-			if (!navigator.clipboard) {
-				console.warn("InfoBox: clipboard API unavailable");
-				InfoBox.#triggerAnimation(element, "infobox__button--signal-error");
-				return;
-			}
+		// clipboard not available in insecure (HTTP) context and others
+		if (!navigator.clipboard) {
+			console.warn("InfoBox: clipboard API unavailable");
+			return InfoBox.#triggerAnimation(element, "infobox__button--signal-error");
+		}
 
-			navigator.clipboard.writeText(text)
-				.then(() => {
-					return InfoBox.#triggerAnimation(element, "infobox__button--signal-success");
-				})
-				.catch((err) => {
-					console.warn("InfoBox: clipboard copy error:", err);
-					InfoBox.#triggerAnimation(element, "infobox__button--signal-error");
-				});
-		});
+		return navigator.clipboard.writeText(text)
+			.then(() => {
+				return InfoBox.#triggerAnimation(element, "infobox__button--signal-success");
+			})
+			.catch((err) => {
+				console.warn("InfoBox: clipboard copy error:", err);
+				return InfoBox.#triggerAnimation(element, "infobox__button--signal-error");
+			});
 	}
 
 	/**

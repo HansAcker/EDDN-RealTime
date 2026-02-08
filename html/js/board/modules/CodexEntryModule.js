@@ -17,7 +17,7 @@ import GalacticRegions from "#data/GalacticRegions.json" with { type: "json" };
  */
 export class CodexEntryModule extends DataTableModule {
 	/**
-	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {MessageRouter} router - The {@link MessageRouter} to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {

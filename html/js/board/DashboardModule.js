@@ -18,7 +18,7 @@ export class DashboardModule {
 	/**
 	 * Creates a new DashboardModule.
 	 *
-	 * @param {@link MessageRouter|null} router - The message router to subscribe to, or `null` for dummy modules.
+	 * @param {MessageRouter|null} router - The {@link MessageRouter} to subscribe to, or `null` for dummy modules.
 	 * @param {string|Iterable<string>} topics - Topic(s) to subscribe to (e.g. `"journal:fsdjump"`, `"*"`).
 	 */
 	constructor(router, topics) {
@@ -77,7 +77,7 @@ export class DataTableModule extends DashboardModule {
 	/**
 	 * Creates a new DataTableModule.
 	 *
-	 * @param {@link MessageRouter|null} router - The message router to subscribe to.
+	 * @param {MessageRouter|null} router - The {@link MessageRouter} to subscribe to.
 	 * @param {string|Iterable<string>|null} topics - Topic(s) to subscribe to.
 	 * @param {Object} [options={}] - Configuration options.
 	 * @param {number} [options.listLength] - Maximum number of visible rows.

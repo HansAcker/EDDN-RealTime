@@ -40,10 +40,7 @@ class ReconnectingWebSocket extends EventTarget {
 	#connectionTimeoutTimer = null;
 	#binaryType = "blob";
 
-	#onopen = null;
-	#onmessage = null;
-	#onclose = null;
-	#onerror = null;
+	#handlers = new Map();
 
 	#onOnlineBound;
 	#onOfflineBound;
@@ -129,16 +126,16 @@ class ReconnectingWebSocket extends EventTarget {
 	}
 
 	set onopen(cb) { this.#updateHandler("open", cb); }
-	get onopen() { return this.#onopen; }
+	get onopen() { return this.#handlers.get("open") ?? null; }
 
 	set onmessage(cb) { this.#updateHandler("message", cb); }
-	get onmessage() { return this.#onmessage; }
+	get onmessage() { return this.#handlers.get("message") ?? null; }
 
 	set onclose(cb) { this.#updateHandler("close", cb); }
-	get onclose() { return this.#onclose; }
+	get onclose() { return this.#handlers.get("close") ?? null; }
 
 	set onerror(cb) { this.#updateHandler("error", cb); }
-	get onerror() { return this.#onerror; }
+	get onerror() { return this.#handlers.get("error") ?? null; }
 
 	/**
 	 * Replaces an `on<event>` handler, removing the previous one if set.
@@ -147,13 +144,17 @@ class ReconnectingWebSocket extends EventTarget {
 	 * @param {Function|null} newHandler - The new handler function, or `null` to remove.
 	 */
 	#updateHandler(type, newHandler) {
-		const propName = `#on${type}`;
-		if (this[propName]) {
-			this.removeEventListener(type, this[propName]);
+		const currentHandler = this.#handlers.get(type);
+		if (currentHandler) {
+			this.removeEventListener(type, currentHandler);
 		}
-		this[propName] = newHandler;
-		if (typeof newHandler === "function") {
-			this.addEventListener(type, newHandler);
+		if (newHandler === null) {
+			this.#handlers.delete(type);
+		} else {
+			this.#handlers.set(type, newHandler);
+			if (typeof newHandler === "function") {
+				this.addEventListener(type, newHandler);
+			}
 		}
 	}
 

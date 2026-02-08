@@ -1,3 +1,9 @@
+/**
+ * @module board/modules/UpdatesModule
+ * @description Dashboard module that displays station update events from Elite
+ * Dangerous, including commodity market data, outfitting, and shipyard updates.
+ */
+
 import { DataTableModule } from "#DashboardModule";
 
 
@@ -9,7 +15,7 @@ import { DataTableModule } from "#DashboardModule";
  */
 export class UpdatesModule extends DataTableModule {
 	/**
-	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {MessageRouter} router - The {@link MessageRouter} to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -20,7 +26,7 @@ export class UpdatesModule extends DataTableModule {
 	/**
 	 * Renders a row showing the update type, station name, and system name.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		const message = event.message;

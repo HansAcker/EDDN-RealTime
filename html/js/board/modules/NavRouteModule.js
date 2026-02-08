@@ -1,3 +1,10 @@
+/**
+ * @module board/modules/NavRouteModule
+ * @description Dashboard module that displays navigation route events from Elite
+ * Dangerous, including start and end systems, jump count, total distance, and
+ * longest single jump with highlighting for long-range jumps (≥ 200 ly).
+ */
+
 import { DataTableModule } from "#DashboardModule";
 
 
@@ -9,7 +16,7 @@ import { DataTableModule } from "#DashboardModule";
  */
 export class NavRouteModule extends DataTableModule {
 	/**
-	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {MessageRouter} router - The {@link MessageRouter} to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -21,7 +28,7 @@ export class NavRouteModule extends DataTableModule {
 	 * Renders a row showing start/end systems, jump count, total distance,
 	 * route distance, and longest jump (highlighted for jumps ≥ 200 ly).
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		const route = event.message.Route ?? [];

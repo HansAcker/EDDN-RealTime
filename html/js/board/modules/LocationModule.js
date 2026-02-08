@@ -1,3 +1,9 @@
+/**
+ * @module board/modules/LocationModule
+ * @description Dashboard module that displays location and docking events from
+ * Elite Dangerous, showing station names, station types, and star systems.
+ */
+
 import { DataTableModule } from "#DashboardModule";
 
 
@@ -8,7 +14,7 @@ import { DataTableModule } from "#DashboardModule";
  */
 export class LocationModule extends DataTableModule {
 	/**
-	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {MessageRouter} router - The {@link MessageRouter} to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -19,7 +25,7 @@ export class LocationModule extends DataTableModule {
 	/**
 	 * Renders a row showing station name, station type, and star system.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		const message = event.message;

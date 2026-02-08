@@ -1,3 +1,10 @@
+/**
+ * @module board/modules/NewStarsModule
+ * @description Dashboard module that displays newly discovered (unmapped) stars
+ * from Elite Dangerous scan events. Filters out previously discovered or mapped
+ * bodies and NavBeacon scans, showing only stars (stellar bodies).
+ */
+
 import { DataTableModule } from "#DashboardModule";
 
 
@@ -8,7 +15,7 @@ import { DataTableModule } from "#DashboardModule";
  */
 export class NewStarsModule extends DataTableModule {
 	/**
-	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {MessageRouter} router - The {@link MessageRouter} to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -20,7 +27,7 @@ export class NewStarsModule extends DataTableModule {
 	 * Renders a row for undiscovered stars, filtering out previously
 	 * discovered bodies, mapped bodies, and NavBeacon scans.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		const message = event.message;

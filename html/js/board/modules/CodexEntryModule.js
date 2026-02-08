@@ -1,3 +1,10 @@
+/**
+ * @module board/modules/CodexEntryModule
+ * @description Dashboard module that displays Codex discovery entries with decoded
+ * category, name, and galactic region information from {@link RegionMap}.
+ * Uses {@link GalacticRegions} data for name resolution.
+ */
+
 import { DataTableModule } from "#DashboardModule";
 import GalacticRegions from "#data/GalacticRegions.json" with { type: "json" };
 
@@ -10,7 +17,7 @@ import GalacticRegions from "#data/GalacticRegions.json" with { type: "json" };
  */
 export class CodexEntryModule extends DataTableModule {
 	/**
-	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {MessageRouter} router - The {@link MessageRouter} to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -21,7 +28,7 @@ export class CodexEntryModule extends DataTableModule {
 	/**
 	 * Renders a row showing the system, body, sub-category, name, and region.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		const message = event.message;

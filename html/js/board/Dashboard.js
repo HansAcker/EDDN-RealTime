@@ -1,3 +1,10 @@
+/**
+ * @module board/Dashboard
+ * @description Manages the lifecycle of dashboard modules. Loads HTML templates,
+ * creates module instances from either DOM elements or a configuration array, and
+ * wires them into a {@link MessageRouter} for receiving EDDN events.
+ */
+
 import { Config } from "#config.js";
 import { InfoBox } from "#ui/infobox.js";
 
@@ -70,10 +77,10 @@ export class Dashboard {
 	/**
 	 * Creates a new Dashboard.
 	 *
-	 * @param {MessageRouter} router - The message router that dispatches EDDN events to modules.
+	 * @param {MessageRouter} router - The {@link MessageRouter} that dispatches EDDN events to modules.
 	 * @param {Object} [options={}] - Configuration options.
 	 * @param {HTMLElement} [options.container] - An existing DOM container; a new `<div>` is created if omitted.
-	 * @param {InfoBox} [options.infoBox] - An existing InfoBox instance to reuse.
+	 * @param {InfoBox} [options.infoBox] - An existing {@link InfoBox} instance to reuse.
 	 */
 	constructor(router, options = {}) {
 		this.#router = router;

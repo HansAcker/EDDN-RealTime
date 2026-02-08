@@ -1,3 +1,9 @@
+/**
+ * @module board/modules/ApproachModule
+ * @description Dashboard module that displays approach settlement events from
+ * Elite Dangerous, showing settlement names and their star systems.
+ */
+
 import { DataTableModule } from "#DashboardModule";
 
 
@@ -8,7 +14,7 @@ import { DataTableModule } from "#DashboardModule";
  */
 export class ApproachModule extends DataTableModule {
 	/**
-	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {MessageRouter} router - The {@link MessageRouter} to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -19,7 +25,7 @@ export class ApproachModule extends DataTableModule {
 	/**
 	 * Renders a row showing the settlement name and star system.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		this._addRow({ event, cells: [ event.message.Name, event.StarSystem ]});

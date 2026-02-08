@@ -1,3 +1,10 @@
+/**
+ * @module board/modules/VisitsModule
+ * @description Dashboard module that displays FSD jump events to populated or
+ * allegiance systems from Elite Dangerous, showing population, faction information,
+ * and system state data.
+ */
+
 import { Config } from "#config.js";
 import { DataTableModule } from "#DashboardModule";
 
@@ -10,7 +17,7 @@ import { DataTableModule } from "#DashboardModule";
  */
 export class VisitsModule extends DataTableModule {
 	/**
-	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {MessageRouter} router - The {@link MessageRouter} to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -22,7 +29,7 @@ export class VisitsModule extends DataTableModule {
 	 * Renders a row for jumps into populated systems, showing system name,
 	 * population, allegiance, controlling faction, and faction state.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		const message = event.message;

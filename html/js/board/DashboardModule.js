@@ -1,3 +1,11 @@
+/**
+ * @module board/DashboardModule
+ * @description Base class for all dashboard modules. Registers callbacks with the
+ * {@link MessageRouter} for specified topics and delegates incoming
+ * {@link EDDNEvent} events to subclass handlers. Includes specialized
+ * {@link DataTableModule} for rendering table-based displays.
+ */
+
 import { Config } from "#config.js";
 
 
@@ -10,7 +18,7 @@ export class DashboardModule {
 	/**
 	 * Creates a new DashboardModule.
 	 *
-	 * @param {MessageRouter|null} router - The message router to subscribe to, or `null` for dummy modules.
+	 * @param {MessageRouter|null} router - The {@link MessageRouter} to subscribe to, or `null` for dummy modules.
 	 * @param {string|Iterable<string>} topics - Topic(s) to subscribe to (e.g. `"journal:fsdjump"`, `"*"`).
 	 */
 	constructor(router, topics) {
@@ -69,7 +77,7 @@ export class DataTableModule extends DashboardModule {
 	/**
 	 * Creates a new DataTableModule.
 	 *
-	 * @param {MessageRouter|null} router - The message router to subscribe to.
+	 * @param {MessageRouter|null} router - The {@link MessageRouter} to subscribe to.
 	 * @param {string|Iterable<string>|null} topics - Topic(s) to subscribe to.
 	 * @param {Object} [options={}] - Configuration options.
 	 * @param {number} [options.listLength] - Maximum number of visible rows.
@@ -153,7 +161,7 @@ export class DataTableModule extends DashboardModule {
 	 * Creates a `<tr>` element styled according to the event's game type,
 	 * taxi/multicrew status, and message age.
 	 *
-	 * @param {EDDNEvent} event - The EDDN event providing classification data.
+	 * @param {EDDNEvent} event - The {@link EDDNEvent} providing classification data.
 	 * @returns {HTMLTableRowElement}
 	 */
 	_makeRow(event) {

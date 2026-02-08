@@ -1,3 +1,9 @@
+/**
+ * @module board/modules/ScanModule
+ * @description Dashboard module that displays all scan events from Elite Dangerous,
+ * showing body names and scan types (Detailed, AutoScan, Basic, NavBeaconDetail).
+ */
+
 import { DataTableModule } from "#DashboardModule";
 
 
@@ -8,7 +14,7 @@ import { DataTableModule } from "#DashboardModule";
  */
 export class ScanModule extends DataTableModule {
 	/**
-	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {MessageRouter} router - The {@link MessageRouter} to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -19,7 +25,7 @@ export class ScanModule extends DataTableModule {
 	/**
 	 * Renders a row showing the body name and scan type.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		this._addRow({ event, cells: [

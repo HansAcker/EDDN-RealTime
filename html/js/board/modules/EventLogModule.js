@@ -1,3 +1,10 @@
+/**
+ * @module board/modules/EventLogModule
+ * @description Dashboard module that displays a detailed log of every incoming
+ * {@link EDDNEvent}, including age, uploader ID, event name, software,
+ * system, galactic region from {@link RegionMap}, and game version.
+ */
+
 import { Config } from "#config.js";
 import { DataTableModule } from "#DashboardModule";
 
@@ -11,7 +18,7 @@ import { DataTableModule } from "#DashboardModule";
  */
 export class EventLogModule extends DataTableModule {
 	/**
-	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {MessageRouter} router - The {@link MessageRouter} to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -23,7 +30,7 @@ export class EventLogModule extends DataTableModule {
 	 * Renders a row with relative time, coloured uploader-ID bar, event name,
 	 * software details, star system, region, game version, and schema reference.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		this._addRow({ event, cells: [

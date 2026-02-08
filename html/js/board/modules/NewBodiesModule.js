@@ -1,3 +1,10 @@
+/**
+ * @module board/modules/NewBodiesModule
+ * @description Dashboard module that displays newly discovered (unmapped) planetary
+ * bodies from Elite Dangerous scan events. Filters out previously discovered or
+ * mapped bodies and NavBeacon scans.
+ */
+
 import { DataTableModule } from "#DashboardModule";
 
 
@@ -8,7 +15,7 @@ import { DataTableModule } from "#DashboardModule";
  */
 export class NewBodiesModule extends DataTableModule {
 	/**
-	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {MessageRouter} router - The {@link MessageRouter} to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -20,7 +27,7 @@ export class NewBodiesModule extends DataTableModule {
 	 * Renders a row for undiscovered planets, filtering out previously
 	 * discovered bodies, mapped bodies, and NavBeacon scans.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		const message = event.message;

@@ -1,3 +1,10 @@
+/**
+ * @module board/modules/SoftwareStatsModule
+ * @description Dashboard module that counts and displays events grouped by uploader
+ * software name and version. Uses {@link StatsBox} to track
+ * different EDDN client applications.
+ */
+
 import { DataTableModule } from "#DashboardModule";
 import { StatsBox } from "#ui/statsbox.js";
 
@@ -12,7 +19,7 @@ export class SoftwareStatsModule extends DataTableModule {
 	_statsBox;
 
 	/**
-	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {MessageRouter} router - The {@link MessageRouter} to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -34,7 +41,7 @@ export class SoftwareStatsModule extends DataTableModule {
 	 * Increments the counter for the event's software name and version,
 	 * re-sorting the table when a new entry is added.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		// TODO: this should go into SortedStatsBox and insert new tr in the right position

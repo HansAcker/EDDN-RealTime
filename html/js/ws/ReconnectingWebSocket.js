@@ -1,4 +1,11 @@
 /**
+ * @module ws/ReconnectingWebSocket
+ * @description WebSocket wrapper that automatically reconnects on connection
+ * failures using exponential back-off with jitter. Implements the same interface
+ * as the native {@link WebSocket} class while extending {@link EventTarget}.
+ */
+
+/**
  * A WebSocket wrapper that automatically reconnects on connection failures
  * using exponential back-off with jitter. Implements the same interface as
  * the native {@link WebSocket} class while extending {@link EventTarget}.

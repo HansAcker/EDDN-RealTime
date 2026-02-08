@@ -1,3 +1,9 @@
+/**
+ * @module board/modules/FSDJumpModule
+ * @description Dashboard module that displays FSD (Frame Shift Drive) jump events
+ * showing the destination star system from Elite Dangerous journal events.
+ */
+
 import { DataTableModule } from "#DashboardModule";
 
 
@@ -9,7 +15,7 @@ import { DataTableModule } from "#DashboardModule";
  */
 export class FSDJumpModule extends DataTableModule {
 	/**
-	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {MessageRouter} router - The {@link MessageRouter} to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -20,7 +26,7 @@ export class FSDJumpModule extends DataTableModule {
 	/**
 	 * Renders a row showing the star system name.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		this._addRow({ event, cells: [ event.StarSystem ]});

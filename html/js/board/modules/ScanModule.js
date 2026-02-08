@@ -25,7 +25,7 @@ export class ScanModule extends DataTableModule {
 	/**
 	 * Renders a row showing the body name and scan type.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		this._addRow({ event, cells: [

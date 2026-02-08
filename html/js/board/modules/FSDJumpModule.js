@@ -26,7 +26,7 @@ export class FSDJumpModule extends DataTableModule {
 	/**
 	 * Renders a row showing the star system name.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		this._addRow({ event, cells: [ event.StarSystem ]});

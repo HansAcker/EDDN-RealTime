@@ -27,7 +27,7 @@ export class NewStarsModule extends DataTableModule {
 	 * Renders a row for undiscovered stars, filtering out previously
 	 * discovered bodies, mapped bodies, and NavBeacon scans.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		const message = event.message;

@@ -29,7 +29,7 @@ export class VisitsModule extends DataTableModule {
 	 * Renders a row for jumps into populated systems, showing system name,
 	 * population, allegiance, controlling faction, and faction state.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		const message = event.message;

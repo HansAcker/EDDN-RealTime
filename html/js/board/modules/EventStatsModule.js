@@ -40,7 +40,7 @@ export class EventStatsModule extends DataTableModule {
 	/**
 	 * Increments the counter for the event's name.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		this._statsBox.inc(event.eventName);

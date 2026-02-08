@@ -25,7 +25,7 @@ export class ApproachModule extends DataTableModule {
 	/**
 	 * Renders a row showing the settlement name and star system.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		this._addRow({ event, cells: [ event.message.Name, event.StarSystem ]});

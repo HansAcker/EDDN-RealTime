@@ -28,7 +28,7 @@ export class CodexEntryModule extends DataTableModule {
 	/**
 	 * Renders a row showing the system, body, sub-category, name, and region.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		const message = event.message;

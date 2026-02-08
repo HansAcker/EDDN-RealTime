@@ -28,7 +28,7 @@ export class NavRouteModule extends DataTableModule {
 	 * Renders a row showing start/end systems, jump count, total distance,
 	 * route distance, and longest jump (highlighted for jumps ≥ 200 ly).
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		const route = event.message.Route ?? [];

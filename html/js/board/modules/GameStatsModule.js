@@ -55,7 +55,7 @@ export class GameStatsModule extends DataTableModule {
 	 * Increments the relevant counters for the event's game type, taxi/multicrew
 	 * flags, and message age category.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		this._statsBox.inc("Total");

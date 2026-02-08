@@ -25,7 +25,7 @@ export class LocationModule extends DataTableModule {
 	/**
 	 * Renders a row showing station name, station type, and star system.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		const message = event.message;

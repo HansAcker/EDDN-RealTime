@@ -26,7 +26,7 @@ export class DebugLoggerModule extends DashboardModule {
 	 * Logs event metadata (timestamp, software, schema, event name, system)
 	 * to the browser console.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		// e.type will be 'eddn:message', so we look at the event's internal data

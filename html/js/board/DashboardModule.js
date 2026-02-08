@@ -161,7 +161,7 @@ export class DataTableModule extends DashboardModule {
 	 * Creates a `<tr>` element styled according to the event's game type,
 	 * taxi/multicrew status, and message age.
 	 *
-	 * @param {EDDNEvent} event - The EDDN event providing classification data.
+	 * @param {EDDNEvent} event - The {@link EDDNEvent} providing classification data.
 	 * @returns {HTMLTableRowElement}
 	 */
 	_makeRow(event) {

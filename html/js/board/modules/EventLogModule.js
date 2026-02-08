@@ -30,7 +30,7 @@ export class EventLogModule extends DataTableModule {
 	 * Renders a row with relative time, coloured uploader-ID bar, event name,
 	 * software details, star system, region, game version, and schema reference.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		this._addRow({ event, cells: [

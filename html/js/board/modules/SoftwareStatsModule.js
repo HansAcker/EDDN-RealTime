@@ -41,7 +41,7 @@ export class SoftwareStatsModule extends DataTableModule {
 	 * Increments the counter for the event's software name and version,
 	 * re-sorting the table when a new entry is added.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		// TODO: this should go into SortedStatsBox and insert new tr in the right position

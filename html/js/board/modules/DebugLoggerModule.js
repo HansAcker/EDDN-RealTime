@@ -1,6 +1,6 @@
 /**
  * @module board/modules/DebugLoggerModule
- * @description Dashboard module that logs every incoming {@link module:eddn/EDDNEvent}
+ * @description Dashboard module that logs every incoming {@link EDDNEvent}
  * message to the browser console. Useful for development and debugging.
  */
 
@@ -26,7 +26,7 @@ export class DebugLoggerModule extends DashboardModule {
 	 * Logs event metadata (timestamp, software, schema, event name, system)
 	 * to the browser console.
 	 *
-	 * @param {@link module:eddn/EDDNEvent} event - The incoming EDDN event.
+	 * @param {@link EDDNEvent} event - The incoming EDDN event.
 	 */
 	_handleEvent(event) {
 		// e.type will be 'eddn:message', so we look at the event's internal data

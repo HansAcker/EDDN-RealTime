@@ -14,7 +14,7 @@ import { DataTableModule } from "#DashboardModule";
  */
 export class LocationModule extends DataTableModule {
 	/**
-	 * @param {@link module:eddn/MessageRouter} router - The message router to subscribe to.
+	 * @param {@link MessageRouter} router - The message router to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -25,7 +25,7 @@ export class LocationModule extends DataTableModule {
 	/**
 	 * Renders a row showing station name, station type, and star system.
 	 *
-	 * @param {@link module:eddn/EDDNEvent} event - The incoming EDDN event.
+	 * @param {@link EDDNEvent} event - The incoming EDDN event.
 	 */
 	_handleEvent(event) {
 		const message = event.message;

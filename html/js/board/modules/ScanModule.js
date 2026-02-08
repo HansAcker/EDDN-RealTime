@@ -14,7 +14,7 @@ import { DataTableModule } from "#DashboardModule";
  */
 export class ScanModule extends DataTableModule {
 	/**
-	 * @param {@link module:eddn/MessageRouter} router - The message router to subscribe to.
+	 * @param {@link MessageRouter} router - The message router to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -25,7 +25,7 @@ export class ScanModule extends DataTableModule {
 	/**
 	 * Renders a row showing the body name and scan type.
 	 *
-	 * @param {@link module:eddn/EDDNEvent} event - The incoming EDDN event.
+	 * @param {@link EDDNEvent} event - The incoming EDDN event.
 	 */
 	_handleEvent(event) {
 		this._addRow({ event, cells: [

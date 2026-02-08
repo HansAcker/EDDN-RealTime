@@ -2,7 +2,7 @@
  * @module eddn/EDDNEvent
  * @description Standardized event wrapper for EDDN messages. Extends the native
  * {@link Event} class with lazily computed properties for schema type, game metadata,
- * star system coordinates, and galactic region lookup via {@link module:ed/RegionMap}.
+ * star system coordinates, and galactic region lookup via {@link RegionMap}.
  */
 
 import { RegionMap } from "#ed/RegionMap.js";

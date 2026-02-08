@@ -1,8 +1,8 @@
 /**
  * @module board/modules/GameStatsModule
  * @description Dashboard module that displays aggregate statistics about incoming
- * {@link module:eddn/EDDNEvent} events, broken down by game type (Odyssey/Horizons),
- * taxi/multicrew status, and message age. Uses {@link module:ui/statsbox~StatsBox}.
+ * {@link EDDNEvent} events, broken down by game type (Odyssey/Horizons),
+ * taxi/multicrew status, and message age. Uses {@link StatsBox}.
  */
 
 import { Config } from "#config.js";
@@ -20,7 +20,7 @@ export class GameStatsModule extends DataTableModule {
 	_statsBox;
 
 	/**
-	 * @param {@link module:eddn/MessageRouter} router - The message router to subscribe to.
+	 * @param {@link MessageRouter} router - The message router to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -55,7 +55,7 @@ export class GameStatsModule extends DataTableModule {
 	 * Increments the relevant counters for the event's game type, taxi/multicrew
 	 * flags, and message age category.
 	 *
-	 * @param {@link module:eddn/EDDNEvent} event - The incoming EDDN event.
+	 * @param {@link EDDNEvent} event - The incoming EDDN event.
 	 */
 	_handleEvent(event) {
 		this._statsBox.inc("Total");

@@ -1,8 +1,8 @@
 /**
  * @module board/DashboardModule
  * @description Base class for all dashboard modules. Registers callbacks with the
- * {@link module:eddn/MessageRouter} for specified topics and delegates incoming
- * {@link module:eddn/EDDNEvent} events to subclass handlers. Includes specialized
+ * {@link MessageRouter} for specified topics and delegates incoming
+ * {@link EDDNEvent} events to subclass handlers. Includes specialized
  * {@link DataTableModule} for rendering table-based displays.
  */
 
@@ -40,7 +40,7 @@ export class DashboardModule {
 	 * Processes an incoming EDDN event. Override in subclasses to implement
 	 * module-specific behaviour.
 	 *
-	 * @param {@link module:eddn/EDDNEvent} _event - The EDDN event to handle.
+	 * @param {@link EDDNEvent} _event - The EDDN event to handle.
 	 */
 	_handleEvent(_event) {
 		// base class

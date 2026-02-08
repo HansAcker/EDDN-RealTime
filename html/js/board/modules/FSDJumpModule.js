@@ -11,11 +11,11 @@ import { DataTableModule } from "#DashboardModule";
  * Dashboard module that displays FSD jump events showing the destination
  * star system.
  *
- * @extends DataTableModule
+ * @extends {@link DataTableModule}
  */
 export class FSDJumpModule extends DataTableModule {
 	/**
-	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {@link module:eddn/MessageRouter} router - The message router to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -26,7 +26,7 @@ export class FSDJumpModule extends DataTableModule {
 	/**
 	 * Renders a row showing the star system name.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {@link module:eddn/EDDNEvent} event - The incoming EDDN event.
 	 */
 	_handleEvent(event) {
 		this._addRow({ event, cells: [ event.StarSystem ]});

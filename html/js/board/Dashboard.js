@@ -77,10 +77,10 @@ export class Dashboard {
 	/**
 	 * Creates a new Dashboard.
 	 *
-	 * @param {MessageRouter} router - The message router that dispatches EDDN events to modules.
+	 * @param {@link module:eddn/MessageRouter} router - The message router that dispatches EDDN events to modules.
 	 * @param {Object} [options={}] - Configuration options.
 	 * @param {HTMLElement} [options.container] - An existing DOM container; a new `<div>` is created if omitted.
-	 * @param {InfoBox} [options.infoBox] - An existing InfoBox instance to reuse.
+	 * @param {@link InfoBox} [options.infoBox] - An existing InfoBox instance to reuse.
 	 */
 	constructor(router, options = {}) {
 		this.#router = router;

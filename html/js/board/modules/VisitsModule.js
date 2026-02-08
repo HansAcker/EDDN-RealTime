@@ -13,11 +13,11 @@ import { DataTableModule } from "#DashboardModule";
  * Dashboard module that displays FSD jump events to populated or allegiance
  * systems, showing population and faction information.
  *
- * @extends DataTableModule
+ * @extends {@link DataTableModule}
  */
 export class VisitsModule extends DataTableModule {
 	/**
-	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {@link module:eddn/MessageRouter} router - The message router to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -29,7 +29,7 @@ export class VisitsModule extends DataTableModule {
 	 * Renders a row for jumps into populated systems, showing system name,
 	 * population, allegiance, controlling faction, and faction state.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {@link module:eddn/EDDNEvent} event - The incoming EDDN event.
 	 */
 	_handleEvent(event) {
 		const message = event.message;

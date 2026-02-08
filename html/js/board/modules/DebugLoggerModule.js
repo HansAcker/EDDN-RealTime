@@ -11,11 +11,11 @@ import { DashboardModule } from "#DashboardModule";
  * Dashboard module that logs every incoming EDDN message to the browser
  * console. Useful for development and debugging.
  *
- * @extends DashboardModule
+ * @extends {@link DashboardModule}
  */
 export class DebugLoggerModule extends DashboardModule {
 	/**
-	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {@link module:eddn/MessageRouter} router - The message router to subscribe to.
 	 */
 	constructor(router) {
 		// Subscribe to the generic event to catch everything
@@ -26,7 +26,7 @@ export class DebugLoggerModule extends DashboardModule {
 	 * Logs event metadata (timestamp, software, schema, event name, system)
 	 * to the browser console.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {@link module:eddn/EDDNEvent} event - The incoming EDDN event.
 	 */
 	_handleEvent(event) {
 		// e.type will be 'eddn:message', so we look at the event's internal data

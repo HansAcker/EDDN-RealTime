@@ -13,13 +13,13 @@ import { SortedStatsBox } from "#ui/statsbox.js";
  * Dashboard module that counts and displays events grouped by event name,
  * sorted by frequency.
  *
- * @extends DataTableModule
+ * @extends {@link DataTableModule}
  */
 export class EventStatsModule extends DataTableModule {
 	_statsBox;
 
 	/**
-	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {@link module:eddn/MessageRouter} router - The message router to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -40,7 +40,7 @@ export class EventStatsModule extends DataTableModule {
 	/**
 	 * Increments the counter for the event's name.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {@link module:eddn/EDDNEvent} event - The incoming EDDN event.
 	 */
 	_handleEvent(event) {
 		this._statsBox.inc(event.eventName);

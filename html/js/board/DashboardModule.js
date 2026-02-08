@@ -18,7 +18,7 @@ export class DashboardModule {
 	/**
 	 * Creates a new DashboardModule.
 	 *
-	 * @param {MessageRouter|null} router - The message router to subscribe to, or `null` for dummy modules.
+	 * @param {@link module:eddn/MessageRouter|null} router - The message router to subscribe to, or `null` for dummy modules.
 	 * @param {string|Iterable<string>} topics - Topic(s) to subscribe to (e.g. `"journal:fsdjump"`, `"*"`).
 	 */
 	constructor(router, topics) {
@@ -40,7 +40,7 @@ export class DashboardModule {
 	 * Processes an incoming EDDN event. Override in subclasses to implement
 	 * module-specific behaviour.
 	 *
-	 * @param {EDDNEvent} _event - The EDDN event to handle.
+	 * @param {@link module:eddn/EDDNEvent} _event - The EDDN event to handle.
 	 */
 	_handleEvent(_event) {
 		// base class
@@ -77,7 +77,7 @@ export class DataTableModule extends DashboardModule {
 	/**
 	 * Creates a new DataTableModule.
 	 *
-	 * @param {MessageRouter|null} router - The message router to subscribe to.
+	 * @param {@link module:eddn/MessageRouter|null} router - The message router to subscribe to.
 	 * @param {string|Iterable<string>|null} topics - Topic(s) to subscribe to.
 	 * @param {Object} [options={}] - Configuration options.
 	 * @param {number} [options.listLength] - Maximum number of visible rows.

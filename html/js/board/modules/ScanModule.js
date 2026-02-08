@@ -10,11 +10,11 @@ import { DataTableModule } from "#DashboardModule";
 /**
  * Dashboard module that displays all scan events.
  *
- * @extends DataTableModule
+ * @extends {@link DataTableModule}
  */
 export class ScanModule extends DataTableModule {
 	/**
-	 * @param {MessageRouter} router - The message router to subscribe to.
+	 * @param {@link module:eddn/MessageRouter} router - The message router to subscribe to.
 	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
@@ -25,7 +25,7 @@ export class ScanModule extends DataTableModule {
 	/**
 	 * Renders a row showing the body name and scan type.
 	 *
-	 * @param {EDDNEvent} event - The incoming EDDN event.
+	 * @param {@link module:eddn/EDDNEvent} event - The incoming EDDN event.
 	 */
 	_handleEvent(event) {
 		this._addRow({ event, cells: [

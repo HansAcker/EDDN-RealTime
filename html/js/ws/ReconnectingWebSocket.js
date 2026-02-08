@@ -148,9 +148,13 @@ class ReconnectingWebSocket extends EventTarget {
 		if (currentHandler) {
 			this.removeEventListener(type, currentHandler);
 		}
-		this.#handlers.set(type, newHandler);
-		if (typeof newHandler === "function") {
-			this.addEventListener(type, newHandler);
+		if (newHandler === null) {
+			this.#handlers.delete(type);
+		} else {
+			this.#handlers.set(type, newHandler);
+			if (typeof newHandler === "function") {
+				this.addEventListener(type, newHandler);
+			}
 		}
 	}
 

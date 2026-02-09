@@ -57,10 +57,20 @@ class StatsRow {
 		this._row = rowFactory(kcell, vcell);
 	}
 
+	/**
+	 * Sets the value for this statistic and updates the display cell.
+	 *
+	 * @param {number|string} newValue - The new value to assign.
+	 */
 	set _value(newValue) {
 		this.#cell.textContent = this.#value = newValue;
 	}
 
+	/**
+	 * Gets the current value of this statistic.
+	 *
+	 * @returns {number|string} The current value.
+	 */
 	get _value() {
 		return this.#value;
 	}

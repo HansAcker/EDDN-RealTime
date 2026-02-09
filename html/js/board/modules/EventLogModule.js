@@ -90,7 +90,7 @@ function formatRelativeTime(diffMs) {
 
 		// TODO: reverse the lookup, "minutes ago" happens more often than "years ago"
 		for (const { unit, seconds } of time_units) {
-			if (diffAbs >= seconds || unit === "minute") {
+			if (diffAbs >= seconds) {
 				const value = Math.round(diffSec / seconds);
 				return Config._relTimeFormat.format(value, unit);
 			}

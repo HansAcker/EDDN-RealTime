@@ -235,6 +235,7 @@ export class DataTableModule extends DashboardModule {
 			// TODO: check that `event instanceof EDDNEvent`?
 			if (!event || !Array.isArray(cells)) {
 				console.warn("DataTableModule: missing or invalid properties in render queue item");
+				dropCount && dropCount--;
 				continue;
 			}
 

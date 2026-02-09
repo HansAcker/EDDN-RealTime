@@ -52,6 +52,8 @@ const dashboard = new Dashboard(new MessageRouter(eddn), { container: document.q
 
 // block here until all loaded
 
+// TODO: rethink. this is likely cargo-cult. `readyState` should never be "loading" in a module
+//       - check for !== "complete"? `await dashboard.ready` almost certainly waits long enough, anyway
 // wait for CSS to finish loading
 if (document.readyState === "loading") {
 	await new Promise((resolve) => window.addEventListener("load", resolve, { once: true }));

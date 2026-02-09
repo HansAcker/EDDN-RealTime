@@ -226,7 +226,7 @@ export class DataTableModule extends DashboardModule {
 		}
 
 		// read current element count
-		const dropCount = (container.childElementCount + queue.length) - this.listLength;
+		let dropCount = (container.childElementCount + queue.length) - this.listLength;
 
 		// batch updates into one DocumentFragment
 		const fragment = document.createDocumentFragment();

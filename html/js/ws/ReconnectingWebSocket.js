@@ -125,16 +125,52 @@ class ReconnectingWebSocket extends EventTarget {
 		}
 	}
 
+	/**
+	 * Sets the event handler for the 'open' event.
+	 * @param {Function|null} cb - The event handler function or null to remove.
+	 */
 	set onopen(cb) { this.#updateHandler("open", cb); }
+
+	/**
+	 * Gets the current event handler for the 'open' event.
+	 * @returns {Function|null} The event handler function or null if none.
+	 */
 	get onopen() { return this.#handlers.get("open") ?? null; }
 
+	/**
+	 * Sets the event handler for the 'message' event.
+	 * @param {Function|null} cb - The event handler function or null to remove.
+	 */
 	set onmessage(cb) { this.#updateHandler("message", cb); }
+
+	/**
+	 * Gets the current event handler for the 'message' event.
+	 * @returns {Function|null} The event handler function or null if none.
+	 */
 	get onmessage() { return this.#handlers.get("message") ?? null; }
 
+	/**
+	 * Sets the event handler for the 'close' event.
+	 * @param {Function|null} cb - The event handler function or null to remove.
+	 */
 	set onclose(cb) { this.#updateHandler("close", cb); }
+
+	/**
+	 * Gets the current event handler for the 'close' event.
+	 * @returns {Function|null} The event handler function or null if none.
+	 */
 	get onclose() { return this.#handlers.get("close") ?? null; }
 
+	/**
+	 * Sets the event handler for the 'error' event.
+	 * @param {Function|null} cb - The event handler function or null to remove.
+	 */
 	set onerror(cb) { this.#updateHandler("error", cb); }
+
+	/**
+	 * Gets the current event handler for the 'error' event.
+	 * @returns {Function|null} The event handler function or null if none.
+	 */
 	get onerror() { return this.#handlers.get("error") ?? null; }
 
 	/**

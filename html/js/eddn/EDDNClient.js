@@ -39,6 +39,8 @@ export class EDDNClient extends EventTarget {
 
 	resetTimeout = 0; // idle timeout (ms) before watchdog reconnects the socket, 0 to disable watchdog
 
+	[Symbol.dispose] = () => this.close(); // support `using client = new EDDNClient()`
+
 
 	/**
 	 * Creates a new EDDNClient.

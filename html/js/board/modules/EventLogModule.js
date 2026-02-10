@@ -122,6 +122,7 @@ const hex_colors = Object.freeze({
  * @param {string} id - The hex identifier string.
  * @returns {HTMLSpanElement}
  */
+// TODO: theoretically, len is constant and hex_colors could contain the whole string for a stop
 function hex2bar(id) {
 	// hex chars to colored blocks
 	const len = id.length;
@@ -136,7 +137,7 @@ function hex2bar(id) {
 
 	const bar = document.createElement("span");
 	bar.style.background = `linear-gradient(to right, ${stops.join(",")})`;
-	bar.textContent = String.fromCharCode(160); // &nbsp;
+	bar.textContent = "\u00A0"; // &nbsp;
 
 	return bar;
 }

@@ -60,7 +60,7 @@ if (document.readyState === "loading") {
 }
 
 //await RegionMap.ready;
-await CachedPageIconActivity.ready;
+await activity.ready;
 
 // TODO: would crash here if template load fails. catch and display error?
 await dashboard.ready;

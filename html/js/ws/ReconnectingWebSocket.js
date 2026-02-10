@@ -252,6 +252,11 @@ class ReconnectingWebSocket extends EventTarget {
 		this.#forcedClose = true;
 		this.#clearInternalTimers();
 
+		for (const [type, handler] of this.#handlers) {
+			this.removeEventListener(type, handler);
+		}
+		this.#handlers.clear();
+
 		if (this.#socket) {
 			this.#removeSocketListeners(this.#socket);
 			this.#socket.close(code, reason);

@@ -110,6 +110,9 @@ export class Dashboard {
 	 * found inside the container. Each matching element is replaced with the
 	 * rendered module output.
 	 */
+	// TODO: guard against double-invocation on the same container
+	//       - simpy delete `.dataset["dashboard__module"]`?
+	//       - or detach the existing modules from router first
 	fromContainer() {
 		this.#createInfoBox();
 

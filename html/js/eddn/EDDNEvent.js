@@ -57,12 +57,12 @@ export class EDDNEvent extends Event {
 	}
 
 
-	// TODO: make it return the number instead of Date? nothing uses this, yet
 	/**
 	 * Returns the timestamp at which this event was received (local clock).
 	 *
 	 * @returns {Date}
 	 */
+	// TODO: make it return the number instead of Date? nothing uses this, yet
 	get receiveTimestamp() {
 		return new Date(this.#receiveTimestamp);
 	}
@@ -74,6 +74,7 @@ export class EDDNEvent extends Event {
 	 *
 	 * @returns {number}
 	 */
+	// TODO: rename? age should be "receiveTimestamp - gatewayTimestamp"
 	get age() {
 		return this.#gotAge ? this.#age :
 			(this.#gotAge = true, this.#age = (Date.parse(this.header?.gatewayTimestamp) - Date.parse(this.message?.timestamp)));

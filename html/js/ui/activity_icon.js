@@ -127,15 +127,17 @@ class PageIconActivity extends Activity {
  */
 // pre-loads icons into "blob:" URLs
 class CachedPageIconActivity extends PageIconActivity {
-	static #cache = new Map(); // state -> blob
-	static #readyPromise = null;  // `await CachedPageIconActivity.ready`
+	#cache = new Map(); // state -> blob
+	#readyPromise = null; // `await CachedPageIconActivity.ready`
+	[Symbol.dispose] = () => this.clear(); // support automatic blob release with `using`
+
 
 	/**
 	 * Promise that resolves when all activity icons have been pre-loaded.
 	 *
 	 * @type {Promise<PromiseSettledResult[]>}
 	 */
-	static get ready() { return this.#readyPromise ??= this.#preloadIcons(); }
+	get ready() { return this.#readyPromise ??= this.#preloadIcons(); }
 
 
 	/**
@@ -144,10 +146,11 @@ class CachedPageIconActivity extends PageIconActivity {
 	 * @param {HTMLElement} element - The DOM element whose `href` reflects the activity state.
 	 * @param {number} idleTimeout - Milliseconds before automatically transitioning from `ok` to `idle`.
 	 */
+	// TODO: support an `{ AbortController.signal }` option and call `clear()`?
 	constructor(element, idleTimeout) {
 		super(element, idleTimeout);
 
-		// start async fetches on first run
+		// start async fetches
 		void this.ready;
 	}
 
@@ -159,8 +162,8 @@ class CachedPageIconActivity extends PageIconActivity {
 	 * @param {symbol} oldState - The previous activity state symbol.
 	 */
 	_changeState(newState, oldState) {
-		if (CachedPageIconActivity.#cache.has(newState)) {
-			this._element.href = CachedPageIconActivity.#cache.get(newState);
+		if (this.#cache.has(newState)) {
+			this._element.href = this.#cache.get(newState);
 		} else {
 			console.debug(`CachedPageIconActivity: no cache for ${newState.toString()}`);
 			super._changeState(newState, oldState);
@@ -172,7 +175,7 @@ class CachedPageIconActivity extends PageIconActivity {
 	 *
 	 * @returns {Promise<PromiseSettledResult[]>}
 	 */
-	static async #preloadIcons() {
+	async #preloadIcons() {
 		// TODO: merge with PageIconActivity.#icons. use "_icons" instead of "#"?
 		const ICON_PATHS = {
 			[Activity._states._ok]: "img/activity-icon/activity-icon--state-ok.svg",
@@ -202,6 +205,17 @@ class CachedPageIconActivity extends PageIconActivity {
 		});
 
 		return Promise.allSettled(loadPromises);
+	}
+
+	/**
+	 * Releases all cached blob URLs and clears the cache Map.
+	 */
+	clear() {
+		for (const [ , url ] of this.#cache) {
+			URL.revokeObjectURL(url);
+		}
+		this.#cache.clear();
+		this.#readyPromise = null;
 	}
 }
 

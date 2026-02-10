@@ -15,6 +15,7 @@ const language = navigator.language ?? "en";
  * @property {number} resetTimeout - Milliseconds before the watchdog resets the WebSocket connection.
  * @property {number} oldAge - Millisecond threshold for marking messages as old.
  * @property {number} newAge - Millisecond threshold for marking messages as new (negative = future).
+ * @property {number} longJump - Threshold in ly for highlighting the longest hop in NavRoute.
  * @property {string} templateLocale - Locale code used to load HTML template files.
  * @property {string} numberLocale - Locale passed to {@link Intl.NumberFormat}.
  * @property {string} timeLocale - Locale passed to {@link Intl.RelativeTimeFormat}.
@@ -35,6 +36,9 @@ export const Config = {
 	// message age thresholds for old/new stats
 	oldAge: 3600 * 1000,
 	newAge: 180 * -1000,
+
+	// route hop highlight threshold
+	longJump: 200,
 
 	// load templates from template_XX.html
 	// TODO: define and match against supportedLocales?

@@ -5,6 +5,7 @@
  * longest single jump with highlighting for long-range jumps (≥ 200 ly).
  */
 
+import { Config } from "#config.js";
 import { DataTableModule } from "#DashboardModule";
 
 
@@ -90,8 +91,7 @@ export class NavRouteModule extends DataTableModule {
 		}
 */
 
-		// TODO: why is this not configurable?
-		if (longest < 200) {
+		if (longest < Config.longJump) {
 			cells.push(`${longest.toFixed(2)}ly`);
 		} else {
 			// custom node with extra CSS class

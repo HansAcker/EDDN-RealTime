@@ -5,6 +5,13 @@
  * wires them into a {@link MessageRouter} for receiving EDDN events.
  */
 
+
+// TODO: Dashboard is missing a destructor/dispose method to
+//       - un-observe modules
+//       - detach modules from router (impossible with current DashboardModule)
+//       - detach InfoBox click handler
+
+
 import { Config } from "#config.js";
 import { InfoBox } from "#ui/infobox.js";
 
@@ -52,9 +59,12 @@ const defaultModules = {
  * wires them into a {@link MessageRouter} for receiving EDDN events.
  */
 export class Dashboard {
+	static MODULE_KEY = Symbol(); // unique key to attach a module instance to its DOM element
+
 	#router; // MessageRouter instance
 	#container; // new modules appended here
 	#infoBox; // data map
+	#observer; // intersection observer to pause/resume modules
 
 	#templates = new Map();
 	#readyPromise = null;
@@ -81,12 +91,13 @@ export class Dashboard {
 	 * @param {Object} [options={}] - Configuration options.
 	 * @param {HTMLElement} [options.container] - An existing DOM container; a new `<div>` is created if omitted.
 	 * @param {InfoBox} [options.infoBox] - An existing {@link InfoBox} instance to reuse.
+	 * @param {IntersectionObserver} [options.observer] - An existing {@link IntersectionObserver} instance to reuse.
 	 */
 	constructor(router, options = {}) {
 		this.#router = router;
 
 		// TODO: add per-instance modules/templates/template file name to options?
-		const { container, infoBox } = options;
+		const { container, infoBox, observer } = options;
 
 		if (container) {
 			this.#container = container;
@@ -101,6 +112,15 @@ export class Dashboard {
 			this.#infoBox = infoBox;
 		}
 
+		// default infobox created after template load
+
+		if (observer) {
+			this.#observer = observer;
+		} else {
+			this.#createObserver();
+		}
+
+		// initiate template fetch
 		void this.ready;
 	}
 
@@ -125,13 +145,7 @@ export class Dashboard {
 */
 			const moduleOptions = {};
 
-			const moduleClass = defaultModules[moduleName];
-			if (!moduleClass) {
-				throw new Error(`Dashboard: no class for module ${moduleName}`);
-			}
-
-			div.classList.add("dashboard__table");
-			div.replaceChildren(this.#createModule(moduleName, moduleClass, moduleOptions));
+			this.#createModule(div, moduleName, moduleOptions);
 		}
 	}
 
@@ -147,26 +161,20 @@ export class Dashboard {
 
 		const newModules = document.createDocumentFragment();
 
-		for (const module of modules) {
+		for (const moduleDesc of modules) {
 			let moduleName, moduleOptions;
 
-			if (typeof module === "string") {
-				moduleName = module;
+			if (typeof moduleDesc === "string") {
+				moduleName = moduleDesc;
 				moduleOptions = {};
 			} else {
-				({ name: moduleName, options: moduleOptions = {} } = module);
+				({ name: moduleName, options: moduleOptions = {} } = moduleDesc);
 			}
 
-			const moduleClass = defaultModules[moduleName];
-			if (!moduleClass) {
-				throw new Error(`Dashboard: no class for module ${moduleName}`);
-			}
+			const div = document.createElement("div");
+			this.#createModule(div, moduleName, moduleOptions);
 
-			const moduleContainer = document.createElement("div");
-			moduleContainer.className = "dashboard__table";
-			moduleContainer.append(this.#createModule(moduleName, moduleClass, moduleOptions));
-
-			newModules.append(moduleContainer);
+			newModules.append(div);
 		}
 
 		this.#container.append(newModules);
@@ -206,24 +214,32 @@ export class Dashboard {
 
 
 	/**
-	 * Instantiates a single dashboard module and returns its DOM subtree.
+	 * Instantiates a single dashboard module and adds it to a container element, replacing previous content.
 	 *
-	 * @param {string} name - The module name (used for template lookup).
-	 * @param {typeof DashboardModule} Module - The module class constructor.
-	 * @param {Object} options - Options forwarded to the module constructor.
-	 * @returns {DocumentFragment|null} The rendered module DOM, or `null` if no template exists.
+	 * @param {HTMLElement} container - The outer HTML element.
+	 * @param {string} moduleName - The module name (used for template lookup).
+	 * @param {Object} moduleOptions - Options forwarded to the module constructor.
 	 */
-	#createModule(name, Module, options) {
-		const template = this.#templates.get(name);
+	#createModule(container, moduleName, moduleOptions) {
+		const template = this.#templates.get(moduleName);
 
 		if (!template) {
-			console.warn(`Dashboard: no template for module "${name}"`);
+			console.warn(`Dashboard: no template for module "${moduleName}"`);
 		}
 
-		const module = new Module(this.#router, { template, ...options });
+		const ModuleClass = defaultModules[moduleName];
+		if (!ModuleClass) {
+			throw new Error(`Dashboard: no class for module ${moduleName}`);
+		}
+
+		const module = new ModuleClass(this.#router, { template, ...moduleOptions });
 		const moduleContainer = module._setupContainer();
 
-		return moduleContainer;
+		container.classList.add("dashboard__table");
+		container.replaceChildren(moduleContainer);
+		container[Dashboard.MODULE_KEY] = module;
+
+		this.#observer?.observe(container);
 	}
 
 
@@ -233,23 +249,51 @@ export class Dashboard {
 	 * for any clicked data row.
 	 */
 	#createInfoBox() {
-		if (!this.#infoBox) {
-			const infoBox_template = this.#templates.get("InfoBox");
-			if (!infoBox_template) {
-				throw new Error("Dashboard: no template for InfoBox");
+		if (this.#infoBox) {
+			return;
+		}
+
+		const infoBox_template = this.#templates.get("InfoBox");
+		if (!infoBox_template) {
+			throw new Error("Dashboard: no template for InfoBox");
+		}
+
+		const infoBox = new InfoBox(this.#container, infoBox_template);
+		this.#infoBox = infoBox;
+
+		this.#container.addEventListener("click", (ev) => {
+			const target = ev.target.closest(".data");
+			const data = target?.[DataTableModule.DATA_KEY];
+
+			if (data) {
+				infoBox.show(data);
 			}
+		});
+	}
 
-			const infoBox = new InfoBox(this.#container, infoBox_template);
-			this.#infoBox = infoBox;
 
-			this.#container.addEventListener("click", (ev) => {
-				const target = ev.target.closest(".data");
-				const data = target?.[DataTableModule.DATA_KEY];
+	/**
+	 * Create the IntersectionObserver to pause/resume modules when they scroll out of view
+	 */
+	#createObserver() {
+		if (this.#observer) {
+			return;
+		}
 
-				if (data) {
-					infoBox.show(data);
-				}
-			});
+		const observerOptions = {}; // use defaults: root viewport, 0px margins, 0% threshold
+		this.#observer = new IntersectionObserver((entries, _observer) => this.#observe(entries), observerOptions);
+	}
+
+
+	/**
+	 * Set module running state on visibility changes
+	 */
+	#observe(entries) {
+		for (const entry of entries) {
+			const module = entry.target?.[Dashboard.MODULE_KEY];
+			if (module && "paused" in module) {
+				module.paused = !entry.isIntersecting;
+			}
 		}
 	}
 }

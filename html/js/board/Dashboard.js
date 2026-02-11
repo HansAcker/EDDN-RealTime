@@ -119,9 +119,6 @@ export class Dashboard {
 		} else {
 			this.#createObserver();
 		}
-
-		// initiate template fetch
-		void this.ready;
 	}
 
 

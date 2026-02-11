@@ -59,7 +59,7 @@ const defaultModules = {
  * wires them into a {@link MessageRouter} for receiving EDDN events.
  */
 export class Dashboard {
-	static #MODULE_KEY = Symbol(); // unique key to attach a module instance to its DOM element
+	static MODULE_KEY = Symbol(); // unique key to attach a module instance to its DOM element
 
 	#router; // MessageRouter instance
 	#container; // new modules appended here
@@ -96,7 +96,7 @@ export class Dashboard {
 		this.#router = router;
 
 		// TODO: add per-instance modules/templates/template file name to options?
-		const { container, infoBox } = options;
+		const { container, infoBox, observer } = options;
 
 		if (container) {
 			this.#container = container;
@@ -111,8 +111,15 @@ export class Dashboard {
 			this.#infoBox = infoBox;
 		}
 
-		this.#createObserver();
+		// default infobox created after template load
 
+		if (observer) {
+			this.#observer = observer;
+		} else {
+			this.#createObserver();
+		}
+
+		// initiate template fetch
 		void this.ready;
 	}
 
@@ -229,9 +236,9 @@ export class Dashboard {
 
 		container.classList.add("dashboard__table");
 		container.replaceChildren(moduleContainer);
-		container[Dashboard.#MODULE_KEY] = module;
+		container[Dashboard.MODULE_KEY] = module;
 
-		this.#observer.observe(container);
+		this.#observer?.observe(container);
 	}
 
 
@@ -282,7 +289,7 @@ export class Dashboard {
 	 */
 	#observe(entries) {
 		for (const entry of entries) {
-			const module = entry.target?.[Dashboard.#MODULE_KEY];
+			const module = entry.target?.[Dashboard.MODULE_KEY];
 			if (module) {
 				module.paused = !entry.isIntersecting;
 			}

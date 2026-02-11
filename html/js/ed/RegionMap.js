@@ -266,6 +266,9 @@ const bitMask = (field, bits, shift = 0n) => (field >> shift) & (~(~0n << bits))
  * Fetch binary region map data and set up the ArrayBuffer views
  * binary data created from RegionMapData.json: https://github.com/klightspeed/EliteDangerousRegionMap
  * Layout: [RowIndex (Uint32)...] [RLE Data (Uint16)...]
+ *
+ * @param {string} url - The URL to fetch the binary region map data from.
+ * @returns {Promise<void>}
  */
 async function loadMap(url) {
 	try {

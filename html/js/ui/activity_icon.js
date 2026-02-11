@@ -80,13 +80,13 @@ class Activity {
 	}
 
 	/** Transitions to the `ok` state and starts the idle timer. */
-	ok = () => this.#set(Activity._states._ok, this.#idleTimeout);
+	ok = () => { this.#set(Activity._states._ok, this.#idleTimeout); };
 	/** Transitions to the `off` state. */
-	off = () => this.#set(Activity._states._off, 0);
+	off = () => { this.#set(Activity._states._off, 0); };
 	/** Transitions to the `idle` state. */
-	idle = () => this.#set(Activity._states._idle, 0);
+	idle = () => { this.#set(Activity._states._idle, 0); };
 	/** Transitions to the `error` state. */
-	error = () => this.#set(Activity._states._error, 0);
+	error = () => { this.#set(Activity._states._error, 0); };
 }
 
 

@@ -286,6 +286,8 @@ export class Dashboard {
 
 	/**
 	 * Set module running state on visibility changes
+	 *
+	 * @param {IntersectionObserverEntry[]} entries - A list of objects containing information about the threshold crossings.
 	 */
 	#observe(entries) {
 		for (const entry of entries) {

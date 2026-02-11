@@ -39,22 +39,42 @@ export default [
 					// Note: Excluding ArrowFunctionExpression/FunctionExpression (no require on expressions)
 				]
 			}],
+
 			// Require descriptions in JSDoc
 			//"jsdoc/require-description": "warn",
-			// Validate @param tags match function parameters
-			"jsdoc/check-param-names": "warn",
-			// Require @param types
-			"jsdoc/require-param-type": "warn",
-			// Require @returns for non-void functions
-			"jsdoc/require-returns-type": "warn",
+
 			// Check for valid JSDoc syntax
 			"jsdoc/check-syntax": "error",
+
 			// Enforce consistent formatting (e.g., alignment)
-			"jsdoc/check-alignment": "warn"
+			"jsdoc/check-alignment": "warn",
+
+
+			// Require @param tags for all function parameters
+			"jsdoc/require-param": ["warn", { checkSetters: false }],
+
+			// Require @param descriptions
+			"jsdoc/require-param-description": "warn",
+
+			// Validate @param tags match function parameters
+			"jsdoc/check-param-names": "warn",
+
+			// Require @param types
+			"jsdoc/require-param-type": "warn",
+
+
+			// Require @returns tags
+			"jsdoc/require-returns": ["warn", { checkGetters: true }],
+
+			// Require @returns descriptions (optional)
+			//"jsdoc/require-returns-description": "warn",
+
+			// Require @returns for non-void functions
+			"jsdoc/require-returns-type": "warn"
 		},
 		settings: {
 			jsdoc: {
-				mode: "closure"  // Matches standard JSDoc (not TypeScript-style)
+				mode: "jsdoc"  // Matches standard JSDoc (not TypeScript-style)
 			}
 		}
 	}

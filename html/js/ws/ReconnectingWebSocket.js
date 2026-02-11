@@ -31,7 +31,7 @@ class ReconnectingWebSocket extends EventTarget {
 	/** @type {number} Milliseconds before a pending connection attempt is aborted. */
 	connectionTimeout = 4000;
 
-	/** automatically close the socket when used with `using` */
+	// automatically close the socket when used with `using`
 	[Symbol.dispose] = () => this.close();
 
 	#url;

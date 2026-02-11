@@ -165,7 +165,12 @@ export class EDDNEvent extends Event {
 	 * content: https://eddn.edcd.io/schemas/navroute/1 -> "navroute"
 	 * content: https://eddn.edcd.io/schemas/commodity/3 -> "commodity"
 	 *
+	 * Adds event sub-type to journal events, e.g. "journal:fsdjump"
+	 *
 	 * TODO: return "outfitting/2/test" etc. with -test suffix?
+	 *
+	 * @param {Object} data - The structured payload `{ $schemaRef, header, message }`
+	 * @returns {string} The normalized event type
 	 */
 	static getEventType(data) {
 		if (!data?.$schemaRef) {

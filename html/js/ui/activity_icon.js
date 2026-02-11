@@ -123,6 +123,8 @@ class PageIconActivity extends Activity {
  * A {@link PageIconActivity} subclass that pre-loads all state icons into
  * `blob:` URLs so the browser does not re-fetch them on every state change.
  *
+ * `await activity.ready` to load the icon files into the cache
+ *
  * @extends PageIconActivity
  */
 // pre-loads icons into "blob:" URLs
@@ -149,9 +151,6 @@ class CachedPageIconActivity extends PageIconActivity {
 	// TODO: support an `{ AbortController.signal }` option and call `clear()`?
 	constructor(element, idleTimeout) {
 		super(element, idleTimeout);
-
-		// start async fetches
-		void this.ready;
 	}
 
 	/**

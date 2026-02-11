@@ -12,7 +12,7 @@ import { MessageRouter } from "#eddn/MessageRouter.js";
 import { Dashboard } from "#board/Dashboard.js";
 import { ReconnectingWebSocket } from "#ws/ReconnectingWebSocket.js";
 import { CachedPageIconActivity } from "#ui/activity_icon.js";
-// import { RegionMap } from "#ed/RegionMap.js";
+import { RegionMap } from "#ed/RegionMap.js";
 
 
 console.debug("Main: start");
@@ -52,18 +52,20 @@ const dashboard = new Dashboard(new MessageRouter(eddn), { container: document.q
 
 // block here until all loaded
 
-// TODO: rethink. this is likely cargo-cult. `readyState` should never be "loading" in a module
-//       - check for !== "complete"? `await dashboard.ready` almost certainly waits long enough, anyway
-// wait for CSS to finish loading
-if (document.readyState === "loading") {
-	await new Promise((resolve) => window.addEventListener("load", resolve, { once: true }));
+// TODO: display load errors
+//       - use `Promise.allSettled()` and filter the result
+//       - selectively ignore errors, e.g. a missing RegionMap
+//       - CachedPageIconActivity only logs warnings on load errors
+try {
+	await Promise.all([
+		RegionMap.ready,
+		activity.ready,
+		dashboard.ready
+	]);
+} catch (err) {
+	console.error("Main: abort");
+	throw err;
 }
-
-//await RegionMap.ready;
-await activity.ready;
-
-// TODO: would crash here if template load fails. catch and display error?
-await dashboard.ready;
 
 //document.querySelector(".dashboard__loader")?.remove();
 

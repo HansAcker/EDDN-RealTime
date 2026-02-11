@@ -9,97 +9,40 @@
 import GalacticRegions from "#data/GalacticRegions.json" with { type: "json" };
 
 
+// region map data URL
+const MAP_URL = "./data/RegionMapData.bin";
+let isReady = false; // set to true after data load
+
+// region map scale
+const MAP_SIZE = 2048; // number of z-rows
+const MAP_SCALE = 83 / 4096; // ly to index
+
 // lower-left corner coordinates of region map in ly, relative to Sol
 const X0 = -49985;
 const Y0 = -40985;
 const Z0 = -24105;
 
-// region map scale
-const MAP_SIZE = 2048;
-const MAP_SCALE = 83 / 4096; // ly to index
-
 // region lookup tables
 let rowIndex; // z-axis: per-row index into rleData (MAP_SIZE+1 entries)
 let rleData;  // x-axis: variable-length runs of tuples (length, regionID)
-
-let isReady = false; // set to true after data load
-
-
-// fetch arraybuffer data on module init
-// binary data created from RegionMapData.json: https://github.com/klightspeed/EliteDangerousRegionMap
-// Layout: [RowIndex (Uint32)...] [RLE Data (Uint16)...]
-const readyPromise = (async function() {
-	try {
-		const MAP_URL = "./data/RegionMapData.bin";
-
-		console.debug("RegionMap: loading data...");
-		const response = await fetch(MAP_URL);
-		if (!response.ok) {
-			throw new Error(`HTTP ${response.status} ${response.statusText}`);
-		}
-
-		const buffer = await response.arrayBuffer();
-
-		const offsetCount = MAP_SIZE + 1;
-		const offsetByteSize = offsetCount * 4;
-
-		// hypothetically, someone could browse the site on an IBM Z mainframe...
-		const isLittleEndian = new Uint8Array(new Uint32Array([0x12345678]).buffer)[0] === 0x78;
-		if (!isLittleEndian) {
-			console.debug("RegionMap: converting byte-order");
-			const view = new DataView(buffer);
-
-			// Uint32 index section
-			for (let i = 0; i < offsetByteSize; i += 4) {
-				view.setUint32(i, view.getUint32(i, true));
-			}
-
-			// Uint16 data section
-			for (let i = offsetByteSize; i < buffer.byteLength; i += 2) {
-				view.setUint16(i, view.getUint16(i, true));
-			}
-		}
-
-		// map data view onto byte buffer
-		rowIndex = new Uint32Array(buffer, 0, offsetCount);
-		rleData = new Uint16Array(buffer, offsetByteSize);
-
-		// last index points to end of rleData
-		if (rleData.length !== rowIndex[MAP_SIZE]) {
-			throw new Error(`Data length mismatch: Got ${rleData.length}, expected ${rowIndex[MAP_SIZE]}`);
-		}
-
-		isReady = true;
-		console.debug(`RegionMap: load done - ${MAP_SIZE} rows, ${rleData.length / 2} segments`);
-	} catch (err) {
-		console.error("RegionMap: initialization failed:", err);
-	}
-})();
-
-
-/**
- * Extracts a bit field from a BigInt value.
- *
- * @param {bigint} field - The source value.
- * @param {bigint} bits - Number of bits to extract.
- * @param {bigint} [shift=0n] - Bit offset to shift before masking.
- * @returns {bigint} The extracted bit field.
- */
-const bitMask = (field, bits, shift = 0n) => (field >> shift) & (~(~0n << bits));
 
 
 /**
  * Static utility class for resolving galactic coordinates and System ID64
  * values to Elite Dangerous galactic regions using a pre-loaded binary
  * region map.
+ *
+ * `await RegionMap.ready` to load the data before calling `RegionMap.findRegion()`
  */
 export class RegionMap {
+	static #readyPromise;
+
 	/**
 	 * Promise that resolves when the binary region-map data has finished loading.
 	 *
 	 * @type {Promise<void>}
 	 */
-	static get ready() { return readyPromise; } // `await RegionMap.ready;`
+	static get ready() { return this.#readyPromise ??= loadMap(MAP_URL); } // `await RegionMap.ready;`
 
 	/**
 	 * Whether the region map data has been loaded and is ready for lookups.
@@ -307,3 +250,75 @@ export class RegionMap {
 		return `${c1}${c2}-${c3} ${String.fromCharCode(massClass + 97)}${id ? `${id}-${n2}` : n2}`;
 	}
 }
+
+
+/**
+ * Extracts a bit field from a BigInt value.
+ *
+ * @param {bigint} field - The source value.
+ * @param {bigint} bits - Number of bits to extract.
+ * @param {bigint} [shift=0n] - Bit offset to shift before masking.
+ * @returns {bigint} The extracted bit field.
+ */
+const bitMask = (field, bits, shift = 0n) => (field >> shift) & (~(~0n << bits));
+
+
+/**
+ * Fetch binary region map data and set up the ArrayBuffer views
+ * binary data created from RegionMapData.json: https://github.com/klightspeed/EliteDangerousRegionMap
+ * Layout: [RowIndex (Uint32)...] [RLE Data (Uint16)...]
+ */
+async function loadMap(url) {
+	try {
+		console.debug("RegionMap: loading data...");
+
+		if (isReady) {
+			console.warn("RegionMap: loadMap() called when isReady is true");
+			return;
+		}
+
+		const response = await fetch(url);
+		if (!response.ok) {
+			throw new Error(`HTTP ${response.status} ${response.statusText}`);
+		}
+
+		const buffer = await response.arrayBuffer();
+
+		const offsetCount = MAP_SIZE + 1;
+		const offsetByteSize = offsetCount * 4;
+
+		// hypothetically, someone could browse the site on an IBM Z mainframe...
+		const isLittleEndian = new Uint8Array(new Uint32Array([0x12345678]).buffer)[0] === 0x78;
+		if (!isLittleEndian) {
+			console.debug("RegionMap: converting byte-order");
+			const view = new DataView(buffer);
+
+			// Uint32 index section
+			for (let i = 0; i < offsetByteSize; i += 4) {
+				view.setUint32(i, view.getUint32(i, true));
+			}
+
+			// Uint16 data section
+			for (let i = offsetByteSize; i < buffer.byteLength; i += 2) {
+				view.setUint16(i, view.getUint16(i, true));
+			}
+		}
+
+		// map data view onto byte buffer
+		rowIndex = new Uint32Array(buffer, 0, offsetCount);
+		rleData = new Uint16Array(buffer, offsetByteSize);
+
+		// last index points to end of rleData
+		if (rleData.length !== rowIndex[MAP_SIZE]) {
+			throw new Error(`Data length mismatch: Got ${rleData.length}, expected ${rowIndex[MAP_SIZE]}`);
+		}
+
+		isReady = true;
+		console.debug(`RegionMap: load done - ${MAP_SIZE} rows, ${rleData.length / 2} segments`);
+	} catch (err) {
+		throw new Error("RegionMap: initialization failed", { cause: err });
+	}
+}
+
+
+export default RegionMap;

@@ -236,6 +236,10 @@ export class DataTableModule extends DashboardModule {
 		const container = this._container;
 		this.#renderScheduled = false;
 
+		if (this.#renderPaused) {
+			return;
+		}
+
 		if (!queue.length) {
 			console.warn("DataTableModule: render scheduled on empty queue");
 			return;

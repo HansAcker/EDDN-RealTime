@@ -149,9 +149,6 @@ class CachedPageIconActivity extends PageIconActivity {
 	// TODO: support an `{ AbortController.signal }` option and call `clear()`?
 	constructor(element, idleTimeout) {
 		super(element, idleTimeout);
-
-		// start async fetches
-		void this.ready;
 	}
 
 	/**

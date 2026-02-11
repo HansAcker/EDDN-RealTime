@@ -143,17 +143,6 @@ class CachedPageIconActivity extends PageIconActivity {
 
 
 	/**
-	 * Creates a new CachedPageIconActivity and kicks off icon pre-loading.
-	 *
-	 * @param {HTMLElement} element - The DOM element whose `href` reflects the activity state.
-	 * @param {number} idleTimeout - Milliseconds before automatically transitioning from `ok` to `idle`.
-	 */
-	// TODO: support an `{ AbortController.signal }` option and call `clear()`?
-	constructor(element, idleTimeout) {
-		super(element, idleTimeout);
-	}
-
-	/**
 	 * Updates the element's `href` from the pre-loaded blob cache, falling
 	 * back to the parent class behaviour if the icon has not been cached.
 	 *

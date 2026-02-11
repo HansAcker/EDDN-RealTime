@@ -291,7 +291,7 @@ export class Dashboard {
 	#observe(entries) {
 		for (const entry of entries) {
 			const module = entry.target?.[Dashboard.MODULE_KEY];
-			if (module) {
+			if (module && "paused" in module) {
 				module.paused = !entry.isIntersecting;
 			}
 		}

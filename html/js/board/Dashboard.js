@@ -5,6 +5,13 @@
  * wires them into a {@link MessageRouter} for receiving EDDN events.
  */
 
+
+// TODO: Dashboard is missing a destructor/dispose method to
+//       - un-observe modules
+//       - detach modules from router (impossible with current DashboardModule)
+//       - detach InfoBox click handler
+
+
 import { Config } from "#config.js";
 import { InfoBox } from "#ui/infobox.js";
 
@@ -130,18 +137,7 @@ export class Dashboard {
 */
 			const moduleOptions = {};
 
-			const moduleClass = defaultModules[moduleName];
-			if (!moduleClass) {
-				throw new Error(`Dashboard: no class for module ${moduleName}`);
-			}
-
-			div.classList.add("dashboard__table");
-
-			const { module, moduleContainer } = this.#createModule(moduleName, moduleClass, moduleOptions);
-			div.replaceChildren(moduleContainer);
-			div[Dashboard.#MODULE_KEY] = module;
-
-			this.#observer.observe(div);
+			this.#createModule(div, moduleName, moduleOptions);
 		}
 	}
 
@@ -167,19 +163,8 @@ export class Dashboard {
 				({ name: moduleName, options: moduleOptions = {} } = moduleDesc);
 			}
 
-			const moduleClass = defaultModules[moduleName];
-			if (!moduleClass) {
-				throw new Error(`Dashboard: no class for module ${moduleName}`);
-			}
-
 			const div = document.createElement("div");
-			div.className = "dashboard__table";
-
-			const { module, moduleContainer } = this.#createModule(moduleName, moduleClass, moduleOptions);
-			div.replaceChildren(moduleContainer);
-			div[Dashboard.#MODULE_KEY] = module;
-
-			this.#observer.observe(div);
+			this.#createModule(div, moduleName, moduleOptions);
 
 			newModules.append(div);
 		}
@@ -221,24 +206,32 @@ export class Dashboard {
 
 
 	/**
-	 * Instantiates a single dashboard module and returns its DOM subtree.
+	 * Instantiates a single dashboard module and adds it to a container eöement, replacing previous content.
 	 *
-	 * @param {string} name - The module name (used for template lookup).
-	 * @param {typeof DashboardModule} Module - The module class constructor.
-	 * @param {Object} options - Options forwarded to the module constructor.
-	 * @returns {DocumentFragment|null} The rendered module DOM, or `null` if no template exists.
+	 * @param {typeof HTMLElement} container - The outer HTML element.
+	 * @param {string} moduleName - The module name (used for template lookup).
+	 * @param {Object} moduleOptions - Options forwarded to the module constructor.
 	 */
-	#createModule(name, Module, options) {
-		const template = this.#templates.get(name);
+	#createModule(container, moduleName, moduleOptions) {
+		const template = this.#templates.get(moduleName);
 
 		if (!template) {
-			console.warn(`Dashboard: no template for module "${name}"`);
+			console.warn(`Dashboard: no template for module "${moduleName}"`);
 		}
 
-		const module = new Module(this.#router, { template, ...options });
+		const ModuleClass = defaultModules[moduleName];
+		if (!ModuleClass) {
+			throw new Error(`Dashboard: no class for module ${moduleName}`);
+		}
+
+		const module = new ModuleClass(this.#router, { template, ...moduleOptions });
 		const moduleContainer = module._setupContainer();
 
-		return { module, moduleContainer };
+		container.classList.add("dashboard__table");
+		container.replaceChildren(moduleContainer);
+		container[Dashboard.#MODULE_KEY] = module;
+
+		this.#observer.observe(container);
 	}
 
 

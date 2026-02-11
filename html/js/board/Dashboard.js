@@ -52,9 +52,12 @@ const defaultModules = {
  * wires them into a {@link MessageRouter} for receiving EDDN events.
  */
 export class Dashboard {
+	static #MODULE_KEY = Symbol(); // unique key to attach a module instance to its DOM element
+
 	#router; // MessageRouter instance
 	#container; // new modules appended here
 	#infoBox; // data map
+	#observer; // intersection observer to pause/resume modules
 
 	#templates = new Map();
 	#readyPromise = null;
@@ -101,6 +104,8 @@ export class Dashboard {
 			this.#infoBox = infoBox;
 		}
 
+		this.#createObserver();
+
 		void this.ready;
 	}
 
@@ -131,7 +136,12 @@ export class Dashboard {
 			}
 
 			div.classList.add("dashboard__table");
-			div.replaceChildren(this.#createModule(moduleName, moduleClass, moduleOptions));
+
+			const { module, moduleContainer } = this.#createModule(moduleName, moduleClass, moduleOptions);
+			div.replaceChildren(moduleContainer);
+			div[Dashboard.#MODULE_KEY] = module;
+
+			this.#observer.observe(div);
 		}
 	}
 
@@ -147,14 +157,14 @@ export class Dashboard {
 
 		const newModules = document.createDocumentFragment();
 
-		for (const module of modules) {
+		for (const moduleDesc of modules) {
 			let moduleName, moduleOptions;
 
-			if (typeof module === "string") {
-				moduleName = module;
+			if (typeof moduleDesc === "string") {
+				moduleName = moduleDesc;
 				moduleOptions = {};
 			} else {
-				({ name: moduleName, options: moduleOptions = {} } = module);
+				({ name: moduleName, options: moduleOptions = {} } = moduleDesc);
 			}
 
 			const moduleClass = defaultModules[moduleName];
@@ -162,11 +172,16 @@ export class Dashboard {
 				throw new Error(`Dashboard: no class for module ${moduleName}`);
 			}
 
-			const moduleContainer = document.createElement("div");
-			moduleContainer.className = "dashboard__table";
-			moduleContainer.append(this.#createModule(moduleName, moduleClass, moduleOptions));
+			const div = document.createElement("div");
+			div.className = "dashboard__table";
 
-			newModules.append(moduleContainer);
+			const { module, moduleContainer } = this.#createModule(moduleName, moduleClass, moduleOptions);
+			div.replaceChildren(moduleContainer);
+			div[Dashboard.#MODULE_KEY] = module;
+
+			this.#observer.observe(div);
+
+			newModules.append(div);
 		}
 
 		this.#container.append(newModules);
@@ -223,7 +238,7 @@ export class Dashboard {
 		const module = new Module(this.#router, { template, ...options });
 		const moduleContainer = module._setupContainer();
 
-		return moduleContainer;
+		return { module, moduleContainer };
 	}
 
 
@@ -233,23 +248,51 @@ export class Dashboard {
 	 * for any clicked data row.
 	 */
 	#createInfoBox() {
-		if (!this.#infoBox) {
-			const infoBox_template = this.#templates.get("InfoBox");
-			if (!infoBox_template) {
-				throw new Error("Dashboard: no template for InfoBox");
+		if (this.#infoBox) {
+			return;
+		}
+
+		const infoBox_template = this.#templates.get("InfoBox");
+		if (!infoBox_template) {
+			throw new Error("Dashboard: no template for InfoBox");
+		}
+
+		const infoBox = new InfoBox(this.#container, infoBox_template);
+		this.#infoBox = infoBox;
+
+		this.#container.addEventListener("click", (ev) => {
+			const target = ev.target.closest(".data");
+			const data = target?.[DataTableModule.DATA_KEY];
+
+			if (data) {
+				infoBox.show(data);
 			}
+		});
+	}
 
-			const infoBox = new InfoBox(this.#container, infoBox_template);
-			this.#infoBox = infoBox;
 
-			this.#container.addEventListener("click", (ev) => {
-				const target = ev.target.closest(".data");
-				const data = target?.[DataTableModule.DATA_KEY];
+	/**
+	 * Create the IntersectionObserver to pause/resume modules when they scroll out of view
+	 */
+	#createObserver() {
+		if (this.#observer) {
+			return;
+		}
 
-				if (data) {
-					infoBox.show(data);
-				}
-			});
+		const observerOptions = {}; // use defaults: root viewport, 0px margins, 0% threshold
+		this.#observer = new IntersectionObserver((entries, _observer) => this.#observe(entries), observerOptions);
+	}
+
+
+	/**
+	 * Set module running state on visibility changes
+	 */
+	#observe(entries) {
+		for (const entry of entries) {
+			const module = entry.target?.[Dashboard.#MODULE_KEY];
+			if (module) {
+				module.paused = !entry.isIntersecting;
+			}
 		}
 	}
 }

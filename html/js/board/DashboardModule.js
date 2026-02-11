@@ -63,6 +63,7 @@ export class DataTableModule extends DashboardModule {
 
 	#renderQueue = []; // array of elements to add in next paint cycle
 	#renderScheduled = false;
+	#renderPaused = false;
 
 	_container;
 
@@ -105,6 +106,18 @@ export class DataTableModule extends DashboardModule {
 		// TODO: this calls _setupXX() in inheriting classes before their class definition is ready
 		this._setupTemplates();
 	}
+
+
+	/** Pause/resume table rendering, schedule immediate re-paint on resume */
+	set paused(pause) {
+		// console.debug(this.constructor.name, pause ? "paused" : "resumed");
+		this.#renderPaused = Boolean(pause);
+		this.#scheduleRender();
+	}
+
+
+	/** Return the current pause state */
+	get paused() { return this.#renderPaused; }
 
 
 	/**
@@ -199,8 +212,16 @@ export class DataTableModule extends DashboardModule {
 		// drop overflowing rows eventually, the page is likely inactive
 		this.#trimQueue(this.listLength, this.listLength * this.cullFactor);
 
+		this.#scheduleRender();
+	}
+
+
+	/**
+	 * Schedule a re-paint if not paused
+	 */
+	#scheduleRender() {
 		// only update the DOM when the page is on display and ready to paint
-		if (!this.#renderScheduled && this.#renderQueue.length) {
+		if (!this.#renderPaused && !this.#renderScheduled && this.#renderQueue.length) {
 			this.#renderScheduled = true;
 			requestAnimationFrame(() => this.#render());
 		}

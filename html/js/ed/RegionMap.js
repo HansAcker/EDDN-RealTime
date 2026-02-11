@@ -1,9 +1,8 @@
 /**
  * @module RegionMap
- * @description Provides galactic region lookups for Elite Dangerous star
- * positions. Loads a binary run-length-encoded region map on module
- * initialisation and exposes static helpers to resolve coordinates or
- * System ID64 values to named galactic regions.
+ * @description Provides galactic region lookups for Elite Dangerous star positions.
+ * Loads a binary run-length-encoded region map on `await RegionMap.ready` and
+ * exposes static helpers to resolve coordinates or System ID64 values to named galactic regions.
  */
 
 import GalacticRegions from "#data/GalacticRegions.json" with { type: "json" };

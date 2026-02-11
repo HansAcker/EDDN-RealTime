@@ -216,7 +216,7 @@ export class Dashboard {
 	/**
 	 * Instantiates a single dashboard module and adds it to a container element, replacing previous content.
 	 *
-	 * @param {typeof HTMLElement} container - The outer HTML element.
+	 * @param {HTMLElement} container - The outer HTML element.
 	 * @param {string} moduleName - The module name (used for template lookup).
 	 * @param {Object} moduleOptions - Options forwarded to the module constructor.
 	 */

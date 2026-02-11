@@ -116,7 +116,7 @@ export class DataTableModule extends DashboardModule {
 	}
 
 
-	/** @returns {Boolean} The current pause state */
+	/** @type {Boolean} The current pause state */
 	get paused() { return this.#renderPaused; }
 
 

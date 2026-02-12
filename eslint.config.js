@@ -45,6 +45,7 @@ export default [
 
 			// Check for valid JSDoc syntax
 			"jsdoc/check-syntax": "error",
+			"jsdoc/check-types": "warn",
 
 			// Enforce consistent formatting (e.g., alignment)
 			"jsdoc/check-alignment": "warn",

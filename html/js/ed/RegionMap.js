@@ -132,7 +132,7 @@ export class RegionMap {
 	 * @param {number} [xb=0] - X boxel coordinate.
 	 * @param {number} [yb=0] - Y boxel coordinate.
 	 * @param {number} [zb=0] - Z boxel coordinate.
-	 * @returns {{x: number, y: number, z: number}} Galactic coordinates.
+	 * @returns {[number, number, number]} Galactic coordinates [x, y, z].
 	 */
 	static sectorsToCoords(xs, ys, zs, massClass = 0, xb = 0, yb = 0, zb = 0) {
 		// 1280ly per sector, 10ly (A) to 1280ly (H) per boxel

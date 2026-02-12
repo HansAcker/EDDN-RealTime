@@ -80,7 +80,7 @@ export class DataTableModule extends DashboardModule {
 	 *
 	 * @param {MessageRouter|null} router - The {@link MessageRouter} to subscribe to.
 	 * @param {string|Iterable<string>|null} topics - Topic(s) to subscribe to.
-	 * @param {Object} [options={}] - Configuration options.
+	 * @param {object} [options={}] - Configuration options.
 	 * @param {number} [options.listLength] - Maximum number of visible rows.
 	 * @param {number} [options.cullFactor] - Multiplier of `listLength` for the render-queue overflow threshold.
 	 * @param {HTMLTemplateElement} [options.template] - The HTML `<template>` element for this module's table.
@@ -116,7 +116,7 @@ export class DataTableModule extends DashboardModule {
 	}
 
 
-	/** @type {Boolean} The current pause state */
+	/** @type {boolean} The current pause state */
 	get paused() { return this.#renderPaused; }
 
 
@@ -335,7 +335,7 @@ export class DummyTableModule extends DataTableModule {
 	 * to any EDDN topics.
 	 *
 	 * @param {MessageRouter} router - Unused; passed as `null` to the parent.
-	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
+	 * @param {object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
 		super(null, null, options);

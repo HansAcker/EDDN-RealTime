@@ -15,7 +15,7 @@ import { DataTableModule } from "#DashboardModule";
 export class ApproachModule extends DataTableModule {
 	/**
 	 * @param {MessageRouter} router - The {@link MessageRouter} to subscribe to.
-	 * @param {Object} [options] - Configuration forwarded to {@link DataTableModule}.
+	 * @param {object} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
 		super(router, ["approachsettlement"], options);

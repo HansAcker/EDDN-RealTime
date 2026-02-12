@@ -53,7 +53,7 @@ class ReconnectingWebSocket extends EventTarget {
 	 *
 	 * @param {string} url - The WebSocket URL to connect to.
 	 * @param {string|string[]} [protocols=[]] - Sub-protocols to request.
-	 * @param {Object} [options={}] - Additional options.
+	 * @param {object} [options={}] - Additional options.
 	 * @param {AbortSignal} [options.signal] - An AbortSignal that, when aborted, permanently closes the socket.
 	 */
 	constructor(url, protocols = [], options = {}) {

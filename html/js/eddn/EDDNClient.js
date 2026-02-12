@@ -45,7 +45,7 @@ export class EDDNClient extends EventTarget {
 	/**
 	 * Creates a new EDDNClient.
 	 *
-	 * @param {Object} [options={}] - Configuration options.
+	 * @param {object} [options={}] - Configuration options.
 	 * @param {string} [options.url] - WebSocket URL to connect to.
 	 * @param {number} [options.resetTimeout] - Idle timeout in ms before the watchdog reconnects.
 	 * @param {Function} [options.filter] - Predicate applied to each {@link EDDNEvent}; returning `false` suppresses dispatch.
@@ -178,7 +178,7 @@ export class EDDNClient extends EventTarget {
 	 * Validates an EDDN payload, wraps it in an {@link EDDNEvent}, applies the
 	 * filter function, and dispatches it if accepted.
 	 *
-	 * @param {Object} data - Parsed EDDN message object.
+	 * @param {object} data - Parsed EDDN message object.
 	 */
 	#handleEDDNMessage(data) {
 		// TODO: if validation fails, pass on the received data as a field on a custom EDDNErrorEvent

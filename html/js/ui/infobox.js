@@ -28,7 +28,7 @@ export class InfoBox {
 	 * Displays the contents of an EDDN message in a popup overlay. Provides
 	 * action buttons for copying data to the clipboard and closing the box.
 	 *
-	 * @param {Object} msg - The EDDN message data object `{ $schemaRef, header, message }`.
+	 * @param {object} msg - The EDDN message data object `{ $schemaRef, header, message }`.
 	 */
 	show(msg) {
 		if (!msg) {

@@ -94,6 +94,9 @@ class StatsBox {
 	 *
 	 * @param {HTMLTableSectionElement} tbody - The `<tbody>` element to render rows into.
 	 * @param {{ values?: Record<string, number|string>, rowFactory?: (...children: Node[]) => HTMLTableRowElement, cellFactory?: (textContent?: string) => HTMLTableCellElement }} [options={}] - Configuration options.
+	 * @param {Record<string, number|string>} [options.values] - Initial key/value pairs.
+	 * @param {(...children: Node[]) => HTMLTableRowElement} [options.rowFactory] - Custom row factory.
+	 * @param {(textContent?: string) => HTMLTableCellElement} [options.cellFactory] - Custom cell factory.
 	 */
 	constructor(tbody, options = {}) {
 		tbody.replaceChildren(); // clear existing table content

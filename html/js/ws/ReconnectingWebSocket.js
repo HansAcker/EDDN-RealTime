@@ -55,6 +55,12 @@ class ReconnectingWebSocket extends EventTarget {
 	 * @param {string|string[]} [protocols=[]] - Sub-protocols to request.
 	 * @param {{ signal?: AbortSignal, maxReconnectAttempts?: number, baseReconnectInterval?: number, maxReconnectInterval?: number, reconnectDecay?: number, jitterFactor?: number, connectionTimeout?: number }} [options={}] - Additional options.
 	 * @param {AbortSignal} [options.signal] - An AbortSignal that, when aborted, permanently closes the socket.
+	 * @param {number} [options.maxReconnectAttempts] - Maximum number of consecutive reconnection attempts.
+	 * @param {number} [options.baseReconnectInterval] - Initial reconnect delay in milliseconds.
+	 * @param {number} [options.maxReconnectInterval] - Upper bound for the reconnect delay in milliseconds.
+	 * @param {number} [options.reconnectDecay] - Exponential multiplier applied per retry.
+	 * @param {number} [options.jitterFactor] - Random jitter factor (0–1) applied to the delay.
+	 * @param {number} [options.connectionTimeout] - Milliseconds before a pending connection attempt is aborted.
 	 */
 	constructor(url, protocols = [], options = {}) {
 		super();

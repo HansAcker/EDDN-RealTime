@@ -81,6 +81,9 @@ export class DataTableModule extends DashboardModule {
 	 * @param {MessageRouter|null} router - The {@link MessageRouter} to subscribe to.
 	 * @param {string|Iterable<string>|null} topics - Topic(s) to subscribe to.
 	 * @param {{ listLength?: number, cullFactor?: number, template?: HTMLTemplateElement }} [options={}] - Configuration options.
+	 * @param {number} [options.listLength] - Maximum number of visible rows.
+	 * @param {number} [options.cullFactor] - Multiplier of `listLength` for the render-queue overflow threshold.
+	 * @param {HTMLTemplateElement} [options.template] - The HTML `<template>` element for this module's table.
 	 */
 	constructor(router, topics, options = {}) {
 		const { listLength, cullFactor, template } = options;

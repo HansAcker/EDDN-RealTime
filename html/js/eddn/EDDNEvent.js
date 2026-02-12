@@ -42,10 +42,10 @@ export class EDDNEvent extends Event {
 
 	/**
 	 * @param {string} type - The event type ("eddn:message")
-	 * @param {object} data - The structured payload
+	 * @param {{ $schemaRef: string, header: Record<string, any>, message: Record<string, any> }} data - The structured payload
 	 * @param {string} data.$schemaRef - The original schema URL
-	 * @param {object} data.header - The EDDN header (uploaderID, softwareName, etc.)
-	 * @param {object} data.message - The actual game data
+	 * @param {Record<string, any>} data.header - The EDDN header (uploaderID, softwareName, etc.)
+	 * @param {Record<string, any>} data.message - The actual game data
 	 */
 	constructor(type, data) {
 		super(type);
@@ -169,7 +169,7 @@ export class EDDNEvent extends Event {
 	 *
 	 * TODO: return "outfitting/2/test" etc. with -test suffix?
 	 *
-	 * @param {object} data - The structured payload `{ $schemaRef, header, message }`
+	 * @param {{ $schemaRef: string, header: Record<string, any>, message: Record<string, any> }} data - The structured payload `{ $schemaRef, header, message }`
 	 * @returns {string} The normalized event type
 	 */
 	static getEventType(data) {
@@ -192,7 +192,7 @@ export class EDDNEvent extends Event {
 	/**
 	 * Determines the game type from header and message flags.
 	 *
-	 * @param {object} data - The structured EDDN payload.
+	 * @param {{ $schemaRef: string, header: Record<string, any>, message: Record<string, any> }} data - The structured EDDN payload.
 	 * @returns {string} One of `"Odyssey"`, `"Horizons"`, `"Base"`, `"Legacy"`, or `"Unknown"`.
 	 */
 	static getGameType(data) {

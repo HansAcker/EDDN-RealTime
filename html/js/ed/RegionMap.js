@@ -141,7 +141,7 @@ export class RegionMap {
 		const y = ((ys << 7) + (yb << massClass)) * 10 + Y0;
 		const z = ((zs << 7) + (zb << massClass)) * 10 + Z0;
 
-		return { x, y, z };
+		return [ x, y, z ];
 	}
 
 
@@ -210,7 +210,7 @@ export class RegionMap {
 
 		const n2 = Number(bitMask(_id64, 32n-(boxelBits*3n), shift));
 
-		const { x, y, z } = this.sectorsToCoords(xs, ys, zs, massClass, xb, yb, zb);
+		const [ x, y, z ] = this.sectorsToCoords(xs, ys, zs, massClass, xb, yb, zb);
 
 		// TODO: decide on a return format
 		return { SystemAddress, BoxelPos: [x, y, z], BodyId, massClass, xs, ys, zs, xb, yb, zb, n2 };

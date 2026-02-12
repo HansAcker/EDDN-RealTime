@@ -94,7 +94,7 @@ class StatsBox {
 	 *
 	 * @param {HTMLTableSectionElement} tbody - The `<tbody>` element to render rows into.
 	 * @param {object} [options={}] - Configuration options.
-	 * @param {Object<string, number|string>} [options.values] - Initial key/value pairs.
+	 * @param {{[key: string]: number|string}} [options.values] - Initial key/value pairs.
 	 * @param {Function} [options.rowFactory] - Custom row factory.
 	 * @param {Function} [options.cellFactory] - Custom cell factory.
 	 */

@@ -75,7 +75,7 @@ export default [
 		},
 		settings: {
 			jsdoc: {
-				mode: "jsdoc"  // Matches standard JSDoc (not TypeScript-style)
+				mode: "typescript"  // Use TS-style JSDoc types
 			}
 		}
 	}

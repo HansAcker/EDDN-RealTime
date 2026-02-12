@@ -91,9 +91,6 @@ export class Dashboard {
 	 *
 	 * @param {MessageRouter} router - The {@link MessageRouter} that dispatches EDDN events to modules.
 	 * @param {{ container?: HTMLElement, infoBox?: InfoBox, observer?: IntersectionObserver }} [options={}] - Configuration options.
-	 * @param {HTMLElement} [options.container] - An existing DOM container; a new `<div>` is created if omitted.
-	 * @param {InfoBox} [options.infoBox] - An existing {@link InfoBox} instance to reuse.
-	 * @param {IntersectionObserver} [options.observer] - An existing {@link IntersectionObserver} instance to reuse.
 	 */
 	constructor(router, options = {}) {
 		this.#router = router;

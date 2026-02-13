@@ -53,7 +53,7 @@ class ReconnectingWebSocket extends EventTarget {
 	 *
 	 * @param {string} url - The WebSocket URL to connect to.
 	 * @param {string|string[]} [protocols=[]] - Sub-protocols to request.
-	 * @param {{ signal?: AbortSignal, maxReconnectAttempts?: number, baseReconnectInterval?: number, maxReconnectInterval?: number, reconnectDecay?: number, jitterFactor?: number, connectionTimeout?: number }} [options={}] - Additional options.
+	 * @param {object} [options={}] - Additional options.
 	 * @param {AbortSignal} [options.signal] - An AbortSignal that, when aborted, permanently closes the socket.
 	 * @param {number} [options.maxReconnectAttempts] - Maximum number of consecutive reconnection attempts.
 	 * @param {number} [options.baseReconnectInterval] - Initial reconnect delay in milliseconds.

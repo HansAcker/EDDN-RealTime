@@ -80,7 +80,7 @@ export class DataTableModule extends DashboardModule {
 	 *
 	 * @param {MessageRouter|null} router - The {@link MessageRouter} to subscribe to.
 	 * @param {string|Iterable<string>|null} topics - Topic(s) to subscribe to.
-	 * @param {{ listLength?: number, cullFactor?: number, template?: HTMLTemplateElement }} [options={}] - Configuration options.
+	 * @param {object} [options={}] - Configuration options.
 	 * @param {number} [options.listLength] - Maximum number of visible rows.
 	 * @param {number} [options.cullFactor] - Multiplier of `listLength` for the render-queue overflow threshold.
 	 * @param {HTMLTemplateElement} [options.template] - The HTML `<template>` element for this module's table.
@@ -203,7 +203,9 @@ export class DataTableModule extends DashboardModule {
 	 * Queues a new row for rendering. The row will be painted in the next
 	 * animation frame.
 	 *
-	 * @param {{event: EDDNEvent, cells: Array<string|Node|Function>}} row - An object containing the source event and an array of cell descriptors.
+	 * @param {object} row - An object containing the source event and an array of cell descriptors.
+	 * @param {EDDNEvent} row.event - The source EDDN event.
+	 * @param {Array<string|Node|(() => Node)>} row.cells - Array of cell descriptors (strings, DOM nodes, or factory functions).
 	 */
 	_addRow(row) {
 		// add row to queue

@@ -28,7 +28,10 @@ export class InfoBox {
 	 * Displays the contents of an EDDN message in a popup overlay. Provides
 	 * action buttons for copying data to the clipboard and closing the box.
 	 *
-	 * @param {{ $schemaRef: string, header: Record<string, any>, message: Record<string, any> }} msg - The EDDN message data object.
+	 * @param {object} msg - The EDDN message data object.
+	 * @param {string} msg.$schemaRef - The schema reference URL.
+	 * @param {Record<string, any>} msg.header - The EDDN header (uploaderID, gatewayTimestamp, etc.).
+	 * @param {Record<string, any>} msg.message - The actual game data.
 	 */
 	show(msg) {
 		if (!msg) {

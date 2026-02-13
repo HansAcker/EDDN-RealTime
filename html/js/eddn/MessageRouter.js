@@ -16,7 +16,7 @@ export class MessageRouter {
 	/**
 	 * Creates a new MessageRouter instance.
 	 * @param {EventTarget} source - The source object dispatching "eddn:message" events.
-	 * @param {{ signal?: AbortSignal }} [options={}] - Optional configuration.
+	 * @param {object} [options={}] - Optional configuration.
 	 * @param {AbortSignal} [options.signal] - An AbortSignal to remove the event listener from the source.
 	 */
 	constructor(source, options = {}) {
@@ -33,7 +33,7 @@ export class MessageRouter {
 	 * If no topics are provided, or if the topic is "*", the callback acts as a wildcard listener.
 	 * @param {(event: any) => void} callback - The function to invoke when a matching message is received.
 	 * @param {string|Iterable<string>} [topics] - A single topic string, an iterable of strings, or undefined for wildcard.
-	 * @param {{ signal?: AbortSignal }} [options={}] - Optional configuration.
+	 * @param {object} [options={}] - Optional configuration.
 	 * @param {AbortSignal} [options.signal] - An AbortSignal that, when aborted, unregisters the callback from the specified topics.
 	 */
 	register(callback, topics, options = {}) {
@@ -139,7 +139,8 @@ export class MessageRouter {
 
 	/**
 	 * Internal dispatcher that invokes callbacks matching the event's topic.
-	 * @param {{ eventType: string }} event - The message event containing an `eventType` property.
+	 * @param {object} event - The message event containing an `eventType` property.
+	 * @param {string} event.eventType - The type of the event.
 	 */
 	#dispatch(event) {
 		if (this.#wildcards.size > 0) {

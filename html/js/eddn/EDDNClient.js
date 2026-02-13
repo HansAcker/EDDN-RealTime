@@ -13,11 +13,11 @@ import { EDDNEvent } from "#eddn/EDDNEvent.js";
  * into {@link EDDNEvent} instances, and re-dispatches them as DOM-style events.
  *
  * Emitted events:
- * - `open`          – the underlying WebSocket connection opened.
- * - `close`         – the underlying WebSocket connection closed.
- * - `error`         – a WebSocket-level error occurred.
- * - `eddn:message`  – a valid EDDN message was received (dispatched as {@link EDDNEvent}).
- * - `eddn:error`    – an EDDN message could not be parsed or validated.
+ * - `open`          - the underlying WebSocket connection opened.
+ * - `close`         - the underlying WebSocket connection closed.
+ * - `error`         - a WebSocket-level error occurred.
+ * - `eddn:message`  - a valid EDDN message was received (dispatched as {@link EDDNEvent}).
+ * - `eddn:error`    - an EDDN message could not be parsed or validated.
  *
  * @extends EventTarget
  */

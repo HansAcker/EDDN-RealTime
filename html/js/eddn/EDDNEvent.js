@@ -57,104 +57,57 @@ export class EDDNEvent extends Event {
 	}
 
 
-	/**
-	 * Returns the timestamp at which this event was received (local clock).
-	 *
-	 * @returns {Date}
-	 */
+	/** @type {Date} - The timestamp at which this event was received (local clock). */
 	// TODO: make it return the number instead of Date? nothing uses this, yet
 	get receiveTimestamp() {
 		return new Date(this.#receiveTimestamp);
 	}
 
-	/**
-	 * Returns the age of the message in milliseconds (gateway timestamp minus
-	 * sender timestamp). Positive values indicate the message was sent in the
-	 * past; negative values indicate clock skew or future timestamps.
-	 *
-	 * @returns {number}
-	 */
+	/** @type {number} - The age of the message in milliseconds (gateway timestamp minus sender timestamp). */
 	// TODO: rename? age should be "receiveTimestamp - gatewayTimestamp"
 	get age() {
 		return this.#gotAge ? this.#age :
 			(this.#gotAge = true, this.#age = (Date.parse(this.header?.gatewayTimestamp) - Date.parse(this.message?.timestamp)));
 	}
 
-	/**
-	 * Returns the normalised event type derived from the EDDN schema URL and,
-	 * for journal schemas, the `message.event` field (e.g. `"journal:fsdjump"`).
-	 *
-	 * @returns {string}
-	 */
+	/** @type {string} - The normalised event type derived from the EDDN schema URL and journal event (e.g. `"journal:fsdjump"`). */
 	get eventType() {
 		return this.#eventType ??= EDDNEvent.getEventType(this.data);
 	}
 
-	/**
-	 * Returns the game event name from `message.event`, falling back to
-	 * {@link EDDNEvent#eventType} if the property is absent.
-	 *
-	 * @returns {string}
-	 */
+	/** @type {string} - The game event name from `message.event`, or {@link EDDNEvent#eventType} if absent. */
 	get eventName() {
 		return this.#eventName ??= (this.message?.event ?? this.eventType);
 	}
 
-	/**
-	 * Returns the game type string (e.g. `"Odyssey"`, `"Horizons"`, `"Base"`,
-	 * `"Legacy"`, or `"Unknown"`).
-	 *
-	 * @returns {string}
-	 */
+	/** @type {string} - The game type string (e.g. `"Odyssey"`, `"Horizons"`, `"Base"`, `"Legacy"`, or `"Unknown"`). */
 	get gameType() {
 		return this.#gameType ??= EDDNEvent.getGameType(this.data);
 	}
 
-	/**
-	 * Whether the commander is currently in a taxi (Apex Interstellar shuttle).
-	 *
-	 * @returns {boolean}
-	 */
+	/** @type {boolean} - Whether the commander is currently in a taxi (Apex Interstellar shuttle). */
 	get isTaxi() {
 		return this.#isTaxi ??= !!this.message?.Taxi;
 	}
 
-	/**
-	 * Whether the commander is in a multicrew session.
-	 *
-	 * @returns {boolean}
-	 */
+	/** @type {boolean} - Whether the commander is in a multicrew session. */
 	get isMulticrew() {
 		return this.#isMulticrew ??= !!this.message?.Multicrew;
 	}
 
-	/**
-	 * Returns the star system name derived from various message properties,
-	 * or an empty string if none is available.
-	 *
-	 * @returns {string}
-	 */
+	/** @type {string} - The star system name derived from various message properties, or an empty string if none is available. */
 	get StarSystem() {
 		return this.#starSystem ??= (this.message?.StarSystem ?? this.message?.systemName ??
 			this.message?.SystemName ?? this.message?.System ?? this.message?.Route?.[0]?.StarSystem ?? "");
 	}
 
-	/**
-	 * Returns the star position as a `[x, y, z]` coordinate array in
-	 * light-years relative to Sol, or `undefined` if unavailable.
-	 *
-	 * @returns {number[]|undefined}
-	 */
+	/** @type {number[]|undefined} - The star position as a `[x, y, z]` coordinate array in light-years relative to Sol, or `undefined` if unavailable. */
 	get StarPos() {
 		return this.#gotStarPos ? this.#starPos :
 			(this.#gotStarPos = true, this.#starPos = this.message?.StarPos ?? this.message?.Route?.[0]?.StarPos);
 	}
 
-	/**
-	 * Returns the galactic region for this event's star position.
-	 *
-	 * @returns {{id: number, name: string|null}} Region object with `id` and `name`, or an empty object if the position is unknown.
-	 */
+	/** @type {{id: number, name: string|null}} - The galactic region for this event's star position, or an empty object if position is unknown. */
 	get Region() {
 		return this.#region ??= (this.StarPos ? RegionMap.findRegion(...this.StarPos) : {});
 	}

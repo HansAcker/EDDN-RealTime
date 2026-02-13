@@ -66,11 +66,7 @@ class StatsRow {
 		this.#cell.textContent = this.#value = newValue;
 	}
 
-	/**
-	 * Gets the current value of this statistic.
-	 *
-	 * @returns {number|string} The current value.
-	 */
+	/** @type {number|string} - The current value of this statistic. */
 	get _value() {
 		return this.#value;
 	}

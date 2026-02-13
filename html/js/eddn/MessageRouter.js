@@ -31,7 +31,7 @@ export class MessageRouter {
 	/**
 	 * Registers a callback function for one or more topics.
 	 * If no topics are provided, or if the topic is "*", the callback acts as a wildcard listener.
-	 * @param {(event: any) => void} callback - The function to invoke when a matching message is received.
+	 * @param {(event: EDDNEvent) => void} callback - The function to invoke when a matching message is received.
 	 * @param {string|Iterable<string>} [topics] - A single topic string, an iterable of strings, or undefined for wildcard.
 	 * @param {object} [options={}] - Optional configuration.
 	 * @param {AbortSignal} [options.signal] - An AbortSignal that, when aborted, unregisters the callback from the specified topics.
@@ -83,7 +83,7 @@ export class MessageRouter {
 
 	/**
 	 * Unregisters a callback from specific topics.
-	 * @param {(event: any) => void} callback - The callback function to remove.
+	 * @param {(event: EDDNEvent) => void} callback - The callback function to remove.
 	 * @param {string|Iterable<string>} [topics] - The specific topic(s) to unregister from. If omitted, unregisters from all list.
 	 */
 	unregister(callback, topics) {
@@ -122,7 +122,7 @@ export class MessageRouter {
 
 	/**
 	 * Removes the specified callback from all topics and wildcard lists.
-	 * @param {(event: any) => void} callback - The callback function to remove completely.
+	 * @param {(event: EDDNEvent) => void} callback - The callback function to remove completely.
 	 */
 	unregisterAll(callback) {
 		this.#wildcards.delete(callback);
@@ -139,8 +139,7 @@ export class MessageRouter {
 
 	/**
 	 * Internal dispatcher that invokes callbacks matching the event's topic.
-	 * @param {object} event - The message event containing an `eventType` property.
-	 * @param {string} event.eventType - The type of the event.
+	 * @param {EDDNEvent} event - The {@link EDDNEvent} to dispatch
 	 */
 	#dispatch(event) {
 		if (this.#wildcards.size > 0) {
@@ -161,8 +160,8 @@ export class MessageRouter {
 
 /**
  * Helper to safely invoke a callback without crashing the router on errors.
- * @param {(event: any) => void} cb - The callback to execute.
- * @param {Record<string, any>} event - The event data to pass to the callback.
+ * @param {(event: EDDNEvent) => void} cb - The callback to execute.
+ * @param {EDDNEvent} event - The {@link EDDNEvent} to pass to the callback.
  */
 function invoke(cb, event) {
 	try {

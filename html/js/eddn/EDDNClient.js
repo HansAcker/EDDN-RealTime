@@ -48,7 +48,7 @@ export class EDDNClient extends EventTarget {
 	 * @param {object} [options={}] - Configuration options.
 	 * @param {string} [options.url] - WebSocket URL to connect to.
 	 * @param {number} [options.resetTimeout] - Idle timeout in ms before the watchdog reconnects.
-	 * @param {Function} [options.filter] - Predicate applied to each {@link EDDNEvent}; returning `false` suppresses dispatch.
+	 * @param {(event: EDDNEvent) => boolean} [options.filter] - Predicate applied to each {@link EDDNEvent}; returning `false` suppresses dispatch.
 	 * @param {typeof WebSocket} [options.WebSocketClass] - WebSocket constructor to use (defaults to the global `WebSocket`).
 	 * @param {AbortSignal} [options.signal] - An AbortSignal that, when aborted, closes the connection.
 	 */
@@ -179,6 +179,9 @@ export class EDDNClient extends EventTarget {
 	 * filter function, and dispatches it if accepted.
 	 *
 	 * @param {object} data - Parsed EDDN message object.
+	 * @param {string} data.$schemaRef - The schema reference URL.
+	 * @param {Record<string, any>} data.header - The EDDN header.
+	 * @param {Record<string, any>} data.message - The actual game data.
 	 */
 	#handleEDDNMessage(data) {
 		// TODO: if validation fails, pass on the received data as a field on a custom EDDNErrorEvent

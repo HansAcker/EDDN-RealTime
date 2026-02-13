@@ -9,7 +9,7 @@ const language = navigator.language ?? "en";
 /**
  * Global configuration object for the EDDN RealTime dashboard.
  *
- * @type {Readonly<object>}
+ * @namespace Config
  * @property {string} websocket_url - WebSocket endpoint for the EDDN relay.
  * @property {number} idleTimeout - Milliseconds before the connection status changes to "idle".
  * @property {number} resetTimeout - Milliseconds before the watchdog resets the WebSocket connection.
@@ -19,10 +19,10 @@ const language = navigator.language ?? "en";
  * @property {string} templateLocale - Locale code used to load HTML template files.
  * @property {string} numberLocale - Locale passed to {@link Intl.NumberFormat}.
  * @property {string} timeLocale - Locale passed to {@link Intl.RelativeTimeFormat}.
- * @property {object} timeOptions - Options passed to {@link Intl.RelativeTimeFormat}.
+ * @property {Record<string, any>} timeOptions - Options passed to {@link Intl.RelativeTimeFormat}.
  * @property {Intl.NumberFormat} _numberFormat - Shared number formatter instance.
  * @property {Intl.RelativeTimeFormat} _relTimeFormat - Shared relative-time formatter instance.
- * @property {Function} [globalEventFilter] - Optional predicate applied to every incoming EDDN event.
+ * @property {(event: EDDNEvent) => boolean} [globalEventFilter] - Optional predicate applied to every incoming {@link EDDNEvent}.
  */
 export const Config = {
 	websocket_url: "wss://ws.eddn-realtime.space/eddn",

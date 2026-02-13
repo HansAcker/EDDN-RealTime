@@ -18,7 +18,7 @@ import { DataTableModule } from "#DashboardModule";
 export class NavRouteModule extends DataTableModule {
 	/**
 	 * @param {MessageRouter} router - The {@link MessageRouter} to subscribe to.
-	 * @param {object} [options] - Configuration forwarded to {@link DataTableModule}.
+	 * @param {Record<string, any>} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
 		super(router, ["navroute"], options);

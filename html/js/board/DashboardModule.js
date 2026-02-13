@@ -203,7 +203,9 @@ export class DataTableModule extends DashboardModule {
 	 * Queues a new row for rendering. The row will be painted in the next
 	 * animation frame.
 	 *
-	 * @param {{event: EDDNEvent, cells: Array<string|Node|Function>}} row - An object containing the source event and an array of cell descriptors.
+	 * @param {object} row - An object containing the source event and an array of cell descriptors.
+	 * @param {EDDNEvent} row.event - The source EDDN event.
+	 * @param {(string | Node | (() => Node))[]} row.cells - Array of cell descriptors (strings, DOM nodes, or factory functions).
 	 */
 	_addRow(row) {
 		// add row to queue
@@ -335,7 +337,7 @@ export class DummyTableModule extends DataTableModule {
 	 * to any EDDN topics.
 	 *
 	 * @param {MessageRouter} router - Unused; passed as `null` to the parent.
-	 * @param {object} [options] - Configuration forwarded to {@link DataTableModule}.
+	 * @param {Record<string, any>} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
 	constructor(router, options) {
 		super(null, null, options);
@@ -346,7 +348,7 @@ export class DummyTableModule extends DataTableModule {
 /**
  * Safely invokes a cell callback, returning `undefined` on error.
  *
- * @param {Function} cb - The callback to execute.
+ * @param {() => Node} cb - The callback to execute.
  * @returns {Node|undefined} The result of the callback, or `undefined` if it threw.
  */
 function invoke(cb) {

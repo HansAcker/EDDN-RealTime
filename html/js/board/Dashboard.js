@@ -153,7 +153,7 @@ export class Dashboard {
 	 * Creates dashboard modules from an array of module descriptors and appends
 	 * them to the container.
 	 *
-	 * @param {Array<string|{name: string, options?: object}>} modules - Module descriptors. Each entry is either a module name string or an object with `name` and optional `options`.
+	 * @param {(string|{ name: string, options?: Record<string, any> })[]} modules - Module descriptors. Each entry is either a module name string or an object with `name` and optional `options`.
 	 */
 	fromArray(modules) {
 		this.#createInfoBox();
@@ -217,7 +217,7 @@ export class Dashboard {
 	 *
 	 * @param {HTMLElement} container - The outer HTML element.
 	 * @param {string} moduleName - The module name (used for template lookup).
-	 * @param {object} moduleOptions - Options forwarded to the module constructor.
+	 * @param {Record<string, any>} moduleOptions - Options forwarded to the module constructor.
 	 */
 	#createModule(container, moduleName, moduleOptions) {
 		const template = this.#templates.get(moduleName);

@@ -55,6 +55,12 @@ class ReconnectingWebSocket extends EventTarget {
 	 * @param {string|string[]} [protocols=[]] - Sub-protocols to request.
 	 * @param {object} [options={}] - Additional options.
 	 * @param {AbortSignal} [options.signal] - An AbortSignal that, when aborted, permanently closes the socket.
+	 * @param {number} [options.maxReconnectAttempts] - Maximum number of consecutive reconnection attempts.
+	 * @param {number} [options.baseReconnectInterval] - Initial reconnect delay in milliseconds.
+	 * @param {number} [options.maxReconnectInterval] - Upper bound for the reconnect delay in milliseconds.
+	 * @param {number} [options.reconnectDecay] - Exponential multiplier applied per retry.
+	 * @param {number} [options.jitterFactor] - Random jitter factor (0–1) applied to the delay.
+	 * @param {number} [options.connectionTimeout] - Milliseconds before a pending connection attempt is aborted.
 	 */
 	constructor(url, protocols = [], options = {}) {
 		super();
@@ -77,44 +83,14 @@ class ReconnectingWebSocket extends EventTarget {
 		this.#connect();
 	}
 
-	/**
-	 * The sub-protocol selected by the server, or an empty string.
-	 *
-	 * @returns {string}
-	 */
-	get protocol() {
-		return this.#socket?.protocol || "";
-	}
+	/** @type {string} - The sub-protocol selected by the server, or an empty string. */
+	get protocol() { return this.#socket?.protocol || ""; }
 
-	/**
-	 * The current connection state, mirroring the WebSocket `readyState` constants.
-	 *
-	 * @returns {number}
-	 */
-	get readyState() {
-		if (this.#socket) {
-			return this.#socket.readyState;
-		}
-		return this.#forcedClose ? ReconnectingWebSocket.CLOSED : ReconnectingWebSocket.CONNECTING;
-	}
+	/** @type {number} - The current connection state, mirroring the WebSocket `readyState` constants. */
+	get readyState() { return this.#socket?.readyState ?? (this.#forcedClose ? ReconnectingWebSocket.CLOSED : ReconnectingWebSocket.CONNECTING); }
 
-	/**
-	 * The WebSocket URL.
-	 *
-	 * @returns {string}
-	 */
-	get url() {
-		return this.#url;
-	}
-
-	/**
-	 * The binary data type for received messages.
-	 *
-	 * @returns {BinaryType}
-	 */
-	get binaryType() {
-		return this.#binaryType;
-	}
+	/** @type {string} - The WebSocket URL. */
+	get url() { return this.#url; }
 
 	/**
 	 * Sets the binary data type and propagates it to the underlying socket.
@@ -128,59 +104,50 @@ class ReconnectingWebSocket extends EventTarget {
 		}
 	}
 
+	/** @type {BinaryType} - The binary data type for received messages. */
+	get binaryType() { return this.#binaryType; }
+
 	/**
 	 * Sets the event handler for the 'open' event.
-	 * @param {Function|null} cb - The event handler function or null to remove.
+	 * @param {((event: Event) => void) | null} cb - The event handler function or null to remove.
 	 */
 	set onopen(cb) { this.#updateHandler("open", cb); }
 
-	/**
-	 * Gets the current event handler for the 'open' event.
-	 * @returns {Function|null} The event handler function or null if none.
-	 */
+	/** @type {((event: Event) => void) | null} - The current handler for the 'open' event or null if none. */
 	get onopen() { return this.#handlers.get("open") ?? null; }
 
 	/**
 	 * Sets the event handler for the 'message' event.
-	 * @param {Function|null} cb - The event handler function or null to remove.
+	 * @param {((event: MessageEvent) => void) | null} cb - The event handler function or null to remove.
 	 */
 	set onmessage(cb) { this.#updateHandler("message", cb); }
 
-	/**
-	 * Gets the current event handler for the 'message' event.
-	 * @returns {Function|null} The event handler function or null if none.
-	 */
+	/** @type {((event: MessageEvent) => void) | null} - The current handler for the 'message' event or null if none. */
 	get onmessage() { return this.#handlers.get("message") ?? null; }
 
 	/**
 	 * Sets the event handler for the 'close' event.
-	 * @param {Function|null} cb - The event handler function or null to remove.
+	 * @param {((event: CloseEvent) => void) | null} cb - The event handler function or null to remove.
 	 */
 	set onclose(cb) { this.#updateHandler("close", cb); }
 
-	/**
-	 * Gets the current event handler for the 'close' event.
-	 * @returns {Function|null} The event handler function or null if none.
-	 */
+	/** @type {((event: CloseEvent) => void) | null} - The current handler for the 'close' event or null if none. */
 	get onclose() { return this.#handlers.get("close") ?? null; }
 
 	/**
 	 * Sets the event handler for the 'error' event.
-	 * @param {Function|null} cb - The event handler function or null to remove.
+	 * @param {((event: Event) => void) | null} cb - The event handler function or null to remove.
 	 */
 	set onerror(cb) { this.#updateHandler("error", cb); }
 
-	/**
-	 * Gets the current event handler for the 'error' event.
-	 * @returns {Function|null} The event handler function or null if none.
-	 */
+	/** @type {((event: Event) => void) | null} - The current handler for the 'error' event or null if none. */
 	get onerror() { return this.#handlers.get("error") ?? null; }
 
 	/**
 	 * Replaces an `on<event>` handler, removing the previous one if set.
 	 *
 	 * @param {string} type - The event type (e.g. `"open"`, `"message"`).
-	 * @param {Function|null} newHandler - The new handler function, or `null` to remove.
+	 * @param {((event: Event) => void) | null} newHandler - The new handler function, or `null` to remove.
 	 */
 	#updateHandler(type, newHandler) {
 		const currentHandler = this.#handlers.get(type);

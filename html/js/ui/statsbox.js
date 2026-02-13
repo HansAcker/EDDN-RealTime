@@ -42,8 +42,8 @@ class StatsRow {
 	 *
 	 * @param {string} key - The label for this statistic.
 	 * @param {number|string} value - The initial value.
-	 * @param {Function} rowFactory - Factory that creates the `<tr>` element.
-	 * @param {Function} cellFactory - Factory that creates `<td>` elements.
+	 * @param {(...children: Node[]) => HTMLTableRowElement} rowFactory - Factory that creates the `<tr>` element.
+	 * @param {(textContent?: string) => HTMLTableCellElement} cellFactory - Factory that creates `<td>` elements.
 	 */
 	constructor(key, value, rowFactory, cellFactory) {
 		const kcell = cellFactory(key);
@@ -66,11 +66,7 @@ class StatsRow {
 		this.#cell.textContent = this.#value = newValue;
 	}
 
-	/**
-	 * Gets the current value of this statistic.
-	 *
-	 * @returns {number|string} The current value.
-	 */
+	/** @type {number|string} - The current value of this statistic. */
 	get _value() {
 		return this.#value;
 	}
@@ -94,9 +90,9 @@ class StatsBox {
 	 *
 	 * @param {HTMLTableSectionElement} tbody - The `<tbody>` element to render rows into.
 	 * @param {object} [options={}] - Configuration options.
-	 * @param {{[key: string]: number|string}} [options.values] - Initial key/value pairs.
-	 * @param {Function} [options.rowFactory] - Custom row factory.
-	 * @param {Function} [options.cellFactory] - Custom cell factory.
+	 * @param {Record<string, number|string>} [options.values] - Initial key/value pairs.
+	 * @param {(...children: Node[]) => HTMLTableRowElement} [options.rowFactory] - Custom row factory.
+	 * @param {(textContent?: string) => HTMLTableCellElement} [options.cellFactory] - Custom cell factory.
 	 */
 	constructor(tbody, options = {}) {
 		tbody.replaceChildren(); // clear existing table content

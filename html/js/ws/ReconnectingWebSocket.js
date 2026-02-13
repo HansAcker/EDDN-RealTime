@@ -87,7 +87,7 @@ class ReconnectingWebSocket extends EventTarget {
 	get protocol() { return this.#socket?.protocol || ""; }
 
 	/** @type {number} - The current connection state, mirroring the WebSocket `readyState` constants. */
-	get readyState() { return this.#socket?.readyState ?? this.#forcedClose ? ReconnectingWebSocket.CLOSED : ReconnectingWebSocket.CONNECTING; }
+	get readyState() { return this.#socket?.readyState ?? (this.#forcedClose ? ReconnectingWebSocket.CLOSED : ReconnectingWebSocket.CONNECTING); }
 
 	/** @type {string} - The WebSocket URL. */
 	get url() { return this.#url; }

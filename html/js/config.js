@@ -24,7 +24,7 @@ const language = navigator.language ?? "en";
  * @property {Record<string, any>} timeOptions - Options passed to {@link Intl.RelativeTimeFormat}.
  * @property {Intl.NumberFormat} _numberFormat - Shared number formatter instance.
  * @property {Intl.RelativeTimeFormat} _relTimeFormat - Shared relative-time formatter instance.
- * @property {(event: any) => boolean} [globalEventFilter] - Optional predicate applied to every incoming EDDN event.
+ * @property {(event: EDDNEvent) => boolean} [globalEventFilter] - Optional predicate applied to every incoming EDDN event.
  */
 export const Config = {
 	websocket_url: "wss://ws.eddn-realtime.space/eddn",

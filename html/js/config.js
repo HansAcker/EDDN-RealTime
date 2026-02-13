@@ -9,21 +9,9 @@ const language = navigator.language ?? "en";
 /**
  * Global configuration object for the EDDN RealTime dashboard.
  *
- * @type {Readonly<{
- *   websocket_url: string,
- *   idleTimeout: number,
- *   resetTimeout: number,
- *   oldAge: number,
- *   newAge: number,
- *   longJump: number,
- *   templateLocale: string,
- *   numberLocale: string,
- *   timeLocale: string,
- *   timeOptions: Record<string, any>,
- *   _numberFormat: Intl.NumberFormat,
- *   _relTimeFormat: Intl.RelativeTimeFormat,
- *   globalEventFilter?: (event: any) => boolean
- * }>}
+ * @type {Readonly<{websocket_url: string, idleTimeout: number, resetTimeout: number, oldAge: number, newAge: number, longJump: number,
+ *   templateLocale: string, numberLocale: string, timeLocale: string, timeOptions: Record<string, any>, globalEventFilter?: (event: any) => boolean,
+ *   _numberFormat: Intl.NumberFormat, _relTimeFormat: Intl.RelativeTimeFormat}>}
  * @property {string} websocket_url - WebSocket endpoint for the EDDN relay.
  * @property {number} idleTimeout - Milliseconds before the connection status changes to "idle".
  * @property {number} resetTimeout - Milliseconds before the watchdog resets the WebSocket connection.

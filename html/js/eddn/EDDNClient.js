@@ -48,7 +48,7 @@ export class EDDNClient extends EventTarget {
 	 * @param {object} [options={}] - Configuration options.
 	 * @param {string} [options.url] - WebSocket URL to connect to.
 	 * @param {number} [options.resetTimeout] - Idle timeout in ms before the watchdog reconnects.
-	 * @param {(event: any) => boolean} [options.filter] - Predicate applied to each {@link EDDNEvent}; returning `false` suppresses dispatch.
+	 * @param {(event: EDDNEvent) => boolean} [options.filter] - Predicate applied to each {@link EDDNEvent}; returning `false` suppresses dispatch.
 	 * @param {typeof WebSocket} [options.WebSocketClass] - WebSocket constructor to use (defaults to the global `WebSocket`).
 	 * @param {AbortSignal} [options.signal] - An AbortSignal that, when aborted, closes the connection.
 	 */

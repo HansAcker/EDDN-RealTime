@@ -205,7 +205,7 @@ export class DataTableModule extends DashboardModule {
 	 *
 	 * @param {object} row - An object containing the source event and an array of cell descriptors.
 	 * @param {EDDNEvent} row.event - The source EDDN event.
-	 * @param {Array<string|Node|(() => Node)>} row.cells - Array of cell descriptors (strings, DOM nodes, or factory functions).
+	 * @param {(string | Node | (() => Node))[]} row.cells - Array of cell descriptors (strings, DOM nodes, or factory functions).
 	 */
 	_addRow(row) {
 		// add row to queue

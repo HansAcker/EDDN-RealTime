@@ -52,6 +52,8 @@ import { EDDNEvent } from "#eddn/EDDNEvent.js";
  * WebSocket client that connects to an EDDN relay, parses incoming messages
  * into {@link EDDNEvent} instances, and re-dispatches them as DOM-style events.
  *
+ * Supports the explicit resource management protocol (`using`).
+ *
  * Emitted events:
  * - `open`          - the underlying WebSocket connection opened.
  * - `close`         - the underlying WebSocket connection closed.
@@ -68,24 +70,38 @@ import { EDDNEvent } from "#eddn/EDDNEvent.js";
  * @fires EDDNClient#event:eddn:error
  */
 export class EDDNClient extends EventTarget {
-	#WebSocketClass; // the WebSocket class prototype used to create a new connection, defaults to WebSocket
+	/** @type {typeof WebSocket} - The WebSocket class prototype used to create a new connection, defaults to WebSocket */
+	#WebSocketClass;
 
-	#abortController = null; // event handler decoupler
-	#textDecoder = null; // decodes bytes to string (binary frames)
+	/** @type {WebSocket|null} - The active WebSockcet instance */
 	#socket = null;
 
-	#lastEvent = null; // timestamp of last valid message from socket
+	/** @type {AbortController|null} - Internal socket event handler decoupler */
+	#abortController = null;
+
+	/** @type {TextDecoder|null} - Internal TextDecoder instance for binary frame conversion */
+	#textDecoder = null;
+
+	/** @type {number|null} - Timestamp of the last valid message received from the socket */
+	#lastEvent = null;
+
+	/** @type {ReturnType<typeof setTimeout>|null} - Watchdog timer handle */
 	#watchdogTimer = null;
 
+	/** @type {EDDNFilterPredicate} */
 	#filterFunction = () => true; // accept all messages
 
-	#protocol = []; // ["v2.ws.eddn-realtime.space", "v1.ws.eddn-realtime.space"]; // currently unused
+	/** @type {string[]} - The WebSocket protocol to select. Currently unused. Don't set unless the server supports it. */
+	#protocol = []; // ["v2.ws.eddn-realtime.space", "v1.ws.eddn-realtime.space"];
 
+	/** @type {string} - The WebSocket URL. */
 	url = "ws://127.0.0.1:8081";
 
-	resetTimeout = 0; // idle timeout (ms) before watchdog reconnects the socket, 0 to disable watchdog
+	/** @type {number} - Idle timeout in ms before the watchdog reconnects the sockets. 0 to disable watchdog */
+	resetTimeout = 0;
 
-	[Symbol.dispose] = () => this.close(); // support `using client = new EDDNClient()`
+	/** Closes the connection and releases resources. */
+	[Symbol.dispose] = () => { this.close(); };
 
 
 	/**

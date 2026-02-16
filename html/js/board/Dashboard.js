@@ -185,6 +185,7 @@ export class Dashboard {
 	 * Populates the internal template map keyed by `data-dashboard__module`.
 	 *
 	 * @returns {Promise<void>}
+	 * @throws {Error} on load errors
 	 */
 	async #loadTemplates() {
 		try {
@@ -218,6 +219,8 @@ export class Dashboard {
 	 * @param {HTMLElement} container - The outer HTML element.
 	 * @param {string} moduleName - The module name (used for template lookup).
 	 * @param {Record<string, any>} moduleOptions - Options forwarded to the module constructor.
+	 *
+	 * @throws {Error} if no template exists for `moduleName`
 	 */
 	#createModule(container, moduleName, moduleOptions) {
 		const template = this.#templates.get(moduleName);
@@ -246,6 +249,8 @@ export class Dashboard {
 	 * Creates the shared {@link InfoBox} instance (if not already provided)
 	 * and attaches a click handler to the container that shows the info box
 	 * for any clicked data row.
+	 *
+	 * @throws {Error} if no template exists for `InfoBox`
 	 */
 	#createInfoBox() {
 		if (this.#infoBox) {

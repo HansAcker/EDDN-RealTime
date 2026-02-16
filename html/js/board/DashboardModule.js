@@ -20,6 +20,8 @@ export class DashboardModule {
 	 *
 	 * @param {MessageRouter|null} router - The {@link MessageRouter} to subscribe to, or `null` for dummy modules.
 	 * @param {string|Iterable<string>} topics - Topic(s) to subscribe to (e.g. `"journal:fsdjump"`, `"*"`).
+	 *
+	 * @throws {Error} if `topics` is null-ish
 	 */
 	constructor(router, topics) {
 		// allow empty router for DummyModule
@@ -84,16 +86,18 @@ export class DataTableModule extends DashboardModule {
 	 * @param {number} [options.listLength] - Maximum number of visible rows.
 	 * @param {number} [options.cullFactor] - Multiplier of `listLength` for the render-queue overflow threshold.
 	 * @param {HTMLTemplateElement} [options.template] - The HTML `<template>` element for this module's table.
+	 *
+	 * @throws {TypeError} on invalid options
 	 */
 	constructor(router, topics, options = {}) {
 		const { listLength, cullFactor, template } = options;
 
 		if (listLength && !Number.isInteger(listLength)) {
-			throw new Error("listLength must be an integer");
+			throw new TypeError("listLength must be an integer");
 		}
 
 		if (cullFactor && isNaN(parseFloat(cullFactor))) {
-			throw new Error("cullFactor must be a number");
+			throw new TypeError("cullFactor must be a number");
 		}
 
 		super(router, topics);

@@ -35,6 +35,8 @@ export class MessageRouter {
 	 * @param {string|Iterable<string>} [topics] - A single topic string, an iterable of strings, or undefined for wildcard.
 	 * @param {object} [options={}] - Optional configuration.
 	 * @param {AbortSignal} [options.signal] - An AbortSignal that, when aborted, unregisters the callback from the specified topics.
+	 *
+	 * @throws {TypeError} if `topics` is defined but not iterable
 	 */
 	register(callback, topics, options = {}) {
 		const { signal } = options;
@@ -85,6 +87,8 @@ export class MessageRouter {
 	 * Unregisters a callback from specific topics.
 	 * @param {(event: EDDNEvent) => void} callback - The callback function to remove.
 	 * @param {string|Iterable<string>} [topics] - The specific topic(s) to unregister from. If omitted, unregisters from all list.
+	 *
+	 * @throws {TypeError} if `topics` is defined but not iterable
 	 */
 	unregister(callback, topics) {
 		if (!topics) {

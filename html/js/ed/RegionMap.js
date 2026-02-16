@@ -269,6 +269,8 @@ const bitMask = (field, bits, shift = 0n) => (field >> shift) & (~(~0n << bits))
  *
  * @param {string} url - The URL to fetch the binary region map data from.
  * @returns {Promise<void>}
+ *
+ * @throws {Error} on load errors
  */
 async function loadMap(url) {
 	try {

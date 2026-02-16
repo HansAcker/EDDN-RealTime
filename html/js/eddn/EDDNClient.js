@@ -113,6 +113,8 @@ export class EDDNClient extends EventTarget {
 	 * @param {EDDNFilterPredicate} [options.filter] - Predicate applied to each {@link EDDNEvent}; returning `false` suppresses dispatch.
 	 * @param {typeof WebSocket} [options.WebSocketClass] - WebSocket constructor to use (defaults to the global `WebSocket`).
 	 * @param {AbortSignal} [options.signal] - An AbortSignal that, when aborted, closes the connection.
+	 *
+	 * @throws {TypeError} on invalid options
 	 */
 	constructor(options = {}) {
 		super();
@@ -126,7 +128,7 @@ export class EDDNClient extends EventTarget {
 
 		if (resetTimeout) {
 			if (!Number.isInteger(resetTimeout)) {
-				throw new Error("resetTimeout must be an integer");
+				throw new TypeError("resetTimeout must be an integer");
 			}
 
 			this.resetTimeout = resetTimeout;
@@ -134,7 +136,7 @@ export class EDDNClient extends EventTarget {
 
 		if (filter) {
 			if (typeof filter !== "function") {
-				throw new Error("filter must be a function");
+				throw new TypeError("filter must be a function");
 			}
 
 			this.#filterFunction = filter;

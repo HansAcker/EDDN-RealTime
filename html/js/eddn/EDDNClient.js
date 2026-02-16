@@ -9,6 +9,49 @@ import { EDDNEvent } from "#eddn/EDDNEvent.js";
 
 
 /**
+ * Dispatched when a valid EDDN message is received and passes the filter.
+ * @event EDDNClient#event:eddn:message
+ * @type {EDDNEvent}
+ */
+
+/**
+ * Dispatched when a message is received but fails parsing or validation.
+ * @event EDDNClient#event:eddn:error
+ * @type {ErrorEvent}
+ * @property {string} message - A description of the parsing/validation error.
+ * @property {Error} error - The underlying Error object.
+ */
+
+/**
+ * Dispatched when the underlying WebSocket opened.
+ * @event EDDNClient#open
+ * @type {Event}
+ *
+ */
+
+/**
+ * Dispatched when the underlying WebSocket closed.
+ * @event EDDNClient#close
+ * @type {CloseEvent}
+ *
+ */
+
+/**
+ * Dispatched when the underlying WebSocket encounters an error.
+ * @event EDDNClient#error
+ * @type {Event}
+ *
+ */
+
+/**
+ * Filter predicate for EDDN messages.
+ * @callback EDDNFilterPredicate
+ * @param {EDDNEvent} event - The event to validate.
+ * @returns {boolean} True if the event should be dispatched.
+ */
+
+
+/**
  * WebSocket client that connects to an EDDN relay, parses incoming messages
  * into {@link EDDNEvent} instances, and re-dispatches them as DOM-style events.
  *
@@ -48,7 +91,7 @@ export class EDDNClient extends EventTarget {
 	 * @param {object} [options={}] - Configuration options.
 	 * @param {string} [options.url] - WebSocket URL to connect to.
 	 * @param {number} [options.resetTimeout] - Idle timeout in ms before the watchdog reconnects.
-	 * @param {(event: EDDNEvent) => boolean} [options.filter] - Predicate applied to each {@link EDDNEvent}; returning `false` suppresses dispatch.
+	 * @param {EDDNFilterPredicate} [options.filter] - Predicate applied to each {@link EDDNEvent}; returning `false` suppresses dispatch.
 	 * @param {typeof WebSocket} [options.WebSocketClass] - WebSocket constructor to use (defaults to the global `WebSocket`).
 	 * @param {AbortSignal} [options.signal] - An AbortSignal that, when aborted, closes the connection.
 	 */
@@ -87,6 +130,12 @@ export class EDDNClient extends EventTarget {
 	/**
 	 * Opens a new WebSocket connection. If a connection is already open it is
 	 * closed first.
+	 *
+	 * @fires EDDNClient#open
+	 * @fires EDDNClient#close
+	 * @fires EDDNClient#error
+	 * @fires EDDNClient#event:eddn:message
+	 * @fires EDDNClient#event:eddn:error
 	 */
 	connect() {
 		// close and clear old socket on reconnect
@@ -111,6 +160,8 @@ export class EDDNClient extends EventTarget {
 	/**
 	 * Closes the current WebSocket connection, stops the watchdog timer,
 	 * detaches all event handlers, and dispatches a synthetic `close` event.
+	 *
+	 * @fires EDDNClient#close
 	 */
 	close() {
 		console.debug("EDDNClient: closing");
@@ -142,6 +193,8 @@ export class EDDNClient extends EventTarget {
 	 * forwarding it to {@link EDDNClient#handleEDDNMessage}.
 	 *
 	 * @param {MessageEvent} originalEvent - The WebSocket message event.
+	 *
+	 * @fires EDDNClient#event:eddn:error
 	 */
 	#handleMessage(originalEvent) {
 		if (this.#socket !== originalEvent.target) {
@@ -182,6 +235,9 @@ export class EDDNClient extends EventTarget {
 	 * @param {string} data.$schemaRef - The schema reference URL.
 	 * @param {Record<string, any>} data.header - The EDDN header.
 	 * @param {Record<string, any>} data.message - The actual game data.
+	 *
+	 * @fires EDDNClient#event:eddn:message
+	 * @fires EDDNClient#event:eddn:error
 	 */
 	#handleEDDNMessage(data) {
 		// TODO: if validation fails, pass on the received data as a field on a custom EDDNErrorEvent
@@ -224,6 +280,8 @@ export class EDDNClient extends EventTarget {
 	 * an `open` event to listeners.
 	 *
 	 * @param {Event} originalEvent - The WebSocket open event.
+	 *
+	 * @fires EDDNClient#open
 	 */
 	#handleOpen(originalEvent) {
 		// TODO: an unexpected open should not happen. close()?
@@ -249,6 +307,8 @@ export class EDDNClient extends EventTarget {
 	 * `close` event to listeners.
 	 *
 	 * @param {CloseEvent} originalEvent - The WebSocket close event.
+	 *
+	 * @fires EDDNClient#close
 	 */
 	#handleClose(originalEvent) {
 		if (this.#socket !== originalEvent.target) {
@@ -282,6 +342,8 @@ export class EDDNClient extends EventTarget {
 	 * Handles the WebSocket `error` event and dispatches an `error` event to listeners.
 	 *
 	 * @param {Event} originalEvent - The WebSocket error event.
+	 *
+	 * @fires EDDNClient#error
 	 */
 	#handleError(originalEvent) {
 		if (this.#socket !== originalEvent.target) {

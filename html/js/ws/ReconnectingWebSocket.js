@@ -5,6 +5,43 @@
  * as the native {@link WebSocket} class while extending {@link EventTarget}.
  */
 
+
+/**
+ * Dispatched when the underlying WebSocket opened.
+ * @event ReconnectingWebSocket#open
+ * @type {Event}
+ *
+ */
+
+/**
+ * Dispatched when the underlying WebSocket closed.
+ * @event ReconnectingWebSocket#close
+ * @type {CloseEvent}
+ *
+ */
+
+/**
+ * Dispatched when the underlying WebSocket encounters an error.
+ * @event ReconnectingWebSocket#error
+ * @type {Event}
+ *
+ */
+
+/**
+ * Dispatched when the underlying WebSocket received a message.
+ * @event ReconnectingWebSocket#message
+ * @type {MessageEvent}
+ *
+ */
+
+/**
+ * Dispatched after `maxReconnectAttempts` unsuccessful connect attempts.
+ * @event ReconnectingWebSocket#maxreconnects
+ * @type {Event}
+ *
+ */
+
+
 /**
  * A WebSocket wrapper that automatically reconnects on connection failures
  * using exponential back-off with jitter. Implements the same interface as
@@ -61,6 +98,12 @@ class ReconnectingWebSocket extends EventTarget {
 	 * @param {number} [options.reconnectDecay] - Exponential multiplier applied per retry.
 	 * @param {number} [options.jitterFactor] - Random jitter factor (0–1) applied to the delay.
 	 * @param {number} [options.connectionTimeout] - Milliseconds before a pending connection attempt is aborted.
+	 *
+	 * @fires ReconnectingWebSocket#open
+	 * @fires ReconnectingWebSocket#close
+	 * @fires ReconnectingWebSocket#error
+	 * @fires ReconnectingWebSocket#message
+	 * @fires ReconnectingWebSocket#maxreconnects
 	 */
 	constructor(url, protocols = [], options = {}) {
 		super();
@@ -214,6 +257,8 @@ class ReconnectingWebSocket extends EventTarget {
 	 *
 	 * @param {number} [code=1000] - The WebSocket close code.
 	 * @param {string} [reason] - A human-readable close reason.
+	 *
+	 * @fires ReconnectingWebSocket#close
 	 */
 	close(code = 1000, reason) {
 		this.#forcedClose = true;
@@ -239,6 +284,8 @@ class ReconnectingWebSocket extends EventTarget {
 	/**
 	 * Creates a new native WebSocket connection unless one is already pending
 	 * or the socket has been permanently closed.
+	 *
+	 * @fires ReconnectingWebSocket#error
 	 */
 	#connect() {
 		if (this.#forcedClose) return;
@@ -301,6 +348,8 @@ class ReconnectingWebSocket extends EventTarget {
 	 * Handles the underlying WebSocket `open` event.
 	 *
 	 * @param {Event} event - The open event.
+	 *
+	 * @fires ReconnectingWebSocket#open
 	 */
 	#handleOpen(event) {
 		if (event.target !== this.#socket) return;
@@ -313,6 +362,8 @@ class ReconnectingWebSocket extends EventTarget {
 	 * Handles the underlying WebSocket `message` event by re-dispatching it.
 	 *
 	 * @param {MessageEvent} event - The message event.
+	 *
+	 * @fires ReconnectingWebSocket#message
 	 */
 	#handleMessage(event) {
 		if (event.target !== this.#socket) return;
@@ -330,6 +381,8 @@ class ReconnectingWebSocket extends EventTarget {
 	 * schedules a reconnection unless the close was forced.
 	 *
 	 * @param {CloseEvent} event - The close event.
+	 *
+	 * @fires ReconnectingWebSocket#close
 	 */
 	#handleClose(event) {
 		if (event.target !== this.#socket) return;
@@ -349,6 +402,8 @@ class ReconnectingWebSocket extends EventTarget {
 	 * Handles the underlying WebSocket `error` event by re-dispatching it.
 	 *
 	 * @param {Event} event - The error event.
+	 *
+	 * @fires ReconnectingWebSocket#error
 	 */
 	#handleError(event) {
 		if (event.target !== this.#socket) return;
@@ -358,6 +413,8 @@ class ReconnectingWebSocket extends EventTarget {
 	/**
 	 * Schedules a reconnection attempt with exponential back-off and jitter.
 	 * Dispatches a `maxreconnects` event if the retry limit has been reached.
+	 *
+	 * @fires ReconnectingWebSocket#maxreconnects
 	 */
 	#handleConnectionFailure() {
 		if (this.#retryCount >= this.maxReconnectAttempts) {

@@ -73,7 +73,7 @@ export class EDDNClient extends EventTarget {
 	/** @type {typeof WebSocket} - The WebSocket class prototype used to create a new connection, defaults to WebSocket */
 	#WebSocketClass;
 
-	/** @type {WebSocket|null} - The active WebSockcet instance */
+	/** @type {WebSocket|null} - The active WebSocket instance */
 	#socket = null;
 
 	/** @type {AbortController|null} - Internal socket event handler decoupler */

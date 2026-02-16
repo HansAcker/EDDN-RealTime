@@ -10,35 +10,30 @@
  * Dispatched when the underlying WebSocket opened.
  * @event ReconnectingWebSocket#event:open
  * @type {Event}
- *
  */
 
 /**
  * Dispatched when the underlying WebSocket closed.
  * @event ReconnectingWebSocket#event:close
  * @type {CloseEvent}
- *
  */
 
 /**
  * Dispatched when the underlying WebSocket encounters an error.
  * @event ReconnectingWebSocket#event:error
  * @type {Event}
- *
  */
 
 /**
  * Dispatched when the underlying WebSocket received a message.
  * @event ReconnectingWebSocket#event:message
  * @type {MessageEvent}
- *
  */
 
 /**
  * Dispatched after `maxReconnectAttempts` unsuccessful connect attempts.
  * @event ReconnectingWebSocket#event:maxreconnects
  * @type {Event}
- *
  */
 
 

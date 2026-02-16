@@ -26,21 +26,18 @@ import { EDDNEvent } from "#eddn/EDDNEvent.js";
  * Dispatched when the underlying WebSocket opened.
  * @event EDDNClient#event:open
  * @type {Event}
- *
  */
 
 /**
  * Dispatched when the underlying WebSocket closed.
  * @event EDDNClient#event:close
  * @type {CloseEvent}
- *
  */
 
 /**
  * Dispatched when the underlying WebSocket encounters an error.
  * @event EDDNClient#event:error
  * @type {Event}
- *
  */
 
 /**

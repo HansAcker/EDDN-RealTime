@@ -42,6 +42,8 @@
  * using exponential back-off with jitter. Implements the same interface as
  * the native {@link WebSocket} class while extending {@link EventTarget}.
  *
+ * Supports the explicit resource management protocol (`using`).
+ *
  * @extends EventTarget
  *
  * @fires ReconnectingWebSocket#event:open
@@ -51,9 +53,13 @@
  * @fires ReconnectingWebSocket#event:maxreconnects
  */
 export class ReconnectingWebSocket extends EventTarget {
+	/** @type {number} */
 	static CONNECTING = WebSocket.CONNECTING;
+	/** @type {number} */
 	static OPEN = WebSocket.OPEN;
+	/** @type {number} */
 	static CLOSING = WebSocket.CLOSING;
+	/** @type {number} */
 	static CLOSED = WebSocket.CLOSED;
 
 	/** @type {number} Maximum number of consecutive reconnection attempts. */
@@ -69,22 +75,34 @@ export class ReconnectingWebSocket extends EventTarget {
 	/** @type {number} Milliseconds before a pending connection attempt is aborted. */
 	connectionTimeout = 4000;
 
-	// automatically close the socket when used with `using`
-	[Symbol.dispose] = () => this.close();
+	/** Closes the connection and releases resources. */
+	[Symbol.dispose] = () => { this.close(); };
 
+	/** @type {string} */
 	#url;
+	/** @type {string|string[]} */
 	#protocols;
+	/** @type {WebSocket|null} */
 	#socket = null;
+	/** @type {number} */
 	#retryCount = 0;
+	/** @type {boolean} */
 	#forcedClose = false;
+	/** @type {ReturnType<typeof setTimeout>|null} */
 	#reconnectTimer = null;
+	/** @type {ReturnType<typeof setTimeout>|null} */
 	#connectionTimeoutTimer = null;
+	/** @type {BinaryType} */
 	#binaryType = "blob";
 
+	/** @type {Map<string, Function>} */
 	#handlers = new Map();
 
+	/** @type {() => void} */
 	#onOnlineBound;
+	/** @type {() => void} */
 	#onOfflineBound;
+
 
 	/**
 	 * Creates a new ReconnectingWebSocket and immediately begins connecting.

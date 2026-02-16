@@ -24,21 +24,21 @@ import { EDDNEvent } from "#eddn/EDDNEvent.js";
 
 /**
  * Dispatched when the underlying WebSocket opened.
- * @event EDDNClient#open
+ * @event EDDNClient#event:open
  * @type {Event}
  *
  */
 
 /**
  * Dispatched when the underlying WebSocket closed.
- * @event EDDNClient#close
+ * @event EDDNClient#event:close
  * @type {CloseEvent}
  *
  */
 
 /**
  * Dispatched when the underlying WebSocket encounters an error.
- * @event EDDNClient#error
+ * @event EDDNClient#event:error
  * @type {Event}
  *
  */
@@ -64,9 +64,9 @@ import { EDDNEvent } from "#eddn/EDDNEvent.js";
  *
  * @extends EventTarget
  *
- * @fires EDDNClient#open
- * @fires EDDNClient#close
- * @fires EDDNClient#error
+ * @fires EDDNClient#event:open
+ * @fires EDDNClient#event:close
+ * @fires EDDNClient#event:error
  * @fires EDDNClient#event:eddn:message
  * @fires EDDNClient#event:eddn:error
  */
@@ -161,7 +161,7 @@ export class EDDNClient extends EventTarget {
 	 * Closes the current WebSocket connection, stops the watchdog timer,
 	 * detaches all event handlers, and dispatches a synthetic `close` event.
 	 *
-	 * @fires EDDNClient#close
+	 * @fires EDDNClient#event:close
 	 */
 	close() {
 		console.debug("EDDNClient: closing");
@@ -281,7 +281,7 @@ export class EDDNClient extends EventTarget {
 	 *
 	 * @param {Event} originalEvent - The WebSocket open event.
 	 *
-	 * @fires EDDNClient#open
+	 * @fires EDDNClient#event:open
 	 */
 	#handleOpen(originalEvent) {
 		// TODO: an unexpected open should not happen. close()?
@@ -308,7 +308,7 @@ export class EDDNClient extends EventTarget {
 	 *
 	 * @param {CloseEvent} originalEvent - The WebSocket close event.
 	 *
-	 * @fires EDDNClient#close
+	 * @fires EDDNClient#event:close
 	 */
 	#handleClose(originalEvent) {
 		if (this.#socket !== originalEvent.target) {
@@ -343,7 +343,7 @@ export class EDDNClient extends EventTarget {
 	 *
 	 * @param {Event} originalEvent - The WebSocket error event.
 	 *
-	 * @fires EDDNClient#error
+	 * @fires EDDNClient#event:error
 	 */
 	#handleError(originalEvent) {
 		if (this.#socket !== originalEvent.target) {

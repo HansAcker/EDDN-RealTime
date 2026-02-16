@@ -8,35 +8,35 @@
 
 /**
  * Dispatched when the underlying WebSocket opened.
- * @event ReconnectingWebSocket#open
+ * @event ReconnectingWebSocket#event:open
  * @type {Event}
  *
  */
 
 /**
  * Dispatched when the underlying WebSocket closed.
- * @event ReconnectingWebSocket#close
+ * @event ReconnectingWebSocket#event:close
  * @type {CloseEvent}
  *
  */
 
 /**
  * Dispatched when the underlying WebSocket encounters an error.
- * @event ReconnectingWebSocket#error
+ * @event ReconnectingWebSocket#event:error
  * @type {Event}
  *
  */
 
 /**
  * Dispatched when the underlying WebSocket received a message.
- * @event ReconnectingWebSocket#message
+ * @event ReconnectingWebSocket#event:message
  * @type {MessageEvent}
  *
  */
 
 /**
  * Dispatched after `maxReconnectAttempts` unsuccessful connect attempts.
- * @event ReconnectingWebSocket#maxreconnects
+ * @event ReconnectingWebSocket#event:maxreconnects
  * @type {Event}
  *
  */
@@ -49,13 +49,13 @@
  *
  * @extends EventTarget
  *
- * @fires ReconnectingWebSocket#open
- * @fires ReconnectingWebSocket#close
- * @fires ReconnectingWebSocket#error
- * @fires ReconnectingWebSocket#message
- * @fires ReconnectingWebSocket#maxreconnects
+ * @fires ReconnectingWebSocket#event:open
+ * @fires ReconnectingWebSocket#event:close
+ * @fires ReconnectingWebSocket#event:error
+ * @fires ReconnectingWebSocket#event:message
+ * @fires ReconnectingWebSocket#event:maxreconnects
  */
-class ReconnectingWebSocket extends EventTarget {
+export class ReconnectingWebSocket extends EventTarget {
 	static CONNECTING = WebSocket.CONNECTING;
 	static OPEN = WebSocket.OPEN;
 	static CLOSING = WebSocket.CLOSING;
@@ -258,7 +258,7 @@ class ReconnectingWebSocket extends EventTarget {
 	 * @param {number} [code=1000] - The WebSocket close code.
 	 * @param {string} [reason] - A human-readable close reason.
 	 *
-	 * @fires ReconnectingWebSocket#close
+	 * @fires ReconnectingWebSocket#event:close
 	 */
 	close(code = 1000, reason) {
 		this.#forcedClose = true;
@@ -285,7 +285,7 @@ class ReconnectingWebSocket extends EventTarget {
 	 * Creates a new native WebSocket connection unless one is already pending
 	 * or the socket has been permanently closed.
 	 *
-	 * @fires ReconnectingWebSocket#error
+	 * @fires ReconnectingWebSocket#event:error
 	 */
 	#connect() {
 		if (this.#forcedClose) return;
@@ -349,7 +349,7 @@ class ReconnectingWebSocket extends EventTarget {
 	 *
 	 * @param {Event} event - The open event.
 	 *
-	 * @fires ReconnectingWebSocket#open
+	 * @fires ReconnectingWebSocket#event:open
 	 */
 	#handleOpen(event) {
 		if (event.target !== this.#socket) return;
@@ -363,7 +363,7 @@ class ReconnectingWebSocket extends EventTarget {
 	 *
 	 * @param {MessageEvent} event - The message event.
 	 *
-	 * @fires ReconnectingWebSocket#message
+	 * @fires ReconnectingWebSocket#event:message
 	 */
 	#handleMessage(event) {
 		if (event.target !== this.#socket) return;
@@ -382,7 +382,7 @@ class ReconnectingWebSocket extends EventTarget {
 	 *
 	 * @param {CloseEvent} event - The close event.
 	 *
-	 * @fires ReconnectingWebSocket#close
+	 * @fires ReconnectingWebSocket#event:close
 	 */
 	#handleClose(event) {
 		if (event.target !== this.#socket) return;
@@ -403,7 +403,7 @@ class ReconnectingWebSocket extends EventTarget {
 	 *
 	 * @param {Event} event - The error event.
 	 *
-	 * @fires ReconnectingWebSocket#error
+	 * @fires ReconnectingWebSocket#event:error
 	 */
 	#handleError(event) {
 		if (event.target !== this.#socket) return;
@@ -414,7 +414,7 @@ class ReconnectingWebSocket extends EventTarget {
 	 * Schedules a reconnection attempt with exponential back-off and jitter.
 	 * Dispatches a `maxreconnects` event if the retry limit has been reached.
 	 *
-	 * @fires ReconnectingWebSocket#maxreconnects
+	 * @fires ReconnectingWebSocket#event:maxreconnects
 	 */
 	#handleConnectionFailure() {
 		if (this.#retryCount >= this.maxReconnectAttempts) {
@@ -462,4 +462,5 @@ class ReconnectingWebSocket extends EventTarget {
 	}
 }
 
-export { ReconnectingWebSocket };
+
+export default ReconnectingWebSocket;

@@ -48,6 +48,12 @@
  * the native {@link WebSocket} class while extending {@link EventTarget}.
  *
  * @extends EventTarget
+ *
+ * @fires ReconnectingWebSocket#open
+ * @fires ReconnectingWebSocket#close
+ * @fires ReconnectingWebSocket#error
+ * @fires ReconnectingWebSocket#message
+ * @fires ReconnectingWebSocket#maxreconnects
  */
 class ReconnectingWebSocket extends EventTarget {
 	static CONNECTING = WebSocket.CONNECTING;
@@ -98,12 +104,6 @@ class ReconnectingWebSocket extends EventTarget {
 	 * @param {number} [options.reconnectDecay] - Exponential multiplier applied per retry.
 	 * @param {number} [options.jitterFactor] - Random jitter factor (0–1) applied to the delay.
 	 * @param {number} [options.connectionTimeout] - Milliseconds before a pending connection attempt is aborted.
-	 *
-	 * @fires ReconnectingWebSocket#open
-	 * @fires ReconnectingWebSocket#close
-	 * @fires ReconnectingWebSocket#error
-	 * @fires ReconnectingWebSocket#message
-	 * @fires ReconnectingWebSocket#maxreconnects
 	 */
 	constructor(url, protocols = [], options = {}) {
 		super();

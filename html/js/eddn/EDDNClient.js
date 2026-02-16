@@ -63,6 +63,12 @@ import { EDDNEvent } from "#eddn/EDDNEvent.js";
  * - `eddn:error`    - an EDDN message could not be parsed or validated.
  *
  * @extends EventTarget
+ *
+ * @fires EDDNClient#open
+ * @fires EDDNClient#close
+ * @fires EDDNClient#error
+ * @fires EDDNClient#event:eddn:message
+ * @fires EDDNClient#event:eddn:error
  */
 export class EDDNClient extends EventTarget {
 	#WebSocketClass; // the WebSocket class prototype used to create a new connection, defaults to WebSocket
@@ -130,12 +136,6 @@ export class EDDNClient extends EventTarget {
 	/**
 	 * Opens a new WebSocket connection. If a connection is already open it is
 	 * closed first.
-	 *
-	 * @fires EDDNClient#open
-	 * @fires EDDNClient#close
-	 * @fires EDDNClient#error
-	 * @fires EDDNClient#event:eddn:message
-	 * @fires EDDNClient#event:eddn:error
 	 */
 	connect() {
 		// close and clear old socket on reconnect

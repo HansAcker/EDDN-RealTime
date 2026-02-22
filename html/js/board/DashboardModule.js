@@ -325,7 +325,7 @@ export class DataTableModule extends DashboardModule {
 	 *
 	 * @param {EDDNEvent} event - The source EDDN event.
 	 * @param {(string | HTMLTableCellElement | (() => string|HTMLTableCellElement))[]|(() => ... )} cells - Array of cell descriptors (strings, DOM nodes, or factory functions) or callback.
-	 * @param {number} _depth - recursion depth counter.
+	 * @param {number} [_depth=0] - recursion depth counter.
 	 * @returns {HTMLTableRowElement}
 	 * @throws {Error}
 	 * @throws {TypeError}
@@ -358,7 +358,7 @@ export class DataTableModule extends DashboardModule {
 	 * Resolve a cell queue entry.
 	 *
 	 * @param {string | HTMLTableCellElement | (() => string|HTMLTableCellElement)} cell - Cell text content, prepared Node or callback.
-	 * @param {number} _depth - recursion depth counter.
+	 * @param {number} [_depth=0] - recursion depth counter.
 	 * @returns {HTMLTableCellElement}
 	 * @throws {Error}
 	 */

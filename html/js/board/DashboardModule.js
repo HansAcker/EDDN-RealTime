@@ -274,11 +274,7 @@ export class DataTableModule extends DashboardModule {
 			const newRow = this._makeRow(event);
 
 			for (const cell of cells) {
-				newRow.append(
-					(cell instanceof Node) ? cell : // DOM element created in handler
-					(typeof cell === "function") ? invoke(cell) ?? this._makeCell() : // callback into module
-					this._makeCell(cell) // text string
-				);
+				newRow.append(this.#resolveCell(cell));
 			}
 
 			// store event data reference within node namespace
@@ -325,6 +321,29 @@ export class DataTableModule extends DashboardModule {
 		}
 
 		return 0;
+	}
+
+
+	/**
+	 * Resolve a cell queue entry
+	 *
+	 * @param {Node|(() => Node|string)|string} cell - The cell.
+	 * @param {number} _depth - recursion depth counter.
+	 * @returns {Node}
+	 */
+	#resolveCell(cell, _depth = 0) {
+		// TODO: rethink arbitrary limit - no callback returns a callback, yet
+		if (_depth >= 10) {
+			throw new Error("resolveCell(): max recursion depth exceeded");
+		}
+
+		if (cell instanceof Node) {
+			return cell; // DOM element created in handler
+		} else if (typeof cell === "function") {
+			return this.#resolveCell(invoke(cell), _depth+1); // callback into module
+		} else {
+			return this._makeCell(cell); // text string-able
+		}
 	}
 }
 

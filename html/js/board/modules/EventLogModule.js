@@ -67,11 +67,11 @@ const PREFIX_SCHEMAREF_EDDN = "https://eddn.edcd.io/schemas/";
 
 // time rounding units in seconds
 const time_units = Object.freeze([
-	{ unit: 'year', seconds: 31536000 },
-	{ unit: 'month', seconds: 2592000 },
-	{ unit: 'day', seconds: 86400 },
-	{ unit: 'hour', seconds: 3600 },
-	{ unit: 'minute', seconds: 60 }
+	Object.freeze({ unit: "year", seconds: 31536000 }),
+	Object.freeze({ unit: "month", seconds: 2592000 }),
+	Object.freeze({ unit: "day", seconds: 86400 }),
+	Object.freeze({ unit: "hour", seconds: 3600 }),
+	Object.freeze({ unit: "minute", seconds: 60 })
 ]);
 
 /**

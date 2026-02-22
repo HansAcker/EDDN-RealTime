@@ -42,7 +42,7 @@ export class EventLogModule extends DataTableModule {
 			event.StarSystem,
 			event.Region.name,
 			`${event.header.gameversion ?? ""}${event.header.gamebuild ? ` - ${event.header.gamebuild}` : ""}`,
-			event.$schemaRef.replace(RX_SCHEMAREF_EDDN, "")
+			event.$schemaRef.startsWith(PREFIX_SCHEMAREF_EDDN) ? event.$schemaRef.slice(PREFIX_SCHEMAREF_EDDN.length) : event.$schemaRef
 		]});
 	}
 
@@ -62,7 +62,7 @@ export class EventLogModule extends DataTableModule {
 }
 
 
-const RX_SCHEMAREF_EDDN = /^https:\/\/eddn\.edcd\.io\/schemas\//;
+const PREFIX_SCHEMAREF_EDDN = "https://eddn.edcd.io/schemas/";
 
 
 // time rounding units in seconds

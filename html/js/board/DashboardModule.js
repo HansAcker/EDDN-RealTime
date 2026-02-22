@@ -264,18 +264,14 @@ export class DataTableModule extends DashboardModule {
 		for (const { event, cells } of queue) {
 
 			// TODO: check that `event instanceof EDDNEvent`?
-			if (!event || !Array.isArray(cells)) {
+			if (!event || !(Array.isArray(cells) || typeof cells === "function")) {
 				console.warn("DataTableModule: missing or invalid properties in render queue item");
 				dropCount && dropCount--;
 				continue;
 			}
 
-			// TODO: support full row/rowFactory in queue?
-			const newRow = this._makeRow(event);
-
-			for (const cell of cells) {
-				newRow.append(this.#resolveCell(cell));
-			}
+			// create full row from elements or callbacks
+			const newRow = this.#resolveRow(event, cells);
 
 			// store event data reference within node namespace
 			newRow[DataTableModule.DATA_KEY] = event.data;
@@ -325,25 +321,62 @@ export class DataTableModule extends DashboardModule {
 
 
 	/**
-	 * Resolve a cell queue entry
+	 * Resolve a render queue entry.
 	 *
-	 * @param {Node|(() => Node|string)|string} cell - The cell.
+	 * @param {EDDNEvent} event - The source EDDN event.
+	 * @param {(string | HTMLTableCellElement | (() => string|HTMLTableCellElement))[]|(() => ... )} cells - Array of cell descriptors (strings, DOM nodes, or factory functions) or callback.
 	 * @param {number} _depth - recursion depth counter.
-	 * @returns {Node}
+	 * @returns {HTMLTableRowElement}
+	 * @throws {Error}
+	 * @throws {TypeError}
+	 */
+	#resolveRow(event, cells, _depth = 0) {
+		// TODO: rethink arbitrary limit - no callback returns a callback, yet
+		if (_depth >= 10) {
+			throw new Error("max recursion depth exceeded");
+		}
+
+		if (typeof cells === "function") {
+			return this.#resolveRow(event, invoke(cells), _depth+1);
+		}
+
+		if (Array.isArray(cells)) {
+			const newRow = this._makeRow(event);
+
+			for (const cell of cells) {
+				newRow.append(this.#resolveCell(cell));
+			}
+
+			return newRow;
+		}
+
+		throw new TypeError(`cells must be Array or callback: ${typeof cells}`);
+	}
+
+
+	/**
+	 * Resolve a cell queue entry.
+	 *
+	 * @param {string | HTMLTableCellElement | (() => string|HTMLTableCellElement)} cell - Cell text content, prepared Node or callback.
+	 * @param {number} _depth - recursion depth counter.
+	 * @returns {HTMLTableCellElement}
+	 * @throws {Error}
 	 */
 	#resolveCell(cell, _depth = 0) {
 		// TODO: rethink arbitrary limit - no callback returns a callback, yet
 		if (_depth >= 10) {
-			throw new Error("resolveCell(): max recursion depth exceeded");
+			throw new Error("max recursion depth exceeded");
 		}
 
 		if (cell instanceof Node) {
 			return cell; // DOM element created in handler
-		} else if (typeof cell === "function") {
-			return this.#resolveCell(invoke(cell), _depth+1); // callback into module
-		} else {
-			return this._makeCell(cell); // text string-able
 		}
+
+		if (typeof cell === "function") {
+			return this.#resolveCell(invoke(cell), _depth+1); // callback into module
+		}
+
+		return this._makeCell(cell); // string-able text
 	}
 }
 

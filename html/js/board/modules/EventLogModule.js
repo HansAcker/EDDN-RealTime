@@ -123,13 +123,13 @@ const hex_colors = Object.freeze({
  * @param {string} id - The hex identifier string.
  * @returns {HTMLSpanElement}
  */
-// TODO: theoretically, len is constant and hex_colors could contain the whole string for a stop
 function hex2bar(id) {
 	// hex chars to colored blocks
 	const len = id.length;
 	const step = 100 / len;
 	const stops = [];
 
+	// TODO: theoretically, len is constant and hex_colors could contain the whole string for a stop
 	for (let i = 0; i < len; i++) {
 		const color = hex_colors[id[i]] ?? "#000";
 		// hard stops for blocky look: color starts at i*step, ends at (i+1)*step

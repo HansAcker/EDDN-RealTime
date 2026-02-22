@@ -32,11 +32,19 @@ export class NavRouteModule extends DataTableModule {
 	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
-		const route = event.message.Route ?? [];
+		this._addRow({ event, cells: () => this.#processRoute(event.message.Route ?? []) });
+	}
 
+
+	/**
+	 * Process the Route.
+	 *
+	 * @param {Array} route - The message's Route element.
+	 * @returns {(string|HTMLTableCellElement)[]}
+	 */
+	#processRoute(route) {
 		if (route.length < 2) {
 			// it happens.
-			//console.log("Short NavRoute:", event.data);
 			return;
 		}
 
@@ -100,7 +108,7 @@ export class NavRouteModule extends DataTableModule {
 			cells.push(cell);
 		}
 
-		this._addRow({ event, cells });
+		return cells;
 	}
 }
 

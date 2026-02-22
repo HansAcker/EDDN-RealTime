@@ -33,9 +33,9 @@ export class EventLogModule extends DataTableModule {
 	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
-		this._addRow({ event, cells: [
+		this._addRow({ event, cells: () => [
 			formatRelativeTime(event.age),
-			() => this.#idCell(event.header.uploaderID),
+			this.#idCell(event.header.uploaderID),
 			event.eventName,
 			event.header.softwareName,
 			event.header.softwareVersion,
@@ -45,6 +45,7 @@ export class EventLogModule extends DataTableModule {
 			event.$schemaRef.startsWith(PREFIX_SCHEMAREF_EDDN) ? event.$schemaRef.slice(PREFIX_SCHEMAREF_EDDN.length) : event.$schemaRef
 		]});
 	}
+
 
 	/**
 	 * Creates a table cell displaying a colour-bar visualisation of the

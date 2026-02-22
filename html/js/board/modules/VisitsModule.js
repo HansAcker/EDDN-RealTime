@@ -36,7 +36,7 @@ export class VisitsModule extends DataTableModule {
 		if (message.Population > 0 || message.SystemAllegiance) {
 			const faction = message.SystemFaction ?? {};
 
-			this._addRow({ event, cells: [
+			this._addRow({ event, cells: () => [
 				event.StarSystem,
 				Config._numberFormat.format(message.Population ?? 0),
 				message.SystemAllegiance,

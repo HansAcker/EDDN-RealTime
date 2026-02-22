@@ -32,7 +32,7 @@ export class CodexEntryModule extends DataTableModule {
 	 */
 	_handleEvent(event) {
 		const message = event.message;
-		this._addRow({ event, cells: [
+		this._addRow({ event, cells: () => [
 			message.System,
 			trimPrefix(message.BodyName ?? "", message.System), // strip system name from body name
 			formatCodexKey(message.SubCategory, RX_SUB_CATEGORY), // reformat keys

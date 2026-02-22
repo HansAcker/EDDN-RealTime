@@ -77,28 +77,29 @@ const time_units = Object.freeze([
 /**
  * Formats a number of ms into a relative time string.
  * @param {number} diffMs - Relative time in ms (positive: past, negative: future)
- * @returns {string} - Relative time string (e.g., "5 minutes ago", "in 2 hours").
+ * @returns {string|undefined} - Relative time string (e.g., "5 minutes ago", "in 2 hours") or undefined if diffMs is NaN.
  */
 function formatRelativeTime(diffMs) {
-	try {
-		const diffSec = Math.round(-diffMs / 1000);
-		const diffAbs = Math.abs(diffSec);
-
-		if (diffAbs < 60) {
-			return Config._relTimeFormat.format(diffSec, "second");
-		}
-
-		// TODO: reverse the lookup, "minutes ago" happens more often than "years ago"
-		for (const { unit, seconds } of time_units) {
-			if (diffAbs >= seconds) {
-				const value = Math.round(diffSec / seconds);
-				return Config._relTimeFormat.format(value, unit);
-			}
-		}
-	} catch (err) {
-		console.error(err.message);
-		return "Invalid date";
+	if (typeof diffMs !== "number") {
+		return undefined;
 	}
+
+	const diffSec = Math.round(-diffMs / 1000);
+	const diffAbs = Math.abs(diffSec);
+
+	if (diffAbs < 60) {
+		return Config._relTimeFormat.format(diffSec, "second");
+	}
+
+	// TODO: reverse the lookup? "minutes ago" happens more often than "years ago"
+	for (const { unit, seconds } of time_units) {
+		if (diffAbs >= seconds) {
+			return Config._relTimeFormat.format(Math.round(diffSec / seconds), unit);
+		}
+	}
+
+	// NaN ends up here
+	return undefined;
 }
 
 
@@ -141,19 +142,6 @@ function hex2bar(id) {
 
 	return bar;
 }
-
-
-/*
-function hex2braille(id) {
-	// hex chars to braille patterns
-	let idstr = "";
-	for (let i = 0; i < id.length-1; i += 2) {
-		idstr += String.fromCodePoint(parseInt(id.substring(i, i+2), 16) + 0x2800);
-	}
-
-	return idstr;
-}
-*/
 
 
 export default EventLogModule;

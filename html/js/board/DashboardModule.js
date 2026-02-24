@@ -4,10 +4,6 @@
  * {@link MessageRouter} for specified topics and delegates incoming
  * {@link EDDNEvent} events to subclass handlers. Includes specialized
  * {@link DataTableModule} for rendering table-based displays.
- *
- * @typedef {string | HTMLTableCellElement | (() => CellDescriptor)} CellDescriptor
- * A single cell descriptor: plain text, a prepared table cell, or a factory
- * function that recursively returns a CellDescriptor.
  */
 
 import { Config } from "#config.js";
@@ -61,6 +57,10 @@ export class DashboardModule {
  * constructing table cells and rows.
  *
  * @extends DashboardModule
+ *
+ * @typedef {string | HTMLTableCellElement | (() => CellDescriptor)} CellDescriptor
+ * A single cell descriptor: plain text, a prepared table cell, or a factory
+ * function that recursively returns a CellDescriptor.
  */
 // TODO: keep and re-use a pool of DOM nodes?
 

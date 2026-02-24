@@ -4,6 +4,10 @@
  * {@link MessageRouter} for specified topics and delegates incoming
  * {@link EDDNEvent} events to subclass handlers. Includes specialized
  * {@link DataTableModule} for rendering table-based displays.
+ *
+ * @typedef {string | HTMLTableCellElement | (() => CellDescriptor)} CellDescriptor
+ * A single cell descriptor: plain text, a prepared table cell, or a factory
+ * function that recursively returns a CellDescriptor.
  */
 
 import { Config } from "#config.js";
@@ -209,7 +213,7 @@ export class DataTableModule extends DashboardModule {
 	 *
 	 * @param {object} row - An object containing the source event and an array of cell descriptors.
 	 * @param {EDDNEvent} row.event - The source EDDN event.
-	 * @param {(string | Node | (() => Node))[]} row.cells - Array of cell descriptors (strings, DOM nodes, or factory functions).
+	 * @param {CellDescriptor[] | (() => CellDescriptor[])} row.cells - Array of cell descriptors (strings, DOM nodes, or factory functions), or a callback returning such an array.
 	 */
 	_addRow(row) {
 		// add row to queue
@@ -324,11 +328,12 @@ export class DataTableModule extends DashboardModule {
 	 * Resolve a render queue entry.
 	 *
 	 * @param {EDDNEvent} event - The source EDDN event.
-	 * @param {(string | HTMLTableCellElement | (() => string|HTMLTableCellElement))[]|(() => ... )} cells - Array of cell descriptors (strings, DOM nodes, or factory functions) or callback.
-	 * @param {number} [_depth=0] - recursion depth counter.
+	 * @param {CellDescriptor[] | (() => CellDescriptor[])} cells - Array of cell descriptors (strings, DOM nodes, or factory functions), or a callback returning such an array.
+	 * @param {number} [_depth=0] - Recursion depth counter.
 	 * @returns {HTMLTableRowElement}
-	 * @throws {Error}
-	 * @throws {TypeError}
+	 *
+	 * @throws {Error} If max recursion depth is exceeded.
+	 * @throws {TypeError} If cells is neither an Array nor a function.
 	 */
 	#resolveRow(event, cells, _depth = 0) {
 		// TODO: rethink arbitrary limit - no callback returns a callback, yet
@@ -357,10 +362,11 @@ export class DataTableModule extends DashboardModule {
 	/**
 	 * Resolve a cell queue entry.
 	 *
-	 * @param {string | HTMLTableCellElement | (() => string|HTMLTableCellElement)} cell - Cell text content, prepared Node or callback.
-	 * @param {number} [_depth=0] - recursion depth counter.
+	 * @param {CellDescriptor} cell - Cell text content, prepared DOM node, or callback.
+	 * @param {number} [_depth=0] - Recursion depth counter.
 	 * @returns {HTMLTableCellElement}
-	 * @throws {Error}
+	 *
+	 * @throws {Error} If max recursion depth is exceeded.
 	 */
 	#resolveCell(cell, _depth = 0) {
 		// TODO: rethink arbitrary limit - no callback returns a callback, yet
@@ -405,7 +411,7 @@ export class DummyTableModule extends DataTableModule {
  * Safely invokes a cell callback, returning `undefined` on error.
  *
  * @param {() => Node} cb - The callback to execute.
- * @returns {Node|undefined} The result of the callback, or `undefined` if it threw.
+ * @returns {*|undefined} The result of the callback, or `undefined` if it threw.
  */
 function invoke(cb) {
 	try {

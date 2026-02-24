@@ -47,7 +47,7 @@ export class NavRouteModule extends DataTableModule {
 	 * Process the Route.
 	 *
 	 * @param {Array} route - The message's Route element.
-	 * @returns {(string|HTMLTableCellElement)[]}
+	 * @returns {DataTableModule~CellDescriptor[]}
 	 */
 	#processRoute(route) {
 		let dist = 0;

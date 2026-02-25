@@ -173,7 +173,8 @@ class CachedPageIconActivity extends PageIconActivity {
 		};
 
 		console.debug("CachedPageIconActivity: loading activity icons...");
-		const loadPromises = Object.getOwnPropertySymbols(ICON_PATHS).map(async (state) => {
+
+		return Promise.allSettled(Object.getOwnPropertySymbols(ICON_PATHS).map(async (state) => {
 			const path = ICON_PATHS[state];
 			try {
 				const response = await fetch(path);
@@ -190,9 +191,7 @@ class CachedPageIconActivity extends PageIconActivity {
 			} catch (err) {
 				console.warn(`CachedPageIconActivity: failed to preload icon: ${path} for state: ${state.toString()}:`, err);
 			}
-		});
-
-		return Promise.allSettled(loadPromises);
+		}));
 	}
 
 	/**

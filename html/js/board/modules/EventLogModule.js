@@ -56,8 +56,8 @@ export class EventLogModule extends DataTableModule {
 	 */
 	#idCell(uploaderID) {
 		const idCell = this._makeCell(uploaderID);
-		idCell.classList.add("dashboard__table--idcell");
-		idCell.replaceChildren(hex2bar(uploaderID));
+		idCell.style.background = hex2bg(uploaderID);
+		idCell.textContent = "\u00A0"; // &nbsp;
 		return idCell;
 	}
 }
@@ -114,13 +114,13 @@ const hex_colors = Object.freeze([
 ]);
 
 /**
- * Converts a hex identifier string into a `<span>` element with a
- * linear-gradient background where each hex character maps to a colour.
+ * Converts a hex identifier string into a linear-gradient
+ * where each hex character maps to a colour.
  *
  * @param {string} id - The hex identifier string.
- * @returns {HTMLSpanElement}
+ * @returns {string}
  */
-function hex2bar(id) {
+function hex2bg(id) {
 	const len = id.length;
 	const step = 100 / len;
 	const stops = [];
@@ -133,11 +133,7 @@ function hex2bar(id) {
 		stops.push(`${color} ${i * step}% ${(i + 1) * step}%`);
 	}
 
-	const bar = document.createElement("span");
-	bar.style.background = `linear-gradient(to right, ${stops.join(",")})`;
-	bar.textContent = "\u00A0"; // &nbsp;
-
-	return bar;
+	return `linear-gradient(to right, ${stops.join(",")})`;
 }
 
 

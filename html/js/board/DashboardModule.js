@@ -242,26 +242,35 @@ export class DataTableModule extends DashboardModule {
 	 * Flushes the render queue into the DOM. Called via `requestAnimationFrame`.
 	 */
 	#render() {
-		const queue = this.#renderQueue;
-		const container = this._container;
 		this.#renderScheduled = false;
 
 		if (this.#renderPaused) {
 			return;
 		}
 
-		if (!queue.length) {
+		const container = this._container;
+		const queue = this.#renderQueue;
+
+		let queueLength = queue.length;
+		const listLength = this.listLength;
+
+		if (!queueLength) {
 			console.warn("DataTableModule: render scheduled on empty queue");
 			return;
 		}
 
-		// clear table for full replacement if queueLength > listLength
-		if (this.#trimQueue(this.listLength)) {
+		// full table replacement
+		if (queueLength >= listLength) {
+			// clear table
 			container.replaceChildren();
+
+			// drop oldest queue items
+			this.#trimQueue(listLength);
+			queueLength = listLength;
 		}
 
 		// read current element count
-		let dropCount = (container.childElementCount + queue.length) - this.listLength;
+		let dropCount = (container.childElementCount + queueLength) - listLength;
 
 		// batch updates into one DocumentFragment
 		const fragment = document.createDocumentFragment();

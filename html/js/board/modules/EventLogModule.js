@@ -106,16 +106,12 @@ function formatRelativeTime(diffMs) {
 
 // 16 colors per nibble
 // TODO: improve this "high-contrast" selection?
-const hex_colors = Object.freeze({
-	"0": "#F2F3F4", "1": "#222222", "2": "#F3C300", "3": "#875692",
-	"4": "#F38400", "5": "#A1CAF1", "6": "#BE0032", "7": "#C2B280",
-	"8": "#848482", "9": "#008856",
-	// belts and braces - duplicate a-f, A-F
-	"a": "#E68FAC", "b": "#0067A5", "c": "#F99379", "d": "#604E97",
-	"e": "#DCD300", "f": "#B3446C",
-	"A": "#E68FAC", "B": "#0067A5",	"C": "#F99379", "D": "#604E97",
-	"E": "#DCD300", "F": "#B3446C"
-});
+const hex_colors = Object.freeze([
+	"#F2F3F4", "#222222", "#F3C300", "#875692",
+	"#F38400", "#A1CAF1", "#BE0032", "#C2B280",
+	"#848482", "#008856", "#E68FAC", "#0067A5",
+	"#F99379", "#604E97", "#DCD300", "#B3446C"
+]);
 
 /**
  * Converts a hex identifier string into a `<span>` element with a
@@ -132,7 +128,8 @@ function hex2bar(id) {
 
 	// TODO: theoretically, len is constant and hex_colors could contain the whole string for a stop
 	for (let i = 0; i < len; i++) {
-		const color = hex_colors[id[i]] ?? "#000";
+		const c = id.charCodeAt(i); // should be in "0-9" (0x30-0x39), "A-F" (0x41-0x46), "a-f" (0x61-0x66)
+		const color = hex_colors[(c & 0x0f) + (c >> 6) * 9] ?? "#000"; // map character codes "0-9", "A-F", "a-f" to 0-15
 		// hard stops for blocky look: color starts at i*step, ends at (i+1)*step
 		stops.push(`${color} ${i * step}% ${(i + 1) * step}%`);
 	}

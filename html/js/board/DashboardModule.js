@@ -282,7 +282,7 @@ export class DataTableModule extends DashboardModule {
 				newRow = this.#resolveRow(event, cells);
 			} catch (err) {
 				console.warn("DataTableModule: failed to resolve queue item:", err);
-				dropCount && dropCount--;
+				dropCount > 0 && dropCount--;
 				continue;
 			}
 

@@ -274,6 +274,7 @@ export class DataTableModule extends DashboardModule {
 				continue;
 			}
 
+			// TODO: unhandled exception if resolveRow throws Error, adjust dropCount?
 			// create full row from elements or callbacks
 			const newRow = this.#resolveRow(event, cells);
 
@@ -310,7 +311,8 @@ export class DataTableModule extends DashboardModule {
 		const queue = this.#renderQueue;
 		const queueLength = queue.length;
 
-		if (queueLength > (softLimit ?? hardLimit)) {
+		// TODO: queue grows unbounded if listLength is set to NaN. check, throw, do something?
+		if (queueLength >= (softLimit ?? hardLimit)) {
 			const dropCount = queueLength - hardLimit;
 
 			// move queue tail up front ([dropCount]... -> [0]...)

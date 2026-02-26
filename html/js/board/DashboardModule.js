@@ -275,7 +275,6 @@ export class DataTableModule extends DashboardModule {
 		// batch updates into one DocumentFragment
 		const fragment = document.createDocumentFragment();
 		for (const { event, cells } of queue) {
-
 			let newRow;
 
 			try {

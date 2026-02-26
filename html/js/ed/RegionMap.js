@@ -210,11 +210,11 @@ export class RegionMap {
 
 		const n2 = Number(bitMask(_id64, 32n-(boxelBits*3n), shift));
 
-		const [ x, y, z ] = this.sectorsToCoords(xs, ys, zs, massClass, xb, yb, zb);
+		const BoxelPos = this.sectorsToCoords(xs, ys, zs, massClass, xb, yb, zb);
 
 		// TODO: decide on a return format
-		return { SystemAddress, BoxelPos: [x, y, z], BodyId, massClass, xs, ys, zs, xb, yb, zb, n2 };
-		//return { SystemAddress, BodyId, BoxelPos: [x, y, z], Sector: [xs, ys, zs], Boxel: [xb, yb, zb], massClass, n2 };
+		return { SystemAddress, BoxelPos, BodyId, massClass, xs, ys, zs, xb, yb, zb, n2 };
+		//return { SystemAddress, BodyId, BoxelPos, Sector: [xs, ys, zs], Boxel: [xb, yb, zb], massClass, n2 };
 	}
 
 

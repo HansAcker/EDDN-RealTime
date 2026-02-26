@@ -423,16 +423,16 @@ export class DummyTableModule extends DataTableModule {
 
 
 /**
- * Safely invokes a cell callback, returning `undefined` on error.
+ * Safely invokes a callback, returning `undefined` on error.
  *
- * @param {() => Node} cb - The callback to execute.
+ * @param {Function} cb - The callback to execute.
  * @returns {*|undefined} The result of the callback, or `undefined` if it threw.
  */
 function invoke(cb) {
 	try {
 		return cb();
 	} catch (err) {
-		console.error("DataTableModule: Error in cell callback:", err);
+		console.error("DataTableModule: Error in callback:", err);
 		return undefined;
 	}
 }

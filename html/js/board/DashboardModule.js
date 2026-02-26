@@ -343,7 +343,7 @@ export class DataTableModule extends DashboardModule {
 	 * @returns {HTMLTableRowElement}
 	 *
 	 * @throws {Error} If max recursion depth is exceeded.
-	 * @throws {TypeError} If cells is neither an Array nor a function.
+	 * @throws {TypeError} If event is undefined or cells is neither an Array nor a function.
 	 */
 	#resolveRow(event, cells, _depth = 0) {
 		// TODO: rethink arbitrary limit - no callback returns a callback, yet

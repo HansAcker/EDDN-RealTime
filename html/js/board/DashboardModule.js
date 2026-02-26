@@ -276,16 +276,16 @@ export class DataTableModule extends DashboardModule {
 		const fragment = document.createDocumentFragment();
 		for (const { event, cells } of queue) {
 
-			// TODO: check that `event instanceof EDDNEvent`?
-			if (!event || !(Array.isArray(cells) || typeof cells === "function")) {
-				console.warn("DataTableModule: missing or invalid properties in render queue item");
+			let newRow;
+
+			try {
+				// create full row from elements or callbacks
+				newRow = this.#resolveRow(event, cells);
+			} catch (err) {
+				console.warn("DataTableModule: failed to resolve queue item:", err);
 				dropCount && dropCount--;
 				continue;
 			}
-
-			// TODO: unhandled exception if resolveRow throws Error, adjust dropCount?
-			// create full row from elements or callbacks
-			const newRow = this.#resolveRow(event, cells);
 
 			// store event data reference within node namespace
 			newRow[DataTableModule.DATA_KEY] = event.data;
@@ -352,6 +352,11 @@ export class DataTableModule extends DashboardModule {
 			throw new Error("max recursion depth exceeded");
 		}
 
+		// TODO: check that event isinstanceof EDDNEvent?
+		if (!_depth && !event) {
+			throw new TypeError("missing required argument: event");
+		}
+
 		if (typeof cells === "function") {
 			return this.#resolveRow(event, invoke(cells), _depth+1);
 		}
@@ -385,7 +390,7 @@ export class DataTableModule extends DashboardModule {
 			throw new Error("max recursion depth exceeded");
 		}
 
-		if (cell instanceof Node) {
+		if (cell instanceof HTMLTableCellElement ) {
 			return cell; // DOM element created in handler
 		}
 

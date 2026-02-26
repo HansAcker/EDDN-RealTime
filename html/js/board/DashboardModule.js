@@ -312,7 +312,7 @@ export class DataTableModule extends DashboardModule {
 		const queueLength = queue.length;
 
 		// TODO: queue grows unbounded if listLength is set to NaN. check, throw, do something?
-		if (queueLength >= (softLimit ?? hardLimit)) {
+		if (queueLength > (softLimit ?? hardLimit)) {
 			const dropCount = queueLength - hardLimit;
 
 			// move queue tail up front ([dropCount]... -> [0]...)

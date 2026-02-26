@@ -121,12 +121,11 @@ const hex_colors = Object.freeze([
  * @returns {HTMLSpanElement}
  */
 function hex2bar(id) {
-	// hex chars to colored blocks
 	const len = id.length;
 	const step = 100 / len;
 	const stops = [];
 
-	// TODO: theoretically, len is constant and hex_colors could contain the whole string for a stop
+	// hex chars to colored blocks
 	for (let i = 0; i < len; i++) {
 		const c = id.charCodeAt(i); // should be in "0-9" (0x30-0x39), "A-F" (0x41-0x46), "a-f" (0x61-0x66)
 		const color = hex_colors[(c & 0x0f) + ((c >> 6) ? 9 : 0)] ?? "#000"; // map character codes "0-9", "A-F", "a-f" to 0-15

@@ -343,7 +343,7 @@ export class DataTableModule extends DashboardModule {
 	 * @returns {HTMLTableRowElement}
 	 *
 	 * @throws {Error} If max recursion depth is exceeded.
-	 * @throws {TypeError} If event is undefined or cells is neither an Array nor a function.
+	 * @throws {TypeError} If event is undefined or cells is neither iterable nor a function.
 	 */
 	#resolveRow(event, cells, _depth = 0) {
 		// TODO: rethink arbitrary limit - no callback returns a callback, yet
@@ -360,7 +360,7 @@ export class DataTableModule extends DashboardModule {
 			return this.#resolveRow(event, invoke(cells), _depth+1);
 		}
 
-		if (Array.isArray(cells)) {
+		if (typeof cells[Symbol.iterator] === "function") {
 			const newRow = this._makeRow(event);
 
 			for (const cell of cells) {
@@ -370,7 +370,7 @@ export class DataTableModule extends DashboardModule {
 			return newRow;
 		}
 
-		throw new TypeError(`cells must be Array or callback: ${typeof cells}`);
+		throw new TypeError(`cells must be iterable or callback: ${typeof cells}`);
 	}
 
 

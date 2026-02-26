@@ -107,10 +107,10 @@ function formatRelativeTime(diffMs) {
 // 16 colors per nibble
 // TODO: improve this "high-contrast" selection?
 const hex_colors = Object.freeze([
-	"#F2F3F4", "#222222", "#F3C300", "#875692",
-	"#F38400", "#A1CAF1", "#BE0032", "#C2B280",
-	"#848482", "#008856", "#E68FAC", "#0067A5",
-	"#F99379", "#604E97", "#DCD300", "#B3446C"
+	"#0067A5", "#008856", "#222222", "#604E97",
+	"#848482", "#875692", "#A1CAF1", "#B3446C",
+	"#BE0032", "#C2B280", "#DCD300", "#E68FAC",
+	"#F2F3F4", "#F38400", "#F3C300", "#F99379"
 ]);
 
 /**

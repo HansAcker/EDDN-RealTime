@@ -26,40 +26,38 @@ export class NavRouteModule extends DataTableModule {
 
 
 	/**
-	 * Renders a row showing start/end systems, jump count, total distance,
-	 * route distance, and longest jump (highlighted for jumps ≥ 200 ly).
+	 * Skip event processing if the Route array contains only a single hop.
+	 * It happens.
 	 *
 	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
-		const route = event.message.Route ?? [];
-
-		if (route.length < 2) {
-			// it happens.
+		if (event.message?.Route?.length < 2) {
 			return;
 		}
 
-		this._addRow({ event, cells: () => this.#processRoute(route) });
+		super._handleEvent(event);
 	}
 
 
 	/**
-	 * Process the Route.
+	 * Renders a row showing start/end systems, jump count, total distance,
+	 * route distance, and longest jump (highlighted for jumps ≥ 200 ly).
 	 *
-	 * @param {Array} route - The message's Route element.
-	 * @returns {DataTableModule~CellDescriptor[]}
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
+	 * @returns {DataTableModule~CellDescriptor[] | (() => DataTableModule~CellDescriptor[])} cells - Array of cell descriptors (strings, DOM nodes, or factory functions), or a callback returning such an array.
 	 */
-	#processRoute(route) {
+	_getCells(event) {
+		const route = event.message.Route;
+
 		let dist = 0;
 		let longest = 0;
 
-		const cells = [];
-
-		cells.push(
+		const cells = [
 			route[0].StarSystem,
 			route[route.length-1].StarSystem,
 			`${route.length-1}j`
-		);
+		];
 
 		if (route.length === 2) {
 			// single-jump route

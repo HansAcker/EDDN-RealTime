@@ -26,24 +26,37 @@ export class VisitsModule extends DataTableModule {
 
 
 	/**
-	 * Renders a row for jumps into populated systems, showing system name,
-	 * population, allegiance, controlling faction, and faction state.
+	 * Skip event processing for jumps into uninhabited and uncontrolled systems.
 	 *
 	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
 		const message = event.message;
-		if (message.Population > 0 || message.SystemAllegiance) {
-			const faction = message.SystemFaction ?? {};
 
-			this._addRow({ event, cells: () => [
-				event.StarSystem,
-				Config._numberFormat.format(message.Population ?? 0),
-				message.SystemAllegiance,
-				faction.Name,
-				faction.FactionState
-			]});
+		if (message.Population > 0 || message.SystemAllegiance) {
+			super._handleEvent(event);
 		}
+	}
+
+
+	/**
+	 * Renders a row for jumps into populated systems, showing system name,
+	 * population, allegiance, controlling faction, and faction state.
+	 *
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
+	 * @returns {DataTableModule~CellDescriptor[] | (() => DataTableModule~CellDescriptor[])} cells - Array of cell descriptors (strings, DOM nodes, or factory functions), or a callback returning such an array.
+	 */
+	_getCells(event) {
+		const message = event.message;
+		const faction = message.SystemFaction ?? {};
+
+		return () => [
+			event.StarSystem,
+			Config._numberFormat.format(message.Population ?? 0),
+			message.SystemAllegiance,
+			faction.Name,
+			faction.FactionState
+		];
 	}
 }
 

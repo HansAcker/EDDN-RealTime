@@ -22,7 +22,9 @@
 	},
 	"devDependencies": {
 		"esbuild": "^0.27",
-		"eslint": "^9",
-		"eslint-plugin-jsdoc": "^62"
+		"eslint": "^10",
+		"@eslint/js": "^10",
+		"eslint-plugin-jsdoc": "^62",
+		"globals": "^17"
 	}
 }

@@ -31,7 +31,9 @@ export class NewStarsModule extends DataTableModule {
 	 */
 	_handleEvent(event) {
 		const message = event.message;
-		if (!(message.WasDiscovered === false && message.WasMapped === false && message.ScanType !== "NavBeaconDetail")) {
+
+		// NavBeaconDetail can return scans for undiscoverable/unmappable bodies
+		if (message.WasDiscovered !== false || message.WasMapped !== false || message.ScanType === "NavBeaconDetail") {
 			return;
 		}
 

@@ -27,18 +27,19 @@ export class UpdatesModule extends DataTableModule {
 	 * Renders a row showing the update type, station name, and system name.
 	 *
 	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
+	 * @returns {DataTableModule~CellDescriptor[] | (() => DataTableModule~CellDescriptor[])} cells - Array of cell descriptors (strings, DOM nodes, or factory functions), or a callback returning such an array.
 	 */
-	_handleEvent(event) {
+	_getCells(event) {
 		const message = event.message;
 
-		this._addRow({ event, cells: [
+		return [
 			event.eventType === "commodity" ? "Market" :
 			event.eventType === "shipyard" ? "Shipyard" :
 			event.eventType === "outfitting" ? "Outfitting" :
 			"",
 			message.stationName,
 			message.systemName
-		]});
+		];
 	}
 }
 

@@ -208,6 +208,37 @@ export class DataTableModule extends DashboardModule {
 
 
 	/**
+	 * Process an incoming {@link EDDNEvent}
+	 *
+	 * Override in derived class for special message handling.
+	 *
+	 * The base class
+	 * - passes the event on to {@link DataTableModule#_getCells}
+	 * - then feeds the result as `row.cells` into {@link DataTableModule#_addRow}.
+	 *
+	 * @param {EDDNEvent} event - The source EDDN event.
+	 */
+	_handleEvent(event) {
+		this._addRow({ event, cells: this._getCells(event) });
+	}
+
+
+	/**
+	 * Return table cells for an incoming {@link EDDNEvent}.
+	 *
+	 * A derived class must override this method when it uses
+	 * the base {@link DataTableModule#_handleEvent} method.
+	 *
+	 * @param {EDDNEvent} event - The source EDDN event.
+	 * @returns {CellDescriptor[] | (() => CellDescriptor[])} cells - Array of cell descriptors (strings, DOM nodes, or factory functions), or a callback returning such an array.
+	 */
+	_getCells(event) {
+		void event;
+		throw new Error("Class must override _getCells() in DataTableModule");
+	}
+
+
+	/**
 	 * Queues a new row for rendering. The row will be painted in the next
 	 * animation frame.
 	 *

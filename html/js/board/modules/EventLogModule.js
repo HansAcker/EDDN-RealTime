@@ -31,9 +31,10 @@ export class EventLogModule extends DataTableModule {
 	 * software details, star system, region, game version, and schema reference.
 	 *
 	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
+	 * @returns {DataTableModule~CellDescriptor[] | (() => DataTableModule~CellDescriptor[])} cells - Array of cell descriptors (strings, DOM nodes, or factory functions), or a callback returning such an array.
 	 */
-	_handleEvent(event) {
-		this._addRow({ event, cells: () => [
+	_getCells(event) {
+		return () => [
 			formatRelativeTime(event.age),
 			this.#idCell(event.header.uploaderID),
 			event.eventName,
@@ -43,7 +44,7 @@ export class EventLogModule extends DataTableModule {
 			event.Region.name,
 			`${event.header.gameversion ?? ""}${event.header.gamebuild ? ` - ${event.header.gamebuild}` : ""}`,
 			event.$schemaRef.startsWith(PREFIX_SCHEMAREF_EDDN) ? event.$schemaRef.slice(PREFIX_SCHEMAREF_EDDN.length) : event.$schemaRef
-		]});
+		];
 	}
 
 

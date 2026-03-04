@@ -29,16 +29,17 @@ export class CodexEntryModule extends DataTableModule {
 	 * Renders a row showing the system, body, sub-category, name, and region.
 	 *
 	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
+	 * @returns {DataTableModule~CellDescriptor[] | (() => DataTableModule~CellDescriptor[])} cells - Array of cell descriptors (strings, DOM nodes, or factory functions), or a callback returning such an array.
 	 */
-	_handleEvent(event) {
+	_getCells(event) {
 		const message = event.message;
-		this._addRow({ event, cells: () => [
+		return () => [
 			message.System,
 			trimPrefix(message.BodyName ?? "", message.System), // strip system name from body name
 			formatCodexKey(message.SubCategory, RX_SUB_CATEGORY), // reformat keys
 			formatCodexKey(message.Name, RX_CODEX_NAME),
 			GalacticRegions[+(RX_REGION_NAME.exec(message.Region)?.[1] ?? 0)]
-		]});
+		];
 	}
 }
 

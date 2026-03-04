@@ -24,8 +24,7 @@ export class NewBodiesModule extends DataTableModule {
 
 
 	/**
-	 * Renders a row for undiscovered planets, filtering out previously
-	 * discovered bodies, mapped bodies, and NavBeacon scans.
+	 * Skip event processing if the body was already discovered or pre-known.
 	 *
 	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
@@ -41,12 +40,25 @@ export class NewBodiesModule extends DataTableModule {
 			return;
 		}
 
-		this._addRow({ event, cells: [
+		super._handleEvent(event);
+	}
+
+	/**
+	 * Renders a row for undiscovered planets, filtering out previously
+	 * discovered bodies, mapped bodies, and NavBeacon scans.
+	 *
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
+	 * @returns {DataTableModule~CellDescriptor[] | (() => DataTableModule~CellDescriptor[])} cells - Array of cell descriptors (strings, DOM nodes, or factory functions), or a callback returning such an array.
+	 */
+	_getCells(event) {
+		const message = event.message;
+
+		return [
 			message.BodyName,
 			message.PlanetClass,
 			message.AtmosphereType && message.AtmosphereType !== "None" ? message.AtmosphereType : "",
 			message.Landable ? "Yes" : ""
-		]});
+		];
 	}
 }
 

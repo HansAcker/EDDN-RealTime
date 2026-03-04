@@ -24,8 +24,7 @@ export class NewStarsModule extends DataTableModule {
 
 
 	/**
-	 * Renders a row for undiscovered stars, filtering out previously
-	 * discovered bodies, mapped bodies, and NavBeacon scans.
+	 * Skip event processing if the body was already discovered or pre-known.
 	 *
 	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
@@ -41,10 +40,23 @@ export class NewStarsModule extends DataTableModule {
 			return;
 		}
 
-		this._addRow({ event, cells: [
+		super._handleEvent(event);
+	}
+
+	/**
+	 * Renders a row for undiscovered stars, filtering out previously
+	 * discovered bodies, mapped bodies, and NavBeacon scans.
+	 *
+	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
+	 * @returns {DataTableModule~CellDescriptor[] | (() => DataTableModule~CellDescriptor[])} cells - Array of cell descriptors (strings, DOM nodes, or factory functions), or a callback returning such an array.
+	 */
+	_getCells(event) {
+		const message = event.message;
+
+		return [
 			message.BodyName,
 			`${message.StarType} ${message.Subclass}`
-		]});
+		];
 	}
 }
 

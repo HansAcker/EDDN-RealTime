@@ -32,7 +32,7 @@ export class NavRouteModule extends DataTableModule {
 	 * @param {EDDNEvent} event - The incoming {@link EDDNEvent}.
 	 */
 	_handleEvent(event) {
-		if (event.message?.Route?.length < 2) {
+		if ((event.message?.Route ?? []).length < 2) {
 			return;
 		}
 

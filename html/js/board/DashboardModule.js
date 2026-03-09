@@ -21,7 +21,7 @@ export class DashboardModule {
 	 * @param {MessageRouter|null} router - The {@link MessageRouter} to subscribe to, or `null` for dummy modules.
 	 * @param {string|Iterable<string>} topics - Topic(s) to subscribe to (e.g. `"journal:fsdjump"`, `"*"`).
 	 *
-	 * @throws {Error} if `topics` is null-ish
+	 * @throws {Error} if `topics` is falsy
 	 */
 	constructor(router, topics) {
 		// allow empty router for DummyModule
@@ -61,24 +61,41 @@ export class DashboardModule {
  * @typedef {string | HTMLTableCellElement | (() => CellDescriptor)} CellDescriptor
  * A single cell descriptor: plain text, a prepared table cell, or a factory
  * function that recursively returns a CellDescriptor.
+ *
+ * @typedef {{event: EDDNEvent, cells: CellDescriptor[] | (() => CellDescriptor[])}} RowDescriptor
+ * A single row descriptor: the source EDDNEvent and a prepared array of cell descriptors,
+ * or a callback returning such an array.
  */
-// TODO: keep and re-use a pool of DOM nodes?
-
 export class DataTableModule extends DashboardModule {
-	static DATA_KEY = Symbol(); // unique key for event data in DOM node namespace
+	/** @type {symbol} Unique key for event data in DOM node namespace */
+	static DATA_KEY = Symbol();
 
-	#renderQueue = []; // array of elements to add in next paint cycle
+	/** @type {RowDescriptor[]} Array of row descriptors queued for next paint cycle */
+	#renderQueue = [];
+
+	/** @type {boolean} */
 	#renderScheduled = false;
+
+	/** @type {boolean} */
 	#renderPaused = false;
 
+	/** @type {HTMLTableSectionElement} The table <tbody> element*/
 	_container;
 
+	/** @type {HTMLTemplateElement} The table template */
 	_tableTemplate;
-	_rowTemplate; // DOM elements to be cloned by makeCell()/makeRow()
+
+	/** @type {HTMLTableRowElement} DOM element to be cloned by makeRow() */
+	_rowTemplate;
+
+	/** @type {HTMLTableCellElement} DOM element to be cloned by makeCell() */
 	_cellTemplate;
 
+	/** @type {number} number of rows to display */
 	listLength = Config.listLength ?? 20;
-	cullFactor = 2; // cut back #renderQueue if > listLength * cullFactor // TODO: rename
+
+	/** @type {number} cut back #renderQueue if queue length > listLength * cullFactor */
+	cullFactor = 2; // TODO: rename
 
 
 	/**
@@ -242,9 +259,7 @@ export class DataTableModule extends DashboardModule {
 	 * Queues a new row for rendering. The row will be painted in the next
 	 * animation frame.
 	 *
-	 * @param {object} row - An object containing the source event and an array of cell descriptors.
-	 * @param {EDDNEvent} row.event - The source EDDN event.
-	 * @param {CellDescriptor[] | (() => CellDescriptor[])} row.cells - Array of cell descriptors (strings, DOM nodes, or factory functions), or a callback returning such an array.
+	 * @param {RowDescriptor} row - An object containing the source event and an array of cell descriptors.
 	 */
 	_addRow(row) {
 		// add row to queue
@@ -374,7 +389,7 @@ export class DataTableModule extends DashboardModule {
 	 * @returns {HTMLTableRowElement}
 	 *
 	 * @throws {Error} If max recursion depth is exceeded.
-	 * @throws {TypeError} If event is undefined or cells is neither iterable nor a function.
+	 * @throws {TypeError} If event is falsy or cells is neither iterable nor a function.
 	 */
 	#resolveRow(event, cells, _depth = 0) {
 		// TODO: rethink arbitrary limit - no callback returns a callback, yet
@@ -444,10 +459,10 @@ export class DummyTableModule extends DataTableModule {
 	 * Creates a DummyTableModule that renders a static table without subscribing
 	 * to any EDDN topics.
 	 *
-	 * @param {MessageRouter} router - Unused; passed as `null` to the parent.
+	 * @param {*} _router - Unused; passed as `null` to the parent.
 	 * @param {Record<string, any>} [options] - Configuration forwarded to {@link DataTableModule}.
 	 */
-	constructor(router, options) {
+	constructor(_router, options) {
 		super(null, null, options);
 	}
 }

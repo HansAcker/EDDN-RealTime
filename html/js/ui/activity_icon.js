@@ -137,7 +137,7 @@ class CachedPageIconActivity extends PageIconActivity {
 	/**
 	 * Promise that resolves when all activity icons have been pre-loaded.
 	 *
-	 * @type {Promise<PromiseSettledResult[]>}
+	 * @type {Promise<PromiseSettledResult<void>[]>}
 	 */
 	get ready() { return this.#readyPromise ??= this.#preloadIcons(); }
 
@@ -161,7 +161,7 @@ class CachedPageIconActivity extends PageIconActivity {
 	/**
 	 * Fetches all activity icon SVGs and stores them as `blob:` URLs.
 	 *
-	 * @returns {Promise<PromiseSettledResult[]>}
+	 * @returns {Promise<PromiseSettledResult<void>[]>}
 	 */
 	async #preloadIcons() {
 		// TODO: merge with PageIconActivity.#icons. use "_icons" instead of "#"?

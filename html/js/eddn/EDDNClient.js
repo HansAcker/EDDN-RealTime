@@ -374,7 +374,7 @@ export class EDDNClient extends EventTarget {
 	/**
 	 * Attaches WebSocket event handlers to the given target.
 	 *
-	 * @param {WebSocket} target - The WebSocket instance to listen on.
+	 * @param {EventTarget} target - The WebSocket instance to listen on.
 	 * @param {AbortSignal} signal - Signal used to automatically remove the handlers.
 	 */
 	#attachEventHandlers(target, signal) {

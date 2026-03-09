@@ -220,7 +220,7 @@ export class Dashboard {
 	 * @param {string} moduleName - The module name (used for template lookup).
 	 * @param {Record<string, any>} moduleOptions - Options forwarded to the module constructor.
 	 *
-	 * @throws {Error} if no template exists for `moduleName`
+	 * @throws {Error} if no class is registered for `moduleName`
 	 */
 	#createModule(container, moduleName, moduleOptions) {
 		const template = this.#templates.get(moduleName);

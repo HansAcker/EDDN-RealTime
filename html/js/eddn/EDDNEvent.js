@@ -107,7 +107,7 @@ export class EDDNEvent extends Event {
 			(this.#gotStarPos = true, this.#starPos = this.message?.StarPos ?? this.message?.Route?.[0]?.StarPos);
 	}
 
-	/** @type {{id: number, name: string|null}} - The galactic region for this event's star position, or an empty object if position is unknown. */
+	/** @type {{id: number, name: string|null}|{}} - The galactic region for this event's star position, or an empty object if position is unknown. */
 	get Region() {
 		return this.#region ??= (this.StarPos ? RegionMap.findRegion(...this.StarPos) : {});
 	}

@@ -19,7 +19,8 @@ const language = navigator.language ?? "en";
  * @property {string} templateLocale - Locale code used to load HTML template files.
  * @property {string} numberLocale - Locale passed to {@link Intl.NumberFormat}.
  * @property {string} timeLocale - Locale passed to {@link Intl.RelativeTimeFormat}.
- * @property {Record<string, any>} timeOptions - Options passed to {@link Intl.RelativeTimeFormat}.
+ * @property {Intl.NumberFormatOptions} numberOptions - Options passed to {@link Intl.NumberFormat}.
+ * @property {Intl.RelativeTimeFormatOptions} timeOptions - Options passed to {@link Intl.RelativeTimeFormat}.
  * @property {Intl.NumberFormat} _numberFormat - Shared number formatter instance.
  * @property {Intl.RelativeTimeFormat} _relTimeFormat - Shared relative-time formatter instance.
  * @property {(event: EDDNEvent) => boolean} [globalEventFilter] - Optional predicate applied to every incoming {@link EDDNEvent}.
@@ -47,7 +48,7 @@ export const Config = {
 
 	// override options for Intl.NumberFormat
 	numberLocale: language,
-//	numberOptions: { notation: "compact" },
+	numberOptions: {}, // { notation: "compact" },
 
 	// override options for Intl.RelativeTimeFormat
 	timeLocale: language,

@@ -223,7 +223,7 @@ export class ReconnectingWebSocket extends EventTarget {
 	/**
 	 * Sends data through the underlying WebSocket.
 	 *
-	 * @param {string|ArrayBuffer|Blob} data - The data to send.
+	 * @param {string|ArrayBuffer|ArrayBufferView|Blob} data - The data to send.
 	 * @throws {DOMException} If the socket is not currently open.
 	 */
 	send(data) {

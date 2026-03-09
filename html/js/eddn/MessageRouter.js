@@ -86,7 +86,7 @@ export class MessageRouter {
 	/**
 	 * Unregisters a callback from specific topics.
 	 * @param {(event: EDDNEvent) => void} callback - The callback function to remove.
-	 * @param {string|Iterable<string>} [topics] - The specific topic(s) to unregister from. If omitted, unregisters from all list.
+	 * @param {string|Iterable<string>} [topics] - The specific topic(s) to unregister from. If omitted, unregisters from all topics.
 	 *
 	 * @throws {TypeError} if `topics` is defined but not iterable
 	 */
@@ -125,7 +125,7 @@ export class MessageRouter {
 
 
 	/**
-	 * Removes the specified callback from all topics and wildcard lists.
+	 * Removes the specified callback from all topics and wildcard topics.
 	 * @param {(event: EDDNEvent) => void} callback - The callback function to remove completely.
 	 */
 	unregisterAll(callback) {

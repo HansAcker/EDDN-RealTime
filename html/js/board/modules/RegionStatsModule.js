@@ -1,3 +1,9 @@
+/**
+ * @module RegionStatsModule
+ * @description Dashboard module that displays event counts per galactic region.
+ * Uses {@link StatsBox}.
+ */
+
 import { DataTableModule } from "#DashboardModule";
 import { SortedStatsBox } from "#ui/statsbox.js";
 import GalacticRegions from "#data/GalacticRegions.json" with { type: "json" };

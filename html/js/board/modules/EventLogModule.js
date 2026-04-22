@@ -122,18 +122,23 @@ const hex_colors = Object.freeze([
  * @returns {string}
  */
 function hex2bg(id) {
+	const colors = hex_colors;
 	const len = id.length;
+	const stops = new Array(len);
 	const step = 100 / len;
-	const stops = [];
+	let start = 0;
 
 	// hex chars to colored blocks
+	// characters should be in "0-9" (0x30-0x39), "A-F" (0x41-0x46), "a-f" (0x61-0x66)
 	for (let i = 0; i < len; i++) {
-		const c = id.charCodeAt(i); // should be in "0-9" (0x30-0x39), "A-F" (0x41-0x46), "a-f" (0x61-0x66)
-		const color = hex_colors[(c & 0x0f) + ((c >> 6) ? 9 : 0)] ?? "#000"; // map character codes "0-9", "A-F", "a-f" to 0-15
+		const c = id.charCodeAt(i);
+		const color = colors[(c & 0x0f) + (c >> 6) * 9] ?? "#000"; // "C" (0x43) -> 3 + 9 = 12
 		// hard stops for blocky look: color starts at i*step, ends at (i+1)*step
-		stops.push(`${color} ${i * step}% ${(i + 1) * step}%`);
+		// start could accumulate rounding errors, maybe reset to i*step (no issue with typical 40-character id)
+		stops[i] = `${color} ${start}% ${start += step}%`;
 	}
 
+	// TODO: guard against empty string? would return invalid CSS
 	return `linear-gradient(to right, ${stops.join(",")})`;
 }
 

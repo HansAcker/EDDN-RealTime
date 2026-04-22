@@ -7,9 +7,15 @@
 
 /**
  * Routes messages from an event source to registered callbacks based on specific topics.
+ *
+ * @typedef {(event: EDDNEvent) => void} EventHandler
+ * Subscriber callback
  */
 export class MessageRouter {
+	/** @type {Map<string, Set<EventHandler>>} Sets of subscriber callbacks per topic */
 	#topics = new Map();
+
+	/** @type {Set<EventHandler>} Set of wildcard subscriber callbacks */
 	#wildcards = new Set();
 
 
@@ -31,7 +37,7 @@ export class MessageRouter {
 	/**
 	 * Registers a callback function for one or more topics.
 	 * If no topics are provided, or if the topic is "*", the callback acts as a wildcard listener.
-	 * @param {(event: EDDNEvent) => void} callback - The function to invoke when a matching message is received.
+	 * @param {EventHandler} callback - The function to invoke when a matching message is received.
 	 * @param {string|Iterable<string>} [topics] - A single topic string, an iterable of strings, or undefined for wildcard.
 	 * @param {object} [options={}] - Optional configuration.
 	 * @param {AbortSignal} [options.signal] - An AbortSignal that, when aborted, unregisters the callback from the specified topics.
@@ -85,7 +91,7 @@ export class MessageRouter {
 
 	/**
 	 * Unregisters a callback from specific topics.
-	 * @param {(event: EDDNEvent) => void} callback - The callback function to remove.
+	 * @param {EventHandler} callback - The callback function to remove.
 	 * @param {string|Iterable<string>} [topics] - The specific topic(s) to unregister from. If omitted, unregisters from all topics.
 	 *
 	 * @throws {TypeError} if `topics` is defined but not iterable
@@ -126,7 +132,7 @@ export class MessageRouter {
 
 	/**
 	 * Removes the specified callback from all topics and wildcard topics.
-	 * @param {(event: EDDNEvent) => void} callback - The callback function to remove completely.
+	 * @param {EventHandler} callback - The callback function to remove completely.
 	 */
 	unregisterAll(callback) {
 		this.#wildcards.delete(callback);
@@ -164,7 +170,7 @@ export class MessageRouter {
 
 /**
  * Helper to safely invoke a callback without crashing the router on errors.
- * @param {(event: EDDNEvent) => void} cb - The callback to execute.
+ * @param {EventHandler} cb - The callback to execute.
  * @param {EDDNEvent} event - The {@link EDDNEvent} to pass to the callback.
  */
 function invoke(cb, event) {

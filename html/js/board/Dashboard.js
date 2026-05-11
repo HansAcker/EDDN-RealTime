@@ -26,8 +26,9 @@ import LocationModule from "#modules/LocationModule.js";
 import NavRouteModule from "#modules/NavRouteModule.js";
 import NewBodiesModule from "#modules/NewBodiesModule.js";
 import NewStarsModule from "#modules/NewStarsModule.js";
-import SoftwareStatsModule from "#modules/SoftwareStatsModule.js";
+import RegionStatsModule from "#modules/RegionStatsModule.js";
 import ScanModule from "#modules/ScanModule.js";
+import SoftwareStatsModule from "#modules/SoftwareStatsModule.js";
 import UpdatesModule from "#modules/UpdatesModule.js";
 import VisitsModule from "#modules/VisitsModule.js";
 
@@ -46,6 +47,7 @@ const defaultModules = {
 	"NavRoute": NavRouteModule,
 	"NewBodies": NewBodiesModule,
 	"NewStars": NewStarsModule,
+	"RegionStats": RegionStatsModule,
 	"Scan": ScanModule,
 	"SoftwareStats": SoftwareStatsModule,
 	"Updates": UpdatesModule,

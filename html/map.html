@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+<link rel="icon" sizes="any" href="img/activity-icon/activity-icon--state-off.svg" id="icon">
+<link rel="preload" href="fonts/orbitron/orbitron-light-webfont.woff" as="font" type="font/woff" crossorigin>
+<link rel="stylesheet" href="css/style.css">
+
+<!-- https://github.com/HansAcker/EDDN-RealTime -->
+<title>Elite Dangerous Data Network Real Time Feed</title>
+<meta name="description" content="Live Events from the Elite Dangerous Data Network">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+	.galaxymap {
+		position: relative;
+		width: 100vmin;
+		height: 100vmin;
+		margin: auto;
+	}
+
+	.galaxymap object,
+	.galaxymap canvas {
+		height: 100%;
+		display: block;
+		position: absolute;
+		top: 0;
+		left: 0;
+	}
+
+	.galaxymap canvas {
+/*		pointer-events: none; */
+	}
+</style>
+
+
+<div class="galaxymap">
+	<object id="regions" type="image/svg+xml" data="data/RegionMap.svg"></object>
+	<canvas id="plot" width="1024" height="1024"></canvas>
+</div>
+
+
+<script type="importmap">
+{
+	"imports": {
+		"#DashboardModule": "./js/board/DashboardModule.js",
+		"#config.js": "./js/config.js",
+		"#utils.js": "./js/utils/utils.js",
+
+		"#board/": "./js/board/",
+		"#ed/": "./js/ed/",
+		"#eddn/": "./js/eddn/",
+		"#modules/": "./js/board/modules/",
+		"#ui/": "./js/ui/",
+		"#ws/": "./js/ws/",
+
+		"#data/": "./data/"
+	}
+}
+</script>
+<script type="module" src="js/map.js"></script>

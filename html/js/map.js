@@ -61,7 +61,7 @@ async function waitForObj(obj) {
 				//       - debug more: does the load event trigger on the blank placeholder?
 				//       - listen for a second load event?
 				//reject(new Error("TODO: Loaded but not ready"));
-				console.warning("Loaded but not ready:", obj);
+				console.warn("Loaded but not ready:", obj);
 			} catch (err) {
 				reject(new Error("Cannot access contentDocument.", { cause: err }));
 			}
@@ -221,7 +221,7 @@ function highlightRegion(id) {
 	const path = regionPaths[id];
 
 	if (!path) {
-		console.warning("No path for id: ", id);
+		console.warn("No path for id:", id);
 		return;
 	}
 

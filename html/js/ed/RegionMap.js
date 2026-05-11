@@ -57,6 +57,11 @@ export class RegionMap {
 	/** @type {number} Z-axis origin of the region map in light-years relative to Sol. */
 	static get Z0() { return Z0; }
 
+	/** @type {number} MAP_SIZE */
+	static get MAP_SIZE() { return MAP_SIZE; }
+	/** @type {number} MAP_SCALE */
+	static get MAP_SCALE() { return MAP_SCALE; }
+
 
 	/**
 	 * Looks up the galactic region for the given coordinates.

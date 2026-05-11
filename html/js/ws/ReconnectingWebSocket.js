@@ -259,7 +259,6 @@ export class ReconnectingWebSocket extends EventTarget {
 	 * Alias for {@link ReconnectingWebSocket#reconnect} retained for
 	 * backwards compatibility.
 	 */
-	// compatibility with older ReconnectingWebSocket class
 	refresh() {
 		this.reconnect();
 	}

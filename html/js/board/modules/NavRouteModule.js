@@ -7,6 +7,7 @@
 
 import { Config } from "#config.js";
 import { DataTableModule } from "#DashboardModule";
+import { distance3 } from "#utils.js";
 
 
 /**
@@ -111,10 +112,6 @@ export class NavRouteModule extends DataTableModule {
 		return cells;
 	}
 }
-
-
-// const distanceN = (v0, v1) => Math.hypot(...v0.map((v, i) => v - v1[i]));
-const distance3 = (v0, v1) => Math.hypot(v0[0] - v1[0], v0[1] - v1[1], v0[2] - v1[2]); // subtract vectors, return length
 
 
 export default NavRouteModule;

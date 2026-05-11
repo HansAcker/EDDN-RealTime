@@ -5,6 +5,9 @@
  * objects and handles user interactions.
  */
 
+import { copyToClipboard } from "#utils.js";
+
+
 /**
  * Manages the display of message contents in a popup/overlay box.
  * Maps UI elements (rows) to their underlying data objects.
@@ -44,10 +47,13 @@ export class InfoBox {
 		// importNode() vs cloneNode() makes a difference if the <template> contains custom elements
 		const infoBox = document.importNode(this.#template.content, true).firstElementChild;
 
+		const classSuccess = "infobox__button--signal-success";
+		const classError = "infobox__button--signal-error";
+
 		const actions = {
-			"copy-msg": (button) => InfoBox.#copyToClipboard(msgText, button),
-			"copy-gts": (button) => InfoBox.#copyToClipboard(msg.header?.gatewayTimestamp, button),
-			"copy-uid": (button) => InfoBox.#copyToClipboard(msg.header?.uploaderID, button),
+			"copy-msg": (button) => copyToClipboard(msgText, button, classSuccess, classError),
+			"copy-gts": (button) => copyToClipboard(msg.header?.gatewayTimestamp, button, classSuccess, classError),
+			"copy-uid": (button) => copyToClipboard(msg.header?.uploaderID, button, classSuccess, classError),
 			"close": () => infoBox.remove(),
 		};
 
@@ -68,54 +74,5 @@ export class InfoBox {
 		});
 
 		this.#container.append(infoBox);
-	}
-
-
-	// TODO: move to utils?
-
-	/**
-	 * Copies text to the clipboard and triggers a success/error animation on the button.
-	 * @param {string} text - The text to copy.
-	 * @param {HTMLElement} element - The button element to animate.
-	 * @returns {Promise<void>} A promise that resolves when the operation is complete.
-	 */
-	static #copyToClipboard(text, element) {
-		// clipboard not available in insecure (HTTP) context and others
-		if (!navigator.clipboard) {
-			console.warn("InfoBox: clipboard API unavailable");
-			return InfoBox.#triggerAnimation(element, "infobox__button--signal-error");
-		}
-
-		return navigator.clipboard.writeText(text)
-			.then(() => {
-				return InfoBox.#triggerAnimation(element, "infobox__button--signal-success");
-			})
-			.catch((err) => {
-				console.warn("InfoBox: clipboard copy error:", err);
-				return InfoBox.#triggerAnimation(element, "infobox__button--signal-error");
-			});
-	}
-
-	/**
-	 * Triggers a CSS animation class on an element and returns a Promise 
-	 * that resolves when the animation completes.
-	 * @param {HTMLElement} element - The DOM node to animate.
-	 * @param {string} className - The CSS class containing the animation.
-	 * @returns {Promise<void>}
-	 */
-	static #triggerAnimation(element, className) {
-		return new Promise((resolve) => {
-			element.classList.remove(className);
-
-			// force immediate CSS update to reset animation
-			void element.offsetWidth;
-
-			element.addEventListener('animationend', () => {
-				element.classList.remove(className);
-				resolve();
-			}, { once: true });
-
-			element.classList.add(className);
-		});
 	}
 }

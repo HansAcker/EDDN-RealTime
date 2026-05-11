@@ -10,8 +10,9 @@
 		"lint": "npm run lint:js"
 	},
 	"imports": {
-		"#config.js": "./html/js/config.js",
 		"#DashboardModule": "./html/js/board/DashboardModule.js",
+		"#config.js": "./html/js/config.js",
+		"#utils.js": "./html/js/utils/utils.js",
 		"#data/*": "./html/data/*",
 		"#board/*": "./html/js/board/*",
 		"#ed/*": "./html/js/ed/*",

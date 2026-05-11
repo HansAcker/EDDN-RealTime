@@ -5,6 +5,9 @@
  * {@link EDDNEvent} dispatching.
  */
 
+import { invoke } from "#utils.js";
+
+
 /**
  * Routes messages from an event source to registered callbacks based on specific topics.
  *
@@ -154,29 +157,15 @@ export class MessageRouter {
 	#dispatch(event) {
 		if (this.#wildcards.size > 0) {
 			for (const callback of this.#wildcards) {
-				invoke(callback, event);
+				invoke(callback, "MessageRouter: Error in message handler:", event);
 			}
 		}
 
 		const tgroup = this.#topics.get(event.eventType);
 		if (tgroup) {
 			for (const callback of tgroup) {
-				invoke(callback, event);
+				invoke(callback, "MessageRouter: Error in message handler:", event);
 			}
 		}
-	}
-}
-
-
-/**
- * Helper to safely invoke a callback without crashing the router on errors.
- * @param {EventHandler} cb - The callback to execute.
- * @param {EDDNEvent} event - The {@link EDDNEvent} to pass to the callback.
- */
-function invoke(cb, event) {
-	try {
-		cb(event);
-	} catch (err) {
-		console.error("MessageRouter: Error in message handler:", err);
 	}
 }

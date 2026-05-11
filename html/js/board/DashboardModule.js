@@ -7,6 +7,7 @@
  */
 
 import { Config } from "#config.js";
+import { invoke } from "#utils.js";
 
 
 /**
@@ -403,7 +404,7 @@ export class DataTableModule extends DashboardModule {
 		}
 
 		if (typeof cells === "function") {
-			return this.#resolveRow(event, invoke(cells), _depth+1);
+			return this.#resolveRow(event, invoke(cells, "DataTableModule: Error in callback:"), _depth+1);
 		}
 
 		if (typeof cells[Symbol.iterator] === "function") {
@@ -440,7 +441,7 @@ export class DataTableModule extends DashboardModule {
 		}
 
 		if (typeof cell === "function") {
-			return this.#resolveCell(invoke(cell), _depth+1); // callback into module
+			return this.#resolveCell(invoke(cell, "DataTableModule: Error in callback:"), _depth+1); // callback into module
 		}
 
 		return this._makeCell(cell); // string-able text
@@ -464,22 +465,6 @@ export class DummyTableModule extends DataTableModule {
 	 */
 	constructor(_router, options) {
 		super(null, null, options);
-	}
-}
-
-
-/**
- * Safely invokes a callback, returning `undefined` on error.
- *
- * @param {Function} cb - The callback to execute.
- * @returns {*|undefined} The result of the callback, or `undefined` if it threw.
- */
-function invoke(cb) {
-	try {
-		return cb();
-	} catch (err) {
-		console.error("DataTableModule: Error in callback:", err);
-		return undefined;
 	}
 }
 

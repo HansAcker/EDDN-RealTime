@@ -50,9 +50,9 @@ export class VisitsModule extends DataTableModule {
 		const message = event.message;
 		const faction = message.SystemFaction ?? {};
 
-		return () => [
+		return [
 			event.StarSystem,
-			Config._numberFormat.format(message.Population ?? 0),
+			() => Config._numberFormat.format(message.Population ?? 0),
 			message.SystemAllegiance,
 			faction.Name,
 			faction.FactionState

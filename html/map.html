@@ -16,26 +16,56 @@
 		width: 100vmin;
 		height: 100vmin;
 		margin: auto;
+		overflow: hidden;
+/*
+		cursor: grab;
+		touch-action: none;
+*/
 	}
 
 	.galaxymap object,
 	.galaxymap canvas {
-		height: 100%;
-		display: block;
 		position: absolute;
 		top: 0;
 		left: 0;
+		height: 100%;
+		display: block;
+		pointer-events: none;
+		transform-origin: 0 0;
 	}
 
+/*
+	.galaxymap object {
+		shape-rendering: geometricPrecision;
+	}
+*/
+
 	.galaxymap canvas {
-/*		pointer-events: none; */
+/*		image-rendering: crisp-edges; */
+/*		image-rendering: pixelated; */
+	}
+
+	.galaxymap img {
+		position: absolute;
+		top: 4vmin;
+		left: 2vmin;
+		width: 4vmin;
+		height: 4vmin;
+		z-index: 2;
+		cursor: pointer;
+		opacity: 0.6;
+		border-radius: 0.5em;
+		outline: 0px solid transparent;
+		outline-offset: 0px;
+		transition: outline-offset 0.2s ease-out, outline-color 0.2s ease-out;
 	}
 </style>
 
 
 <div class="galaxymap">
+	<img id="mute" src="img/sound/mute.svg" />
 	<object id="regions" type="image/svg+xml" data="data/RegionMap.svg"></object>
-	<canvas id="plot" width="1024" height="1024"></canvas>
+	<canvas id="plot"></canvas>
 </div>
 
 

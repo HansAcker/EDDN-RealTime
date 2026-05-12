@@ -4,6 +4,7 @@ import { EDDNClient } from "#eddn/EDDNClient.js";
 import { ReconnectingWebSocket } from "#ws/ReconnectingWebSocket.js";
 import { CachedPageIconActivity } from "#ui/activity_icon.js";
 import { RegionMap } from "#ed/RegionMap.js";
+import { triggerAnimation } from "#utils.js";
 
 
 console.debug("Main: start");
@@ -113,6 +114,8 @@ const regionTimers = Array.from({ length: 43 }, () => null);
 
 
 const ctx = document.getElementById("plot").getContext("2d");
+ctx.canvas.width = MAP_SIZE;
+ctx.canvas.height = MAP_SIZE;
 
 drawRulers(ctx);
 
@@ -298,6 +301,212 @@ function drawRulers(ctx) {
 		}
 	}
 }
+
+
+/*
+
+const container = document.querySelector(".galaxymap");
+const plot = document.getElementById("plot");
+const regions = document.getElementById("regions");
+
+let state = {
+	scale: 1,
+	tx: 0,
+	ty: 0,
+	isDragging: false,
+	startX: 0,
+	startY: 0
+};
+
+function updateTransform() {
+	const transform = `translate(${state.tx}px, ${state.ty}px) scale(${state.scale})`;
+	plot.style.transform = transform;
+	// TODO: scale SVG viewport instead?
+	regions.style.transform = transform;
+}
+
+// zoom to cursor
+container.addEventListener("wheel", (e) => {
+	e.preventDefault();
+
+	const rect = container.getBoundingClientRect();
+	const mouseX = e.clientX - rect.left;
+	const mouseY = e.clientY - rect.top;
+
+	// Calculate point in map space before zoom
+	const mapX = (mouseX - state.tx) / state.scale;
+	const mapY = (mouseY - state.ty) / state.scale;
+
+	// Update scale (exponential feels smoother)
+	const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+	state.scale = Math.min(Math.max(1, state.scale * zoomFactor), 20);
+
+	// Calculate new translation to keep map point under cursor
+	state.tx = mouseX - mapX * state.scale;
+	state.ty = mouseY - mapY * state.scale;
+
+	// Constrain panning so map doesn't disappear
+	if (state.scale === 1) {
+		state.tx = 0;
+		state.ty = 0;
+	}
+
+	updateTransform();
+}, { passive: false });
+
+// panning
+container.addEventListener("pointerdown", (e) => {
+	if (e.button !== 0) return; // Left click only
+	state.isDragging = true;
+	state.startX = e.clientX - state.tx;
+	state.startY = e.clientY - state.ty;
+	container.style.cursor = "grabbing";
+	container.setPointerCapture(e.pointerId);
+});
+
+window.addEventListener("pointermove", (e) => {
+	if (!state.isDragging) return;
+
+	state.tx = e.clientX - state.startX;
+	state.ty = e.clientY - state.startY;
+
+	updateTransform();
+});
+
+window.addEventListener("pointerup", (e) => {
+	state.isDragging = false;
+	container.style.cursor = "grab";
+});
+
+*/
+
+}
+
+
+{
+
+let mute = true;
+const attackTime = 0.05;
+const releaseTime = 0.25;
+
+
+const audioCtx = new AudioContext({ latencyHint: "interactive" });
+audioCtx.suspend(); // TODO: prevent auto-resume attempt on osc.start()?
+
+
+// scale amplitude to allow N active regions without clipping
+// TODO: set to half the number of regions (21). Use another number?
+const masterGain = new GainNode(audioCtx, { gain: 1 / 21 });
+masterGain.connect(audioCtx.destination);
+
+
+// TODO: initialize/close nodes on unmute/mute
+
+const oscs = Array.from({ length: 43 }, (_, id) => {
+	if (id === 0) {
+		return;
+	}
+
+	const freq = 440 * Math.pow(2, (id-1-12) / 12);
+
+	const oscNode = new OscillatorNode(audioCtx, {
+		type: "sine",
+		frequency: id === 18 ? 110 : freq, // Inner Orion Spur banned to 110Hz
+	});
+
+	return oscNode;
+});
+
+const gains = Array.from(oscs, (oscNode) => {
+	if (!oscNode) {
+		return;
+	}
+
+	const gainNode = new GainNode(audioCtx, { gain: 0 });
+
+	oscNode.connect(gainNode).connect(masterGain);
+
+	return gainNode;
+});
+
+
+function cancelAndHold(param) {
+	const now = audioCtx.currentTime;
+
+	const currentValue = param.value;
+	param.cancelScheduledValues(now);
+	param.setValueAtTime(currentValue, now);
+}
+
+
+function playNote(id) {
+	const gain = gains[id]?.gain;
+
+	if (mute || !gain) {
+		return;
+	}
+
+	cancelAndHold(gain);
+
+	const now = audioCtx.currentTime + 0.01; // TODO: rethink arbitrary anti-clicking delay fudge kludge
+	gain.setTargetAtTime(1, now, attackTime / 5);
+	gain.setValueAtTime(1, now + attackTime);
+	gain.setTargetAtTime(0, now + attackTime, releaseTime / 5);
+	gain.setValueAtTime(0, now + attackTime + releaseTime);
+}
+
+
+document.getElementById("mute").addEventListener("click", (ev) => {
+	mute = !mute;
+	console.log("mute:", mute);
+
+	if (!mute) {
+		if (audioCtx.state === "suspended") {
+			audioCtx.resume()
+			.then(() => {
+				const now = audioCtx.currentTime + 0.01;
+
+				for (let id = 1; id < 43; id++) {
+					oscs[id].start(now);
+				}
+
+				ev.target.src = "img/sound/speaker.svg";
+				return triggerAnimation(ev.target, "infobox__button--signal-success");
+			})
+			.catch((err) => {
+				console.warn("audioCtx.resume() error:", err);
+				return triggerAnimation(ev.target, "infobox__button--signal-error");
+			});
+		} else {
+			ev.target.src = "img/sound/speaker.svg";
+			triggerAnimation(ev.target, "infobox__button--signal-success");
+		}
+	} else {
+		const now = audioCtx.currentTime;
+
+		for (let id = 1; id < 43; id++) {
+			const gain = gains[id].gain;
+
+			cancelAndHold(gain);
+			gain.linearRampToValueAtTime(0, now + releaseTime);
+
+//			oscs[id].stop(now + releaseTime);
+		}
+
+		ev.target.src = "img/sound/mute.svg";
+//		triggerAnimation(ev.target, "infobox__button--signal-success");
+	}
+});
+
+
+eddn.addEventListener("eddn:message", (event) => {
+	if (event.age > Config.oldAge || !event.Region?.id) {
+		return;
+	}
+
+	playNote(event.Region.id);
+});
+
 
 }
 

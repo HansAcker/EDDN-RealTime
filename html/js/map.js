@@ -267,7 +267,7 @@ function drawRulers(ctx) {
 	for (let x = pX0 % unitSize; x < width; x += unitSize) {
 		const pos = x - pX0;
 		const isMajor = pos % (unitSize * 10) === 0;
-		const tickLen = isMajor ? 15 : (pos % (unitSize * 5) === 0  ? 10 : 5);
+		const tickLen = isMajor ? 15 : (pos % (unitSize * 5) === 0 ? 10 : 5);
 
 		ctx.beginPath();
 		ctx.moveTo(x + 0.5, 0);
@@ -285,7 +285,7 @@ function drawRulers(ctx) {
 	for (let y = pZ0 % unitSize; y < height; y += unitSize) {
 		const pos = y - pZ0;
 		const isMajor = pos % (unitSize * 10) === 0;
-		const tickLen = isMajor ? 15 : (pos % (unitSize * 5) === 0  ? 10 : 5);
+		const tickLen = isMajor ? 15 : (pos % (unitSize * 5) === 0 ? 10 : 5);
 
 		ctx.beginPath();
 		ctx.moveTo(MAP_SIZE-1, y + 0.5);
@@ -388,6 +388,7 @@ window.addEventListener("pointerup", (e) => {
 let mute = true;
 const attackTime = 0.05;
 const releaseTime = 0.25;
+const muteTime = 0.3;
 
 
 const audioCtx = new AudioContext({ latencyHint: "interactive" });
@@ -396,7 +397,8 @@ audioCtx.suspend(); // TODO: prevent auto-resume attempt on osc.start()?
 
 // scale amplitude to allow N active regions without clipping
 // TODO: set to half the number of regions (21). Use another number?
-const masterGain = new GainNode(audioCtx, { gain: 1 / 21 });
+const masterVolume = 1 / 21;
+const masterGain = new GainNode(audioCtx, { gain: 0 });
 masterGain.connect(audioCtx.destination);
 
 
@@ -411,8 +413,33 @@ const oscs = Array.from({ length: 43 }, (_, id) => {
 
 	const oscNode = new OscillatorNode(audioCtx, {
 		type: "sine",
-		frequency: id === 18 ? 110 : freq, // Inner Orion Spur banned to 110Hz
+		frequency: freq,
 	});
+
+/*
+	if (id > 20) {
+		oscNode.setPeriodicWave(createAnotherWave(audioCtx));
+	}
+
+	if (id <= 6) {
+		oscNode.setPeriodicWave(createMoreWave(audioCtx));
+	}
+*/
+
+	// Inner Orion Spur
+	if (id === 18) {
+		oscNode.frequency.value = 44;
+		oscNode.setPeriodicWave(createTwoWave(audioCtx));
+
+		const lfo = new OscillatorNode(audioCtx, {
+			type: "sine",
+//			periodicWave: createMoreWave(audioCtx),
+			frequency: 5,
+		});
+
+		lfo.connect(new GainNode(audioCtx, { gain: 64 })).connect(oscNode.detune);
+		lfo.start();
+	}
 
 	return oscNode;
 });
@@ -456,19 +483,32 @@ function playNote(id) {
 }
 
 
+eddn.addEventListener("eddn:message", (event) => {
+	if (event.age > Config.oldAge || !event.Region?.id) {
+		return;
+	}
+
+	playNote(event.Region.id);
+});
+
+
 document.getElementById("mute").addEventListener("click", (ev) => {
 	mute = !mute;
 	console.log("mute:", mute);
+
+	const now = audioCtx.currentTime;
 
 	if (!mute) {
 		if (audioCtx.state === "suspended") {
 			audioCtx.resume()
 			.then(() => {
-				const now = audioCtx.currentTime + 0.01;
+				const now = audioCtx.currentTime;
 
 				for (let id = 1; id < 43; id++) {
 					oscs[id].start(now);
 				}
+
+				masterGain.gain.linearRampToValueAtTime(masterVolume, now + muteTime);
 
 				ev.target.src = "img/sound/speaker.svg";
 				return triggerAnimation(ev.target, "infobox__button--signal-success");
@@ -478,19 +518,17 @@ document.getElementById("mute").addEventListener("click", (ev) => {
 				return triggerAnimation(ev.target, "infobox__button--signal-error");
 			});
 		} else {
+			masterGain.gain.linearRampToValueAtTime(masterVolume, now + muteTime);
+
 			ev.target.src = "img/sound/speaker.svg";
 			triggerAnimation(ev.target, "infobox__button--signal-success");
 		}
 	} else {
-		const now = audioCtx.currentTime;
+		masterGain.gain.linearRampToValueAtTime(0, now + muteTime);
 
 		for (let id = 1; id < 43; id++) {
-			const gain = gains[id].gain;
-
-			cancelAndHold(gain);
-			gain.linearRampToValueAtTime(0, now + releaseTime);
-
-//			oscs[id].stop(now + releaseTime);
+			gains[id].gain.setValueAtTime(0, now + muteTime);
+//			oscs[id].stop(now + muteTime);
 		}
 
 		ev.target.src = "img/sound/mute.svg";
@@ -499,13 +537,83 @@ document.getElementById("mute").addEventListener("click", (ev) => {
 });
 
 
-eddn.addEventListener("eddn:message", (event) => {
-	if (event.age > Config.oldAge || !event.Region?.id) {
-		return;
+function createOneWave(ctx) {
+	const n = 64; // Number of harmonics
+	const real = new Float32Array(n);
+	const imag = new Float32Array(n);
+
+	// imag[0] is always ignored. imag[1] is the fundamental.
+	for (let i = 1; i < n; i++) {
+		// Base sawtooth decay (1/n)
+		let amplitude = 1 / i;
+
+		// Resonance simulation: Add a peak around the 6th harmonic
+		// This creates the "nasal" or "resonating" quality.
+		const resonanceCure = Math.exp(-Math.pow(i - 6, 2) / 4);
+		amplitude += resonanceCure * 0.8;
+
+		// Low-pass filter roll-off (reduces harshness)
+		const lpf = 1 / (1 + Math.pow(i / 12, 2));
+
+		imag[i] = amplitude * lpf;
 	}
 
-	playNote(event.Region.id);
-});
+	return ctx.createPeriodicWave(real, imag, { disableNormalization: false });
+}
+
+
+function createTwoWave(ctx) {
+	// Phase offset terms (left at 0 for standard phase alignment)
+	const real = new Float32Array(8);
+
+	// Amplitude terms (sine components)
+	const imag = new Float32Array([
+		0,      // Index 0: DC offset
+		1.0,    // Index 1: Fundamental (Foundation sub)
+		0.6,    // Index 2: 2nd harmonic (Warmth, octave above)
+		1.2,    // Index 3: 3rd harmonic (Resonance peak)
+		0.2,    // Index 4: 4th harmonic (Post-cutoff slope)
+		0.05,   // Index 5: 5th harmonic
+		0.02,   // Index 6: 6th harmonic
+		0.01    // Index 7: 7th harmonic
+	]);
+
+	return ctx.createPeriodicWave(real, imag, { disableNormalization: false });
+}
+
+
+function createAnotherWave(ctx) {
+	const n = 32;
+	const real = new Float32Array(n);
+	const imag = new Float32Array(n);
+
+	for (let i = 1; i < n; i++) {
+		// Only odd harmonics (square wave characteristic)
+		if (i % 2 !== 0) {
+			// Steeper roll-off for a "warm" sound
+			imag[i] = 1 / Math.pow(i, 2);
+		}
+	}
+
+	// Boost the fundamental (i=1) even further for "depth"
+	imag[1] = 1.0;
+
+	return ctx.createPeriodicWave(real, imag, { disableNormalization: false });
+}
+
+
+function createMoreWave(ctx) {
+	// Harmonic coefficients (real and imaginary parts)
+	// Index 0 is unused; start from index 1 for harmonics
+
+	// const real = new Float32Array([0, 1, 0.5, 0.2]); // cosine terms
+	// const imag = new Float32Array([0, 0.5, 0.3, 0.1]); // sine terms
+
+	const real = new Float32Array([0, 1, 0.5, 0.25]); // cosine terms
+	const imag = new Float32Array([0, 0, 0.3, 0.1]);// sine terms
+
+	return ctx.createPeriodicWave(real, imag, { disableNormalization: false });
+}
 
 
 }

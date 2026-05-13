@@ -406,6 +406,8 @@ masterGain.connect(audioCtx.destination);
 const bassWave = createBassWave(audioCtx);
 
 // TODO: initialize/close nodes on unmute/mute
+// TODO: zero-based indexing and decrementing the region id instead would simplify the setup
+
 const oscs = Array.from({ length: 43 }, (_, id) => {
 	if (id === 0) {
 		return;
@@ -466,25 +468,36 @@ function cancelAndHold(param) {
 }
 
 
+function envelope(param, targetValue, targetDuration, startTime) {
+	const start = startTime ?? audioCtx.currentTime;
+	const end = start + targetDuration;
+
+	// start curve, reach 99% at target time then snap to target volume
+	// TODO: why not 95% (3), 98% (4) for a slightly more gentle slope?
+	param.setTargetAtTime(targetValue, start, targetDuration / 5);
+	param.setValueAtTime(targetValue, end);
+}
+
+
 function playNote(id) {
 	const gain = gains[id]?.gain;
 
-	if (mute || !gain) {
+	if (!gain) {
+		console.warn("No note for id:", id);
 		return;
 	}
 
 	cancelAndHold(gain);
 
 	const now = audioCtx.currentTime + 0.01; // TODO: rethink arbitrary anti-clicking delay fudge kludge
-	gain.setTargetAtTime(1, now, attackTime / 5);
-	gain.setValueAtTime(1, now + attackTime);
-	gain.setTargetAtTime(0, now + attackTime, releaseTime / 5);
-	gain.setValueAtTime(0, now + attackTime + releaseTime);
+
+	envelope(gain, 1, attackTime, now);
+	envelope(gain, 0, releaseTime, now + attackTime);
 }
 
 
 eddn.addEventListener("eddn:message", (event) => {
-	if (event.age > Config.oldAge || !event.Region?.id) {
+	if (mute || event.age > Config.oldAge || !event.Region?.id) {
 		return;
 	}
 
@@ -500,9 +513,17 @@ document.getElementById("mute").addEventListener("click", (ev) => {
 
 	if (!mute) {
 		if (audioCtx.state === "suspended") {
+			// click interaction should have unlocked the audio context
 			audioCtx.resume()
 			.then(() => {
-				const now = audioCtx.currentTime + 0.01;
+				// theoretically, if the event handler ran between .resume() and .then()
+				// a note could be playing already and the oscillators could start at a
+				// high point in the gain envelope. TODO: keep "mute" false until here
+
+				// theoretically, too, the first gain control inputs could be processed
+				// on the audio thread before the oscillator startup commands
+
+				const now = audioCtx.currentTime + 0.01; // TODO: cargo-cult for phase-synced start?
 
 				for (let id = 1; id < 43; id++) {
 					try {
@@ -530,9 +551,11 @@ document.getElementById("mute").addEventListener("click", (ev) => {
 	} else {
 		masterGain.gain.linearRampToValueAtTime(0, now + muteTime);
 
-		for (let id = 1; id < 43; id++) {
-			gains[id].gain.setValueAtTime(0, now + muteTime);
-//			oscs[id].stop(now + muteTime);
+		// cancel notes and mute oscillators
+		// TODO: undefined index 0 needs to go
+		for (const { gain } of gains.filter(Boolean)) {
+			gain.cancelScheduledValues(now + muteTime);
+			gain.setValueAtTime(0, now + muteTime);
 		}
 
 		ev.target.src = "img/sound/mute.svg";

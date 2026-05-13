@@ -396,14 +396,16 @@ audioCtx.suspend(); // TODO: prevent auto-resume attempt on osc.start()?
 
 
 // scale amplitude to allow N active regions without clipping
-// TODO: set to half the number of regions (21). Use another number?
-const masterVolume = 1 / 21;
+// TODO: Use another number?
+const masterVolume = 1 / 20;
 const masterGain = new GainNode(audioCtx, { gain: 0 });
 masterGain.connect(audioCtx.destination);
 
 
-// TODO: initialize/close nodes on unmute/mute
+// TODO: something else
+const bassWave = createBassWave(audioCtx);
 
+// TODO: initialize/close nodes on unmute/mute
 const oscs = Array.from({ length: 43 }, (_, id) => {
 	if (id === 0) {
 		return;
@@ -416,25 +418,14 @@ const oscs = Array.from({ length: 43 }, (_, id) => {
 		frequency: freq,
 	});
 
-/*
-	if (id > 20) {
-		oscNode.setPeriodicWave(createAnotherWave(audioCtx));
-	}
-
-	if (id <= 6) {
-		oscNode.setPeriodicWave(createMoreWave(audioCtx));
-	}
-*/
-
 	// Inner Orion Spur
 	if (id === 18) {
 		oscNode.frequency.value = 44;
-		oscNode.setPeriodicWave(createTwoWave(audioCtx));
+		oscNode.setPeriodicWave(bassWave);
 
 		const lfo = new OscillatorNode(audioCtx, {
 			type: "sine",
-//			periodicWave: createMoreWave(audioCtx),
-			frequency: 5,
+			frequency: 5.5,
 		});
 
 		lfo.connect(new GainNode(audioCtx, { gain: 64 })).connect(oscNode.detune);
@@ -444,12 +435,21 @@ const oscs = Array.from({ length: 43 }, (_, id) => {
 	return oscNode;
 });
 
-const gains = Array.from(oscs, (oscNode) => {
+const gains = Array.from(oscs, (oscNode, id) => {
 	if (!oscNode) {
 		return;
 	}
 
 	const gainNode = new GainNode(audioCtx, { gain: 0 });
+
+/*
+	// Inner Orion Spur
+	if (id === 18) {
+		const { oscFundamental, ampNode } = createBassLoop(audioCtx);
+		oscs[id] = oscFundamental;
+		oscNode = ampNode;
+	}
+*/
 
 	oscNode.connect(gainNode).connect(masterGain);
 
@@ -502,10 +502,14 @@ document.getElementById("mute").addEventListener("click", (ev) => {
 		if (audioCtx.state === "suspended") {
 			audioCtx.resume()
 			.then(() => {
-				const now = audioCtx.currentTime;
+				const now = audioCtx.currentTime + 0.01;
 
 				for (let id = 1; id < 43; id++) {
-					oscs[id].start(now);
+					try {
+						oscs[id].start(now);
+					} catch (err) {
+						console.warn("osc start:", err);
+					}
 				}
 
 				masterGain.gain.linearRampToValueAtTime(masterVolume, now + muteTime);
@@ -537,7 +541,26 @@ document.getElementById("mute").addEventListener("click", (ev) => {
 });
 
 
-function createOneWave(ctx) {
+function createBassWave(ctx) {
+	// Phase offset terms (left at 0 for standard phase alignment)
+	const real = new Float32Array(8);
+
+	// Amplitude terms (sine components)
+	const imag = new Float32Array([
+		0,      // Index 0: DC offset
+		1.0,    // Index 1: Fundamental (Foundation sub)
+		0.6,    // Index 2: 2nd harmonic (Warmth, octave above)
+		1.2,    // Index 3: 3rd harmonic (Resonance peak)
+		0.2,    // Index 4: 4th harmonic (Post-cutoff slope)
+		0.05,   // Index 5: 5th harmonic
+		0.02,   // Index 6: 6th harmonic
+		0.01    // Index 7: 7th harmonic
+	]);
+
+	return ctx.createPeriodicWave(real, imag, { disableNormalization: false });
+}
+
+function createAnotherWave(ctx) {
 	const n = 64; // Number of harmonics
 	const real = new Float32Array(n);
 	const imag = new Float32Array(n);
@@ -557,60 +580,6 @@ function createOneWave(ctx) {
 
 		imag[i] = amplitude * lpf;
 	}
-
-	return ctx.createPeriodicWave(real, imag, { disableNormalization: false });
-}
-
-
-function createTwoWave(ctx) {
-	// Phase offset terms (left at 0 for standard phase alignment)
-	const real = new Float32Array(8);
-
-	// Amplitude terms (sine components)
-	const imag = new Float32Array([
-		0,      // Index 0: DC offset
-		1.0,    // Index 1: Fundamental (Foundation sub)
-		0.6,    // Index 2: 2nd harmonic (Warmth, octave above)
-		1.2,    // Index 3: 3rd harmonic (Resonance peak)
-		0.2,    // Index 4: 4th harmonic (Post-cutoff slope)
-		0.05,   // Index 5: 5th harmonic
-		0.02,   // Index 6: 6th harmonic
-		0.01    // Index 7: 7th harmonic
-	]);
-
-	return ctx.createPeriodicWave(real, imag, { disableNormalization: false });
-}
-
-
-function createAnotherWave(ctx) {
-	const n = 32;
-	const real = new Float32Array(n);
-	const imag = new Float32Array(n);
-
-	for (let i = 1; i < n; i++) {
-		// Only odd harmonics (square wave characteristic)
-		if (i % 2 !== 0) {
-			// Steeper roll-off for a "warm" sound
-			imag[i] = 1 / Math.pow(i, 2);
-		}
-	}
-
-	// Boost the fundamental (i=1) even further for "depth"
-	imag[1] = 1.0;
-
-	return ctx.createPeriodicWave(real, imag, { disableNormalization: false });
-}
-
-
-function createMoreWave(ctx) {
-	// Harmonic coefficients (real and imaginary parts)
-	// Index 0 is unused; start from index 1 for harmonics
-
-	// const real = new Float32Array([0, 1, 0.5, 0.2]); // cosine terms
-	// const imag = new Float32Array([0, 0.5, 0.3, 0.1]); // sine terms
-
-	const real = new Float32Array([0, 1, 0.5, 0.25]); // cosine terms
-	const imag = new Float32Array([0, 0, 0.3, 0.1]);// sine terms
 
 	return ctx.createPeriodicWave(real, imag, { disableNormalization: false });
 }

@@ -525,6 +525,7 @@ document.getElementById("mute").addEventListener("click", (ev) => {
 				return triggerAnimation(ev.target, "infobox__button--signal-error");
 			});
 		} else {
+			cancelAndHold(masterGain.gain);
 			envelope(masterGain.gain, masterVolume, muteTime);
 
 			ev.target.src = "img/sound/speaker.svg";
@@ -533,6 +534,7 @@ document.getElementById("mute").addEventListener("click", (ev) => {
 	} else {
 		const now = audioCtx.currentTime;
 
+		cancelAndHold(masterGain.gain);
 		envelope(masterGain.gain, 0, muteTime, now);
 
 		// cancel notes and mute oscillators

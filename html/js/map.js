@@ -388,7 +388,7 @@ window.addEventListener("pointerup", (e) => {
 let mute = true;
 const attackTime = 0.05;
 const releaseTime = 0.25;
-const muteTime = 0.3;
+const muteTime = 0.5;
 
 
 const audioCtx = new AudioContext({ latencyHint: "interactive" });
@@ -406,14 +406,10 @@ masterGain.connect(audioCtx.destination);
 const bassWave = createBassWave(audioCtx);
 
 // TODO: initialize/close nodes on unmute/mute
-// TODO: zero-based indexing and decrementing the region id instead would simplify the setup
 
-const oscs = Array.from({ length: 43 }, (_, id) => {
-	if (id === 0) {
-		return;
-	}
-
-	const freq = 440 * Math.pow(2, (id-1-12) / 12);
+// note oscillators
+const oscs = Array.from({ length: 42 }, (_, id) => {
+	const freq = 440 * Math.pow(2, (id-12) / 12);
 
 	const oscNode = new OscillatorNode(audioCtx, {
 		type: "sine",
@@ -421,37 +417,25 @@ const oscs = Array.from({ length: 43 }, (_, id) => {
 	});
 
 	// Inner Orion Spur
-	if (id === 18) {
+	if (id === 18-1) {
 		oscNode.frequency.value = 44;
 		oscNode.setPeriodicWave(bassWave);
 
-		const lfo = new OscillatorNode(audioCtx, {
+		const lfo_detune = new OscillatorNode(audioCtx, {
 			type: "sine",
-			frequency: 5.5,
+			frequency: 2.25,
 		});
 
-		lfo.connect(new GainNode(audioCtx, { gain: 64 })).connect(oscNode.detune);
-		lfo.start();
+		lfo_detune.connect(new GainNode(audioCtx, { gain: 128 })).connect(oscNode.detune);
+		lfo_detune.start();
 	}
 
 	return oscNode;
 });
 
-const gains = Array.from(oscs, (oscNode, id) => {
-	if (!oscNode) {
-		return;
-	}
-
+// per-oscillator volume control, connected to master mixer
+const gains = Array.from(oscs, (oscNode) => {
 	const gainNode = new GainNode(audioCtx, { gain: 0 });
-
-/*
-	// Inner Orion Spur
-	if (id === 18) {
-		const { oscFundamental, ampNode } = createBassLoop(audioCtx);
-		oscs[id] = oscFundamental;
-		oscNode = ampNode;
-	}
-*/
 
 	oscNode.connect(gainNode).connect(masterGain);
 
@@ -501,15 +485,13 @@ eddn.addEventListener("eddn:message", (event) => {
 		return;
 	}
 
-	playNote(event.Region.id);
+	playNote(event.Region.id-1);
 });
 
 
 document.getElementById("mute").addEventListener("click", (ev) => {
 	mute = !mute;
 	console.log("mute:", mute);
-
-	const now = audioCtx.currentTime;
 
 	if (!mute) {
 		if (audioCtx.state === "suspended") {
@@ -525,15 +507,15 @@ document.getElementById("mute").addEventListener("click", (ev) => {
 
 				const now = audioCtx.currentTime + 0.01; // TODO: cargo-cult for phase-synced start?
 
-				for (let id = 1; id < 43; id++) {
+				for (let id = 0; id < 42; id++) {
 					try {
 						oscs[id].start(now);
 					} catch (err) {
-						console.warn("osc start:", err);
+						console.warn("osc start:", id, err);
 					}
 				}
 
-				masterGain.gain.linearRampToValueAtTime(masterVolume, now + muteTime);
+				envelope(masterGain.gain, masterVolume, muteTime, now);
 
 				ev.target.src = "img/sound/speaker.svg";
 				return triggerAnimation(ev.target, "infobox__button--signal-success");
@@ -543,17 +525,18 @@ document.getElementById("mute").addEventListener("click", (ev) => {
 				return triggerAnimation(ev.target, "infobox__button--signal-error");
 			});
 		} else {
-			masterGain.gain.linearRampToValueAtTime(masterVolume, now + muteTime);
+			envelope(masterGain.gain, masterVolume, muteTime);
 
 			ev.target.src = "img/sound/speaker.svg";
 			triggerAnimation(ev.target, "infobox__button--signal-success");
 		}
 	} else {
-		masterGain.gain.linearRampToValueAtTime(0, now + muteTime);
+		const now = audioCtx.currentTime;
+
+		envelope(masterGain.gain, 0, muteTime, now);
 
 		// cancel notes and mute oscillators
-		// TODO: undefined index 0 needs to go
-		for (const { gain } of gains.filter(Boolean)) {
+		for (const { gain } of gains) {
 			gain.cancelScheduledValues(now + muteTime);
 			gain.setValueAtTime(0, now + muteTime);
 		}

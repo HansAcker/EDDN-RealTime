@@ -1,4 +1,5 @@
 // time rounding units in seconds
+// TODO: Object.freeze() at import time gets this bundled even if not required
 const time_units = Object.freeze([
 	Object.freeze({ unit: "year", seconds: 31536000 }),
 	Object.freeze({ unit: "month", seconds: 2592000 }),
@@ -8,6 +9,7 @@ const time_units = Object.freeze([
 ]);
 
 let defaultTimeFormatter;
+
 
 /**
  * Formats a number of ms into a relative time string.

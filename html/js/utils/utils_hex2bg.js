@@ -1,11 +1,13 @@
 // 16 colors per nibble
 // TODO: improve this "high-contrast" selection?
+// TODO: Object.freeze() at import time gets this bundled even if not required
 const hex_colors = Object.freeze([
 	"#0067A5", "#008856", "#222222", "#604E97",
 	"#848482", "#875692", "#A1CAF1", "#B3446C",
 	"#BE0032", "#C2B280", "#DCD300", "#E68FAC",
 	"#F2F3F4", "#F38400", "#F3C300", "#F99379"
 ]);
+
 
 /**
  * Converts a hex identifier string into a linear-gradient

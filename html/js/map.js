@@ -276,7 +276,7 @@ function drawRulers(svgDoc) {
 
 	// Horizontal ruler ticks and labels
 	const startX = pX0 % unitSize;
-	const endX = size - (size - startX) % unitSize;
+	const endX = size - ((size - startX) % unitSize);
 
 	for (let x = startX; x <= endX ; x += unitSize) {
 		const pos = x - pX0;
@@ -295,7 +295,7 @@ function drawRulers(svgDoc) {
 
 	// Vertical ruler ticks and labels
 	const startY = pZ0 % unitSize;
-	const endY = size - (size - startY) % unitSize;
+	const endY = size - ((size - startY) % unitSize);
 
 	for (let y = startY; y <= endY ; y += unitSize) {
 		const pos = y - pZ0;
@@ -306,8 +306,8 @@ function drawRulers(svgDoc) {
 		gV.appendChild(create("line", { x1: size - 1, y1: y, x2: size - 1 - tickLen, y2: y }));
 
 		if (isMajor) {
-			const tx = size - 1 - 50, ty = y + 6;
-			const label = create("text", { x: tx, y: ty, class: "rulertext", "dominant-baseline": "middle", transform: `rotate(-90, ${tx}, ${ty})` });
+			const tx = size - 1 - 55;
+			const label = create("text", { x: tx, y: y, class: "rulertext", "dominant-baseline": "middle", transform: `rotate(-90, ${tx}, ${y})` });
 			label.textContent = -tickIdx;
 			gV.appendChild(label);
 		}

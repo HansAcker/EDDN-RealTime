@@ -117,7 +117,7 @@ const ctx = document.getElementById("plot").getContext("2d");
 ctx.canvas.width = MAP_SIZE;
 ctx.canvas.height = MAP_SIZE;
 
-drawRulers(ctx);
+drawRulers(regionDoc);
 
 const heatmap = ctx.getImageData(0, 0, MAP_SIZE, MAP_SIZE);
 const heatcount = new Uint16Array(MAP_SIZE * MAP_SIZE);
@@ -125,7 +125,7 @@ const heatcount = new Uint16Array(MAP_SIZE * MAP_SIZE);
 
 
 // dirty-rect
-let minX = MAP_SIZE-1, minZ = MAP_SIZE-1, maxX = 0, maxZ = 0;
+let minX = MAP_SIZE-1, minY = MAP_SIZE-1, maxX = 0, maxY = 0;
 
 let renderQueued = false;
 
@@ -142,31 +142,21 @@ eddn.addEventListener("eddn:message", (event) => {
 	// ly to pixel
 	const px = Math.floor((x - X0) * MAP_SCALE);
 	const pz = MAP_SIZE-1 - Math.floor((z - Z0) * MAP_SCALE); // canvas origin is top left, map origin is bottom left
+	const py = 0; // Math.floor((y - Y0) * MAP_SCALE);
 
 	if (px < 0 || px >= MAP_SIZE || pz < 0 || pz >= MAP_SIZE) {
 		return;
 	}
 
+	// StarPos z-axis is y in canvas
+	updatePlot(px, pz, py);
+
 	highlightRegion(event.Region.id);
-	
-	const idx = pz * MAP_SIZE + px;
+});
 
-/*
-	// 32 altitude bands, mark in altitude map
-	const py = Math.floor((y - Y0) * MAP_SCALE * 32/MAP_SIZE);
-	const altbit = 1 << py;
 
-	if (heatalts[idx] & altbit) {
-		return;
-	}
-
-	const alts = heatalts[idx] |= altbit;
-
-	// TODO: mix all altitude colors
-	for (let i = 0; i < 32; i++) {
-		alts & (1 << i) && altcolor += altcolors[i];
-	}
-*/
+function updatePlot(x, y, z) {
+	const idx = y * MAP_SIZE + x;
 
 	const count = heatcount[idx] + 1;
 
@@ -191,20 +181,20 @@ eddn.addEventListener("eddn:message", (event) => {
 	heatmap.data[idx32+3] = alpha;
 
 	// update dirty-rect
-	if (minX > px) {
-		minX = px;
+	if (minX > x) {
+		minX = x;
 	}
 
-	if (minZ > pz) {
-		minZ = pz;
+	if (minY > y) {
+		minY = y;
 	}
 
-	if (maxX < px) {
-		maxX = px;
+	if (maxX < x) {
+		maxX = x;
 	}
 
-	if (maxZ < pz) {
-		maxZ = pz;
+	if (maxY < y) {
+		maxY = y;
 	}
 
 	if (!renderQueued) {
@@ -213,11 +203,28 @@ eddn.addEventListener("eddn:message", (event) => {
 		requestAnimationFrame(() => {
 			renderQueued = false;
 
-			ctx.putImageData(heatmap, 0, 0, minX, minZ, maxX+1 - minX, maxZ+1 - minZ);
-			minX = MAP_SIZE-1, minZ = MAP_SIZE-1, maxX = 0, maxZ = 0;
+			ctx.putImageData(heatmap, 0, 0, minX, minY, maxX+1 - minX, maxY+1 - minY);
+			minX = MAP_SIZE-1, minY = MAP_SIZE-1, maxX = 0, maxY = 0;
 		});
 	}
-});
+
+
+/*
+	// 32 altitude bands, mark in altitude map
+	const altbit = 1 << (z * 32/MAP_SIZE);
+
+	if (heatalts[idx] & altbit) {
+		return;
+	}
+
+	const alts = heatalts[idx] |= altbit;
+
+	// TODO: mix all altitude colors
+	for (let i = 0; i < 32; i++) {
+		alts & (1 << i) && altcolor += altcolors[i];
+	}
+*/
+}
 
 
 function highlightRegion(id) {
@@ -244,62 +251,70 @@ function highlightRegion(id) {
 }
 
 
-function drawRulers(ctx) {
-	const unitSize = 1000 * MAP_SCALE;
+function drawRulers(svgDoc) {
+	const svgNS = "http://www.w3.org/2000/svg";
+	const svg = svgDoc.documentElement;
 
-	const width = 99 * unitSize;
-	const height = 99 * unitSize;
+	// Use full resolution for SVG rulers to match the map's coordinate system (2048x2048)
+	const size = RegionMap.MAP_SIZE;
+	const scale = RegionMap.MAP_SCALE;
+	const unitSize = 1000 * scale;
 
-	const pX0 = -X0 * MAP_SCALE;
-	const pZ0 = MAP_SIZE-1 - (-Z0 * MAP_SCALE);
+	// origin offset
+	const pX0 = -RegionMap.X0 * scale;
+	const pZ0 = size - 1 - (-RegionMap.Z0 * scale);
 
-	// Colors and styles
-	ctx.lineWidth = 1;
-	ctx.fillStyle = "orange";
-	ctx.strokeStyle = "orange";
-	ctx.font = "10px orbitron, sans-serif";
-	ctx.textAlign = "center";
-	ctx.textBaseline = "top";
+	const create = (tag, attrs = {}) => {
+		const el = svgDoc.createElementNS(svgNS, tag);
+		for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+		return el;
+	};
 
-	// no epsilon magic: the current MAP_SCALE should always produce exact representations
+	// Create containers with shared styles
+	const gH = create("g", { id: "ruler-h", class: "rulerlines" });
+	const gV = create("g", { id: "ruler-v", class: "rulerlines" });
 
-	// Horizontal ruler ticks
-	for (let x = pX0 % unitSize; x < width; x += unitSize) {
+	// Horizontal ruler ticks and labels
+	const startX = pX0 % unitSize;
+	const endX = size - (size - startX) % unitSize;
+
+	for (let x = startX; x <= endX ; x += unitSize) {
 		const pos = x - pX0;
-		const isMajor = pos % (unitSize * 10) === 0;
-		const tickLen = isMajor ? 15 : (pos % (unitSize * 5) === 0 ? 10 : 5);
+		const tickIdx = Math.round(pos / unitSize);
+		const isMajor = tickIdx % 10 === 0;
+		const tickLen = isMajor ? 30 : (tickIdx % 5 === 0 ? 20 : 10);
 
-		ctx.beginPath();
-		ctx.moveTo(x + 0.5, 0);
-		ctx.lineTo(x + 0.5, 0 + tickLen);
-		ctx.stroke();
+		gH.appendChild(create("line", { x1: x, y1: 0, x2: x, y2: tickLen }));
 
 		if (isMajor) {
-			ctx.fillText(pos / unitSize, x, 20);
+			const label = create("text", { x, y: 40, class: "rulertext" });
+			label.textContent = tickIdx;
+			gH.appendChild(label);
 		}
 	}
 
-	// Vertical ruler ticks
-	ctx.textAlign = "left";
-	ctx.textBaseline = "middle";
-	for (let y = pZ0 % unitSize; y < height; y += unitSize) {
+	// Vertical ruler ticks and labels
+	const startY = pZ0 % unitSize;
+	const endY = size - (size - startY) % unitSize;
+
+	for (let y = startY; y <= endY ; y += unitSize) {
 		const pos = y - pZ0;
-		const isMajor = pos % (unitSize * 10) === 0;
-		const tickLen = isMajor ? 15 : (pos % (unitSize * 5) === 0 ? 10 : 5);
+		const tickIdx = Math.round(pos / unitSize);
+		const isMajor = tickIdx % 10 === 0;
+		const tickLen = isMajor ? 30 : (tickIdx % 5 === 0 ? 20 : 10);
 
-		ctx.beginPath();
-		ctx.moveTo(MAP_SIZE-1, y + 0.5);
-		ctx.lineTo(MAP_SIZE-1 - tickLen, y + 0.5);
-		ctx.stroke();
+		gV.appendChild(create("line", { x1: size - 1, y1: y, x2: size - 1 - tickLen, y2: y }));
 
 		if (isMajor) {
-			ctx.save();
-			ctx.translate(MAP_SIZE-1 - 25, y + 3);
-			ctx.rotate(-Math.PI / 2);
-			ctx.fillText(-pos / unitSize, 0, 0);
-			ctx.restore();
+			const tx = size - 1 - 50, ty = y + 6;
+			const label = create("text", { x: tx, y: ty, class: "rulertext", "dominant-baseline": "middle", transform: `rotate(-90, ${tx}, ${ty})` });
+			label.textContent = -tickIdx;
+			gV.appendChild(label);
 		}
 	}
+
+	svg.appendChild(gH);
+	svg.appendChild(gV);
 }
 
 

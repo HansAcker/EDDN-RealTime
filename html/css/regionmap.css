@@ -6,8 +6,14 @@
 	font-style: normal;
 }
 
+path {
+/*	vector-effect: non-scaling-stroke; */
+	shape-rendering: geometricPrecision;
+}
+
 .regionText {
 	font: 25px orbitron, sans-serif !important;
+	stroke: none;
 }
 
 .region.active {
@@ -20,4 +26,19 @@
 @keyframes region-path--animation {
 	from { stroke: yellow; }
 	to { stroke: darkorange; }
+}
+
+.rulerlines {
+	fill: orange;
+	stroke: orange;
+	stroke-width: 2;
+	font-family: orbitron, sans-serif;
+	font-size: 20px;
+	pointer-events: none;
+}
+
+.rulertext {
+	text-anchor: middle;
+	dominant-baseline: hanging;
+	stroke: none;
 }

@@ -1,11 +1,11 @@
 // time rounding units in seconds
-// TODO: Object.freeze() at import time gets this bundled even if not required
-const time_units = Object.freeze([
-	Object.freeze({ unit: "year", seconds: 31536000 }),
-	Object.freeze({ unit: "month", seconds: 2592000 }),
-	Object.freeze({ unit: "day", seconds: 86400 }),
-	Object.freeze({ unit: "hour", seconds: 3600 }),
-	Object.freeze({ unit: "minute", seconds: 60 })
+// __PURE__ for esbuild: declare Object.freeze() as side-effect-free
+const time_units = /* @__PURE__ */ Object.freeze([
+	/* @__PURE__ */ Object.freeze({ unit: "year", seconds: 31536000 }),
+	/* @__PURE__ */ Object.freeze({ unit: "month", seconds: 2592000 }),
+	/* @__PURE__ */ Object.freeze({ unit: "day", seconds: 86400 }),
+	/* @__PURE__ */ Object.freeze({ unit: "hour", seconds: 3600 }),
+	/* @__PURE__ */ Object.freeze({ unit: "minute", seconds: 60 })
 ]);
 
 let defaultTimeFormatter;

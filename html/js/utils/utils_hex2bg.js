@@ -1,7 +1,7 @@
 // 16 colors per nibble
 // TODO: improve this "high-contrast" selection?
-// TODO: Object.freeze() at import time gets this bundled even if not required
-const hex_colors = Object.freeze([
+// __PURE__ for esbuild: declare Object.freeze() as side-effect-free
+const hex_colors = /* @__PURE__ */ Object.freeze([
 	"#0067A5", "#008856", "#222222", "#604E97",
 	"#848482", "#875692", "#A1CAF1", "#B3446C",
 	"#BE0032", "#C2B280", "#DCD300", "#E68FAC",

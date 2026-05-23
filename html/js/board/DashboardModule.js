@@ -340,10 +340,9 @@ export class DataTableModule extends DashboardModule {
 
 		if (dropCount < listLength) {
 			// remove old rows from table
-			if (dropCount > 0) {
-				for (let i = 0; i < dropCount; i++) {
-					container.lastElementChild?.remove();
-				}
+			while (dropCount > 0) {
+				container.lastElementChild?.remove();
+				dropCount--;
 			}
 
 			// insert new rows

@@ -259,17 +259,10 @@ export class EDDNClient extends EventTarget {
 
 		let event;
 		try {
-			const { $schemaRef, header, message } = data;
-
-			// TODO: check typeof?
-			//       - why here and not in EDDNEvent?
-			if (!$schemaRef || !header || !message) {
-				throw new Error("Missing required properties");
-			}
 			// TODO: why not pass on `data` instead?
 			//       - this normalizes the top level, ignoring additional properties
 			//       - the clients could want additional properties if EDDN ever defines them
-			//       - EDDNEvent already extracts these properties
+			const { $schemaRef, header, message } = data;
 			event = new EDDNEvent("eddn:message", { $schemaRef, header, message });
 
 			// get game event type from schema or journal event

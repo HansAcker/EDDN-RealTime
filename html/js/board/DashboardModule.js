@@ -306,12 +306,8 @@ export class DataTableModule extends DashboardModule {
 			return;
 		}
 
-		// full table replacement
-		if (queueLength >= listLength) {
-			// clear table
-			container.replaceChildren();
-
-			// drop oldest queue items
+		// drop oldest queue items
+		if (queueLength > listLength) {
 			this.#trimQueue(listLength);
 			queueLength = listLength;
 		}
@@ -342,15 +338,20 @@ export class DataTableModule extends DashboardModule {
 		// reset queue
 		queue.length = 0;
 
-		// remove older rows from table
-		if (dropCount > 0) {
-			for (let i = 0; i < dropCount; i++) {
-				container.lastElementChild?.remove();
+		if (dropCount < listLength) {
+			// remove old rows from table
+			if (dropCount > 0) {
+				for (let i = 0; i < dropCount; i++) {
+					container.lastElementChild?.remove();
+				}
 			}
-		}
 
-		// insert new rows
-		container.prepend(fragment);
+			// insert new rows
+			container.prepend(fragment);
+		} else {
+			// full table replacement
+			container.replaceChildren(fragment);
+		}
 	}
 
 

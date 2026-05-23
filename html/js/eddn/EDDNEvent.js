@@ -52,6 +52,11 @@ export class EDDNEvent extends Event {
 
 		({ $schemaRef: this.$schemaRef, header: this.header, message: this.message } = this.data = data);
 
+		// TODO: check typeof? $schemaRef should be a string, header and message should be Objects
+		if (!this.$schemaRef || !this.header || !this.message) {
+			throw new Error("Missing required properties");
+		}
+
 		// store a number here, make it a Date object on request
 		this.#receiveTimestamp = Date.now();
 	}
@@ -67,7 +72,7 @@ export class EDDNEvent extends Event {
 	// TODO: rename? age should be "receiveTimestamp - gatewayTimestamp"
 	get age() {
 		return this.#gotAge ? this.#age :
-			(this.#gotAge = true, this.#age = (Date.parse(this.header?.gatewayTimestamp) - Date.parse(this.message?.timestamp)));
+			(this.#gotAge = true, this.#age = (Date.parse(this.header.gatewayTimestamp) - Date.parse(this.message.timestamp)));
 	}
 
 	/** @type {string} - The normalised event type derived from the EDDN schema URL and journal event (e.g. `"journal:fsdjump"`). */
@@ -77,7 +82,7 @@ export class EDDNEvent extends Event {
 
 	/** @type {string} - The game event name from `message.event`, or {@link EDDNEvent#eventType} if absent. */
 	get eventName() {
-		return this.#eventName ??= (this.message?.event ?? this.eventType);
+		return this.#eventName ??= (this.message.event ?? this.eventType);
 	}
 
 	/** @type {string} - The game type string (e.g. `"Odyssey"`, `"Horizons"`, `"Base"`, `"Legacy"`, or `"Unknown"`). */
@@ -87,24 +92,24 @@ export class EDDNEvent extends Event {
 
 	/** @type {boolean} - Whether the commander is currently in a taxi (Apex Interstellar shuttle). */
 	get isTaxi() {
-		return this.#isTaxi ??= !!this.message?.Taxi;
+		return this.#isTaxi ??= !!this.message.Taxi;
 	}
 
 	/** @type {boolean} - Whether the commander is in a multicrew session. */
 	get isMulticrew() {
-		return this.#isMulticrew ??= !!this.message?.Multicrew;
+		return this.#isMulticrew ??= !!this.message.Multicrew;
 	}
 
 	/** @type {string} - The star system name derived from various message properties, or an empty string if none is available. */
 	get StarSystem() {
-		return this.#starSystem ??= (this.message?.StarSystem ?? this.message?.systemName ??
-			this.message?.SystemName ?? this.message?.System ?? this.message?.Route?.[0]?.StarSystem ?? "");
+		return this.#starSystem ??= (this.message.StarSystem ?? this.message.systemName ??
+			this.message.SystemName ?? this.message.System ?? this.message.Route?.[0]?.StarSystem ?? "");
 	}
 
 	/** @type {number[]|undefined} - The star position as a `[x, y, z]` coordinate array in light-years relative to Sol, or `undefined` if unavailable. */
 	get StarPos() {
 		return this.#gotStarPos ? this.#starPos :
-			(this.#gotStarPos = true, this.#starPos = this.message?.StarPos ?? this.message?.Route?.[0]?.StarPos);
+			(this.#gotStarPos = true, this.#starPos = this.message.StarPos ?? this.message.Route?.[0]?.StarPos);
 	}
 
 	/** @type {{id: number, name: string|null}|{}} - The galactic region for this event's star position, or an empty object if position is unknown. */

@@ -420,42 +420,69 @@ masterGain.connect(audioCtx.destination);
 // TODO: something else
 const bassWave = createBassWave(audioCtx);
 
-// TODO: initialize/close nodes on unmute/mute
+let oscs = [], gains = [];
+let stopTimeout = null;
 
-// note oscillators
-const oscs = Array.from({ length: 42 }, (_, id) => {
-	const freq = 440 * Math.pow(2, (id-12) / 12);
 
-	const oscNode = new OscillatorNode(audioCtx, {
-		type: "sine",
-		frequency: freq,
-	});
+function setupNodes() {
+	const now = audioCtx.currentTime + 0.01; // TODO: cargo-cult for phase-synced start?
+	console.debug("setupNodes(): now =", now);
 
-	// Inner Orion Spur
-	if (id === 18-1) {
-		oscNode.frequency.value = 44;
-		oscNode.setPeriodicWave(bassWave);
+	// note oscillators
+	oscs = Array.from({ length: 42 }, (_, id) => {
+		const freq = 440 * Math.pow(2, (id-12) / 12);
 
-		const lfo_detune = new OscillatorNode(audioCtx, {
+		const oscNode = new OscillatorNode(audioCtx, {
 			type: "sine",
-			frequency: 2.25,
+			frequency: freq,
 		});
 
-		lfo_detune.connect(new GainNode(audioCtx, { gain: 128 })).connect(oscNode.detune);
-		lfo_detune.start();
+		// Inner Orion Spur
+		if (id === 18-1) {
+			oscNode.frequency.value = 44;
+			oscNode.setPeriodicWave(bassWave);
+
+			const lfo_detune = new OscillatorNode(audioCtx, {
+				type: "sine",
+				frequency: 2.25,
+			});
+
+			lfo_detune.connect(new GainNode(audioCtx, { gain: 128 })).connect(oscNode.detune);
+			lfo_detune.start(now);
+		}
+
+		oscNode.start(now);
+
+		return oscNode;
+	});
+
+	// per-oscillator volume control, connected to master mixer
+	gains = Array.from(oscs, (oscNode) => {
+		const gainNode = new GainNode(audioCtx, { gain: 0 });
+
+		oscNode.connect(gainNode).connect(masterGain);
+
+		return gainNode;
+	});
+
+//	return { oscs, gains };
+}
+
+
+function stopNodes() {
+	console.debug("stopNodes()");
+
+	for (const oscNode of oscs) {
+		oscNode.stop();
+		oscNode.disconnect();
 	}
 
-	return oscNode;
-});
+	for (const gainNode of gains) {
+		gainNode.disconnect();
+	}
 
-// per-oscillator volume control, connected to master mixer
-const gains = Array.from(oscs, (oscNode) => {
-	const gainNode = new GainNode(audioCtx, { gain: 0 });
-
-	oscNode.connect(gainNode).connect(masterGain);
-
-	return gainNode;
-});
+	oscs = gains = [];
+}
 
 
 function cancelAndHold(param) {
@@ -509,6 +536,15 @@ document.getElementById("mute").addEventListener("click", (ev) => {
 	console.log("mute:", mute);
 
 	if (!mute) {
+		if (stopTimeout) {
+			clearTimeout(stopTimeout);
+			stopTimeout = null;
+		}
+
+		if (!oscs.length) {
+			setupNodes();
+		}
+
 		if (audioCtx.state === "suspended") {
 			// click interaction should have unlocked the audio context
 			audioCtx.resume()
@@ -520,17 +556,7 @@ document.getElementById("mute").addEventListener("click", (ev) => {
 				// theoretically, too, the first gain control inputs could be processed
 				// on the audio thread before the oscillator startup commands
 
-				const now = audioCtx.currentTime + 0.01; // TODO: cargo-cult for phase-synced start?
-
-				for (let id = 0; id < 42; id++) {
-					try {
-						oscs[id].start(now);
-					} catch (err) {
-						console.warn("osc start:", id, err);
-					}
-				}
-
-				envelope(masterGain.gain, masterVolume, muteTime, now);
+				envelope(masterGain.gain, masterVolume, muteTime);
 
 				ev.target.src = "img/sound/speaker.svg";
 				return triggerAnimation(ev.target, "infobox__button--signal-success");
@@ -558,6 +584,8 @@ document.getElementById("mute").addEventListener("click", (ev) => {
 			gain.setValueAtTime(0, now + muteTime);
 		}
 
+		stopTimeout = setTimeout(() => stopNodes(), muteTime * 2 * 1000);
+
 		ev.target.src = "img/sound/mute.svg";
 //		triggerAnimation(ev.target, "infobox__button--signal-success");
 	}
@@ -583,6 +611,7 @@ function createBassWave(ctx) {
 	return ctx.createPeriodicWave(real, imag, { disableNormalization: false });
 }
 
+/*
 function createAnotherWave(ctx) {
 	const n = 64; // Number of harmonics
 	const real = new Float32Array(n);
@@ -606,6 +635,7 @@ function createAnotherWave(ctx) {
 
 	return ctx.createPeriodicWave(real, imag, { disableNormalization: false });
 }
+*/
 
 
 }

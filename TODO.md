@@ -1,4 +1,10 @@
 ## Frontend TODO: possibly...
+- rethink modules / dashboard
+  - the Dashboard class was a quick kludge
+  - import all modules into a "#modules.js"?
+  - modules could include their own names and template(-id)s as static fields?
+  - move generic methods from DataTableModule into DashboardModule
+  - DashboardModule.setup() to initialize after constructor
 - pause/buffer tables
   - make the tables a few rows longer than displayed
   - on scroll down, pause updates / buffer new rows until a scroll/jump to top

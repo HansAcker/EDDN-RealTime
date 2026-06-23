@@ -75,7 +75,7 @@ try {
 	await Promise.all([
 		RegionMap.ready,
 		activity.ready,
-		document.fonts.load("10px orbitron"),
+//		document.fonts.load("10px orbitron"),
 		waitForObj(document.getElementById("regions")),
 	]);
 } catch (err) {
@@ -428,6 +428,15 @@ function setupNodes() {
 	const now = audioCtx.currentTime + 0.01; // TODO: cargo-cult for phase-synced start?
 	console.debug("setupNodes(): now =", now);
 
+	// modulator
+	const modOsc = new OscillatorNode(audioCtx, {
+		type: "sine",
+		frequency: 2.25,
+	});
+	modOsc.start(now);
+
+	const modNode = modOsc.connect(new GainNode(audioCtx, { gain: 128 }));
+
 	// note oscillators
 	oscs = Array.from({ length: 42 }, (_, id) => {
 		const freq = 440 * Math.pow(2, (id-12) / 12);
@@ -441,14 +450,7 @@ function setupNodes() {
 		if (id === 18-1) {
 			oscNode.frequency.value = 44;
 			oscNode.setPeriodicWave(bassWave);
-
-			const lfo_detune = new OscillatorNode(audioCtx, {
-				type: "sine",
-				frequency: 2.25,
-			});
-
-			lfo_detune.connect(new GainNode(audioCtx, { gain: 128 })).connect(oscNode.detune);
-			lfo_detune.start(now);
+			modNode.connect(oscNode.detune);
 		}
 
 		oscNode.start(now);
@@ -465,20 +467,21 @@ function setupNodes() {
 		return gainNode;
 	});
 
-//	return { oscs, gains };
+	// keep reference and stop in stopNodes, not to leak a running oscillator
+	oscs.push(modOsc);
 }
 
 
 function stopNodes() {
 	console.debug("stopNodes()");
 
+	for (const gainNode of gains) {
+		gainNode.disconnect();
+	}
+
 	for (const oscNode of oscs) {
 		oscNode.stop();
 		oscNode.disconnect();
-	}
-
-	for (const gainNode of gains) {
-		gainNode.disconnect();
 	}
 
 	oscs = gains = [];

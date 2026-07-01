@@ -131,7 +131,6 @@ class EDDNReceiver:
 		socket = self._zmq_ctx.socket(zmq.SUB)
 
 		socket.setsockopt(zmq.SUBSCRIBE, b"") # EDDN does not have topics
-		socket.setsockopt(zmq.IPV6, True)
 		socket.setsockopt(zmq.LINGER, 0)
 		socket.setsockopt(zmq.CONNECT_TIMEOUT, int(self.options.zmq_CONNECT_TIMEOUT * 1000))
 		socket.setsockopt(zmq.HEARTBEAT_IVL, int(self.options.zmq_HEARTBEAT_IVL * 1000))
@@ -204,6 +203,8 @@ if __name__ == "__main__":
 	async def main() -> None:
 		async for _ in EDDNReceiver():
 			print(_.decode("utf-8"))
+
+	#logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 
 	try:
 		asyncio.run(main())

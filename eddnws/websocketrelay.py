@@ -7,7 +7,7 @@ import zlib
 from dataclasses import dataclass
 
 # TODO: python >=3.9 supports dict, set, tuple
-from typing import Any, AsyncIterable, Callable, Coroutine, Dict, Set, Optional, Union
+from typing import Any, AsyncIterable, AsyncGenerator, Callable, Coroutine, Dict, Set, Optional, Union
 
 import websockets
 import websockets.asyncio.server as websockets_server
@@ -59,7 +59,7 @@ class WebsocketRelay:
 			**kwargs: Keyword arguments matching keys in WebsocketRelay.Options.
 		"""
 		# set this future to exit serve()
-		self.stop: Optional[asyncio.Future] = None
+		self.stop: Optional[asyncio.Future[str]] = None
 
 		self.options = WebsocketRelay.Options(**kwargs)
 
@@ -73,12 +73,12 @@ class WebsocketRelay:
 		self._ws_conns: Set[websockets_server.ServerConnection] = set()
 
 		# asyncio Tasks
-		self._relay_task: Optional[asyncio.Task] = None
+		self._relay_task: Optional[asyncio.Task[None]] = None
+		self._monitor_task: Optional[asyncio.Task[None]] = None
 		self._relay_close_handler: Optional[asyncio.TimerHandle] = None
-		self._monitor_task: Optional[asyncio.Task] = None
 
 		# references to one-shot tasks. unreferenced tasks could be garbage-collected before/while running
-		self._background_tasks: Set[asyncio.Task] = set()
+		self._background_tasks: Set[asyncio.Task[Any]] = set()
 
 
 	def _create_task(self, coro: Coroutine[Any, Any, Any]) -> None:
@@ -90,7 +90,7 @@ class WebsocketRelay:
 		Args:
 			coro (Coroutine): The coroutine to schedule.
 		"""
-		task: asyncio.Task = asyncio.create_task(coro)
+		task: asyncio.Task[Any] = asyncio.create_task(coro)
 		self._background_tasks.add(task)
 		# Clean up the reference once the task is complete
 		task.add_done_callback(self._background_tasks.discard)
@@ -337,7 +337,7 @@ class WebsocketRelay:
 		self._logger.info("monitor task exiting")
 
 
-	async def serve(self, stop_future: Optional[asyncio.Future] = None) -> None:
+	async def serve(self, stop_future: Optional[asyncio.Future[str]] = None) -> None:
 		"""
 		Start the WebSocket server and run until `stop_future` is set.
 
@@ -401,7 +401,7 @@ class WebsocketRelay:
 
 
 
-async def stdinter():
+async def stdinter() -> AsyncGenerator[bytes, None]:
 	"""Yields lines from stdin asynchronously."""
 	reader = asyncio.StreamReader()
 	protocol = asyncio.StreamReaderProtocol(reader)

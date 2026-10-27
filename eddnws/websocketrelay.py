@@ -110,7 +110,7 @@ class WebsocketRelay:
 
 		# Enforce connection limits strictly at the HTTP Upgrade level
 		# This avoids the overhead of completing the WebSocket handshake just to close it immediately
-		if "Upgrade" in request.headers and request.headers["Upgrade"] == "websocket":
+		if request.headers.get("Upgrade", "").strip().lower() == "websocket":
 			if self.options.connection_limit > 0 and len(self._ws_conns) >= self.options.connection_limit:
 				self._logger.info(f"client rejected, connection limit reached ({len(self._ws_conns)} active)")
 				return connection.respond(503, "Connection limit reached\n")

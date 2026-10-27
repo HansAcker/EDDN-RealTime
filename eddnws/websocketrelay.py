@@ -221,7 +221,7 @@ class WebsocketRelay:
 		# Also terminate the server if the iterator ends
 		else:
 			self._logger.info("EOF from iterator")
-			if self._relay_task is asyncio.current_task() and not self.stop.done():
+			if not self.stop.done():
 				self.stop.set_result("Iterator EOF")
 
 		self._logger.info("relay task exiting")

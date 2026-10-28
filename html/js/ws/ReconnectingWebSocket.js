@@ -379,16 +379,16 @@ export class ReconnectingWebSocket extends EventTarget {
 	 * if one was pending or the socket is closed.
 	 */
 	#handleWindowOnline() {
-		if (this.#reconnectTimer) {
+		if (this.#socket?.readyState === ReconnectingWebSocket.CLOSED) {
+			this.#removeSocketListeners(this.#socket);
+			this.#socket = null;
+		}
+
+		if (this.#reconnectTimer || !this.#socket) {
 			clearTimeout(this.#reconnectTimer);
 			this.#reconnectTimer = null;
 			this.#retryCount = 0;
-			this.#connect();
-		}
-		else if (!this.#socket || this.#socket.readyState === ReconnectingWebSocket.CLOSED) {
-			this.#removeSocketListeners(this.#socket);
-			this.#socket = null;
-			this.#retryCount = 0;
+
 			this.#connect();
 		}
 	}

@@ -118,12 +118,17 @@ export class ReconnectingWebSocket extends EventTarget {
 	 * @param {number} [options.jitterFactor] - Random jitter factor (0–1) applied to the delay.
 	 * @param {number} [options.connectionTimeout] - Milliseconds before a pending connection attempt is aborted.
 	 */
-	constructor(url, protocols = [], options = {}) {
+	constructor(url, protocols, options) {
 		super();
-		this.#url = url;
-		this.#protocols = protocols;
 
-		const { signal, ...config } = options;
+		if (typeof url !== "string" || !url) {
+			throw new Error("Missing required argument: url");
+		}
+
+		this.#url = url;
+		this.#protocols = protocols ?? [];
+
+		const { signal, ...config } = options ?? {};
 		Object.assign(this, config);
 
 		if (signal) {

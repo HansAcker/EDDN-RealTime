@@ -266,10 +266,7 @@ export class ReconnectingWebSocket extends EventTarget {
 			throw new DOMException("Cannot reconnect a closed WebSocket.", "InvalidStateError");
 		}
 
-		if (this.#reconnectTimer) {
-			clearTimeout(this.#reconnectTimer);
-			this.#reconnectTimer = null;
-		}
+		this.#clearInternalTimers();
 
 		if (this.#socket) {
 			this.#removeSocketListeners(this.#socket);
@@ -494,6 +491,7 @@ export class ReconnectingWebSocket extends EventTarget {
 			clearTimeout(this.#reconnectTimer);
 			this.#reconnectTimer = null;
 		}
+
 		if (this.#connectionTimeoutTimer) {
 			clearTimeout(this.#connectionTimeoutTimer);
 			this.#connectionTimeoutTimer = null;

@@ -97,6 +97,10 @@ export class ReconnectingWebSocket extends EventTarget {
 
 	/** @type {Map<string, Function>} */
 	#handlers = new Map();
+	/** @type {AbortSignal|null} */
+	#abortSignal = null;
+	/** @type {(() => void)|null} */
+	#onAbortBound = null;
 
 	/** @type {() => void} */
 	#onOnlineBound;
@@ -132,7 +136,16 @@ export class ReconnectingWebSocket extends EventTarget {
 		Object.assign(this, config);
 
 		if (signal) {
-			signal.addEventListener("abort", () => this.close(), { once: true });
+			// abort signal already fired
+			if (signal.aborted) {
+				// TODO: listeners added after the constructor won't receive a close event. does it matter?
+				this.close();
+				return;
+			}
+
+			this.#abortSignal = signal;
+			this.#onAbortBound = () => this.close();
+			signal.addEventListener("abort", this.#onAbortBound, { once: true });
 		}
 
 		this.#onOnlineBound = () => this.#handleWindowOnline();
@@ -143,6 +156,7 @@ export class ReconnectingWebSocket extends EventTarget {
 			window.addEventListener("offline", this.#onOfflineBound);
 		}
 
+		// TODO: listeners added after the constructor won't receive close/error events in case of SyntaxError. does it matter?
 		this.#connect();
 	}
 
@@ -285,17 +299,23 @@ export class ReconnectingWebSocket extends EventTarget {
 	 * @fires ReconnectingWebSocket#event:close
 	 */
 	close(code = 1000, reason) {
+		if (this.#forcedClose) return;
+
+		const socket = this.#socket;
+		socket?.close(code, reason);
+
 		this.#forcedClose = true;
 		this.#clearInternalTimers();
 
-		for (const [type, handler] of this.#handlers) {
-			this.removeEventListener(type, handler);
+		// detach potential abort signal listener on forced close
+		if (this.#abortSignal && this.#onAbortBound) {
+			this.#abortSignal.removeEventListener("abort", this.#onAbortBound);
+			this.#abortSignal = null;
+			this.#onAbortBound = null;
 		}
-		this.#handlers.clear();
 
-		if (this.#socket) {
-			this.#removeSocketListeners(this.#socket);
-			this.#socket.close(code, reason);
+		if (socket) {
+			this.#removeSocketListeners(socket);
 			this.#socket = null;
 		}
 

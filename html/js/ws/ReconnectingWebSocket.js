@@ -306,7 +306,7 @@ export class ReconnectingWebSocket extends EventTarget {
 	#connect() {
 		if (this.#forcedClose) return;
 
-		if (!navigator.onLine) return;
+		if (typeof navigator !== "undefined" && typeof navigator.onLine !== "undefined" && !navigator.onLine) return;
 
 		if (this.#socket && this.#socket.readyState === ReconnectingWebSocket.CONNECTING) return;
 

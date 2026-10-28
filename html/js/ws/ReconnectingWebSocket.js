@@ -347,6 +347,10 @@ export class ReconnectingWebSocket extends EventTarget {
 			ws.onmessage = (event) => this.#handleMessage(event);
 			ws.onerror = (event) => this.#handleError(event);
 
+			if (this.#connectionTimeoutTimer) {
+				clearTimeout(this.#connectionTimeoutTimer);
+			}
+
 			this.#connectionTimeoutTimer = setTimeout(() => {
 				if (this.#socket === ws) {
 					this.#removeSocketListeners(ws);

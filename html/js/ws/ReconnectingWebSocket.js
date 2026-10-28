@@ -338,8 +338,7 @@ export class ReconnectingWebSocket extends EventTarget {
 		if (this.#socket) return;
 
 		try {
-			const ws = new WebSocket(this.#url, this.#protocols);
-			this.#socket = ws;
+			const ws = this.#socket = new WebSocket(this.#url, this.#protocols);
 			ws.binaryType = this.#binaryType;
 
 			ws.onopen = (event) => this.#handleOpen(event);
@@ -382,6 +381,7 @@ export class ReconnectingWebSocket extends EventTarget {
 			this.#connect();
 		}
 		else if (!this.#socket || this.#socket.readyState === ReconnectingWebSocket.CLOSED) {
+			this.#removeSocketListeners(this.#socket);
 			this.#socket = null;
 			this.#retryCount = 0;
 			this.#connect();
@@ -431,6 +431,7 @@ export class ReconnectingWebSocket extends EventTarget {
 	#handleClose(event) {
 		if (event.target !== this.#socket) return;
 		clearTimeout(this.#connectionTimeoutTimer);
+		this.#removeSocketListeners(this.#socket);
 		this.#socket = null;
 		this.dispatchEvent(new CloseEvent("close", {
 			code: event.code,

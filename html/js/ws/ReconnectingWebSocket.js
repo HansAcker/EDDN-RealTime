@@ -467,24 +467,30 @@ export class ReconnectingWebSocket extends EventTarget {
 	 * @fires ReconnectingWebSocket#event:maxreconnects
 	 */
 	#handleConnectionFailure() {
-		if (this.#retryCount >= this.maxReconnectAttempts) {
+		this.#retryCount++;
+
+		if (this.#retryCount > this.maxReconnectAttempts) {
 			this.dispatchEvent(new Event("maxreconnects"));
+			this.close(1006, "Max Reconnect Attempts Exceeded");
 			return;
 		}
+
 		if (this.#reconnectTimer) {
 			clearTimeout(this.#reconnectTimer);
 			this.#reconnectTimer = null;
 		}
-		let delay = this.baseReconnectInterval * Math.pow(this.reconnectDecay, this.#retryCount);
+
+		let delay = this.baseReconnectInterval * Math.pow(this.reconnectDecay, this.#retryCount - 1);
 		delay = Math.min(delay, this.maxReconnectInterval);
+
 		if (this.jitterFactor > 0) {
 			const variance = delay * this.jitterFactor;
 			const jitter = (Math.random() * variance * 2) - variance;
 			delay = Math.max(0, delay + jitter);
 		}
+
 		this.#reconnectTimer = setTimeout(() => {
 			this.#reconnectTimer = null;
-			this.#retryCount++;
 			this.#connect();
 		}, delay);
 	}

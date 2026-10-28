@@ -138,7 +138,7 @@ export class ReconnectingWebSocket extends EventTarget {
 		if (signal) {
 			// abort signal already fired
 			if (signal.aborted) {
-				// TODO: listeners added after the constructor won't receive a close event. does it matter?
+				// TODO: listeners added after the constructor won't receive a close event
 				this.close();
 				return;
 			}
@@ -156,7 +156,7 @@ export class ReconnectingWebSocket extends EventTarget {
 			window.addEventListener("offline", this.#onOfflineBound);
 		}
 
-		// TODO: listeners added after the constructor won't receive close/error events in case of SyntaxError. does it matter?
+		// TODO: listeners added after the constructor won't receive close/error events in case of SyntaxError
 		this.#connect();
 	}
 
@@ -173,6 +173,7 @@ export class ReconnectingWebSocket extends EventTarget {
 	 * Sets the binary data type and propagates it to the underlying socket.
 	 *
 	 * @param {BinaryType} value - The binary type (`"blob"` or `"arraybuffer"`).
+	 * NB: The value is passed unmodified into WebSocket. Invalid values are silently ignored.
 	 */
 	set binaryType(value) {
 		this.#binaryType = value;

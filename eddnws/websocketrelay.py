@@ -7,7 +7,7 @@ import zlib
 from dataclasses import dataclass
 
 # TODO: python >=3.9 supports dict, set, tuple
-from typing import Any, AsyncIterable, Callable, Coroutine, Dict, Set, Optional, Union
+from typing import Any, AsyncIterable, AsyncGenerator, Callable, Coroutine, Dict, Set, Optional, Union
 
 import websockets
 import websockets.asyncio.server as websockets_server
@@ -59,12 +59,11 @@ class WebsocketRelay:
 			**kwargs: Keyword arguments matching keys in WebsocketRelay.Options.
 		"""
 		# set this future to exit serve()
-		self.stop: Optional[asyncio.Future] = None
+		self.stop: Optional[asyncio.Future[str]] = None
 
 		self.options = WebsocketRelay.Options(**kwargs)
 
 		self._iter_factory = iter_factory
-		self._iter: Optional[AsyncIterable[Union[bytes, str]]] = None
 
 		self._logger = logger or logging.getLogger(__name__)
 
@@ -74,12 +73,12 @@ class WebsocketRelay:
 		self._ws_conns: Set[websockets_server.ServerConnection] = set()
 
 		# asyncio Tasks
-		self._relay_task: Optional[asyncio.Task] = None
+		self._relay_task: Optional[asyncio.Task[None]] = None
+		self._monitor_task: Optional[asyncio.Task[None]] = None
 		self._relay_close_handler: Optional[asyncio.TimerHandle] = None
-		self._monitor_task: Optional[asyncio.Task] = None
 
 		# references to one-shot tasks. unreferenced tasks could be garbage-collected before/while running
-		self._background_tasks: Set[asyncio.Task] = set()
+		self._background_tasks: Set[asyncio.Task[Any]] = set()
 
 
 	def _create_task(self, coro: Coroutine[Any, Any, Any]) -> None:
@@ -91,7 +90,7 @@ class WebsocketRelay:
 		Args:
 			coro (Coroutine): The coroutine to schedule.
 		"""
-		task: asyncio.Task = asyncio.create_task(coro)
+		task: asyncio.Task[Any] = asyncio.create_task(coro)
 		self._background_tasks.add(task)
 		# Clean up the reference once the task is complete
 		task.add_done_callback(self._background_tasks.discard)
@@ -111,7 +110,7 @@ class WebsocketRelay:
 
 		# Enforce connection limits strictly at the HTTP Upgrade level
 		# This avoids the overhead of completing the WebSocket handshake just to close it immediately
-		if "Upgrade" in request.headers and request.headers["Upgrade"] == "websocket":
+		if request.headers.get("Upgrade", "").strip().lower() == "websocket":
 			if self.options.connection_limit > 0 and len(self._ws_conns) >= self.options.connection_limit:
 				self._logger.info(f"client rejected, connection limit reached ({len(self._ws_conns)} active)")
 				return connection.respond(503, "Connection limit reached\n")
@@ -127,8 +126,6 @@ class WebsocketRelay:
 		upstream iterator using the factory provided in __init__.
 		"""
 
-		self._logger.info("starting relay task")
-
 		# Sanity check: ensure we don't start duplicate tasks
 		# TODO: just move the relay_task check from ws_handler here?
 		if (
@@ -138,12 +135,12 @@ class WebsocketRelay:
 			warnings.warn("Relay tasks not done", RuntimeWarning)
 			return
 
-		self._iter = self._iter_factory()
-
-		self._relay_task = asyncio.create_task(self._relay_messages())
+		self._logger.info("starting relay task")
+		self._relay_task = asyncio.create_task(self._relay_messages(self._iter_factory()))
 
 		# Only start the buffer monitor if limits are actually configured
 		if self.options.client_check_interval > 0 and self.options.client_buffer_limit > 0:
+			self._logger.info("starting monitor task")
 			self._monitor_task = asyncio.create_task(self._monitor_client_buffers())
 
 
@@ -155,21 +152,21 @@ class WebsocketRelay:
 		pausing the relay until the next client connects.
 		"""
 
-		self._logger.info("stopping relay task")
+		# _relay_stop() could be called outside a scheduled close
+		self._relay_close_cancel()
 
-		if self._relay_close_handler is not None:
-			self._relay_close_handler.cancel()
-			self._relay_close_handler = None
-
+		# Cancelling the relay task should close the async iterator
 		if self._relay_task is not None:
-			self._relay_task.cancel()
+			if not self._relay_task.done():
+				self._logger.info("stopping relay task")
+				self._relay_task.cancel()
 			self._relay_task = None
 
 		if self._monitor_task is not None:
-			self._monitor_task.cancel()
+			if not self._monitor_task.done():
+				self._logger.info("stopping monitor task")
+				self._monitor_task.cancel()
 			self._monitor_task = None
-
-		self._iter = None
 
 
 	def _relay_close(self) -> None:
@@ -180,9 +177,7 @@ class WebsocketRelay:
 		before cutting the upstream link. This prevents "flapping" (rapid connect/disconnect)
 		of the upstream source.
 		"""
-		if self._relay_close_handler is not None:
-			self._relay_close_handler.cancel()
-
+		self._relay_close_cancel()
 		self._relay_close_handler = asyncio.get_running_loop().call_later(self.options.close_delay, self._relay_stop)
 
 
@@ -198,29 +193,38 @@ class WebsocketRelay:
 			self._relay_close_handler = None
 
 
-	async def _relay_messages(self) -> None:
+	async def _relay_messages(self, iter: AsyncIterable[Union[bytes, str]]) -> None:
 		"""
 		The "hot loop" that consumes the upstream iterator and broadcasts to clients.
 		"""
 		assert self.stop is not None, "Server not initialized"
-		assert self._iter is not None, "Iterator not initialized"
 
+		# Read, relay, repeat
 		try:
-			async for data in self._iter:
+			async for data in iter:
 				# stream compression runs on the main thread
 				self._broadcast(data)
 				# yield to loop, in case of message bursts
 				await asyncio.sleep(0)
 
-		except Exception as e:
-			# If the upstream iterator fails, terminate the server process,
-			# let the external init system restart it.
-			self._logger.exception("Iterator error, relay task exiting")
+		# Normal close
+		except asyncio.CancelledError:
+			pass
 
-		finally:
-			# Also terminate the server if the iterator ends
-			if self._relay_task and not self.stop.done():
+		# If the upstream iterator fails, terminate the server process,
+		# let the external init system restart it.
+		except Exception as e:
+			self._logger.exception("Exception in iterator")
+			if not self.stop.done():
+				self.stop.set_result("Iterator Exception")
+
+		# Also terminate the server if the iterator ends
+		else:
+			self._logger.info("EOF from iterator")
+			if not self.stop.done():
 				self.stop.set_result("Iterator EOF")
+
+		self._logger.info("relay task exiting")
 
 
 	def _broadcast(self, message: Union[bytes, str]) -> None:
@@ -242,7 +246,6 @@ class WebsocketRelay:
 		for connection in self._ws_conns:
 			transport = connection.transport
 			protocol = connection.protocol
-			send_method = protocol.send_text if send_text else protocol.send_binary
 
 			if protocol.state is not websockets.protocol.OPEN or not transport:
 				continue
@@ -254,7 +257,7 @@ class WebsocketRelay:
 
 			try:
 				# compress and serialize frame, pass on to transport
-				send_method(message)
+				(protocol.send_text if send_text else protocol.send_binary)(message)
 				connection.send_data()
 			except Exception as e:
 				self._logger.warning("websockets write error: %s (%s)", e, connection.id)
@@ -323,12 +326,18 @@ class WebsocketRelay:
 						self._create_task(websocket.close(1008, "Write buffer overrun"))
 
 				await asyncio.sleep(self.options.client_check_interval)
+
+		except asyncio.CancelledError:
+			pass
+
 		except Exception as e:
 			# TODO: move into loop and log or terminate server?
-			self._logger.exception("Monitor exception, monitor task exiting")
+			self._logger.exception("Exception in monitor task")
+
+		self._logger.info("monitor task exiting")
 
 
-	async def serve(self, stop_future: Optional[asyncio.Future] = None) -> None:
+	async def serve(self, stop_future: Optional[asyncio.Future[str]] = None) -> None:
 		"""
 		Start the WebSocket server and run until `stop_future` is set.
 
@@ -392,7 +401,7 @@ class WebsocketRelay:
 
 
 
-async def stdinter():
+async def stdinter() -> AsyncGenerator[bytes, None]:
 	"""Yields lines from stdin asynchronously."""
 	reader = asyncio.StreamReader()
 	protocol = asyncio.StreamReaderProtocol(reader)

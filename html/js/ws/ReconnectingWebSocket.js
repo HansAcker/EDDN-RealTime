@@ -97,6 +97,10 @@ export class ReconnectingWebSocket extends EventTarget {
 
 	/** @type {Map<string, Function>} */
 	#handlers = new Map();
+	/** @type {AbortSignal|null} */
+	#abortSignal = null;
+	/** @type {(() => void)|null} */
+	#onAbortBound = null;
 
 	/** @type {() => void} */
 	#onOnlineBound;
@@ -118,24 +122,41 @@ export class ReconnectingWebSocket extends EventTarget {
 	 * @param {number} [options.jitterFactor] - Random jitter factor (0–1) applied to the delay.
 	 * @param {number} [options.connectionTimeout] - Milliseconds before a pending connection attempt is aborted.
 	 */
-	constructor(url, protocols = [], options = {}) {
+	constructor(url, protocols, options) {
 		super();
-		this.#url = url;
-		this.#protocols = protocols;
 
-		const { signal, ...config } = options;
+		if (typeof url !== "string" || !url) {
+			throw new Error("Missing required argument: url");
+		}
+
+		this.#url = url;
+		this.#protocols = protocols ?? [];
+
+		const { signal, ...config } = options ?? {};
 		Object.assign(this, config);
 
 		if (signal) {
-			signal.addEventListener("abort", () => this.close(), { once: true });
+			// abort signal already fired
+			if (signal.aborted) {
+				// TODO: listeners added after the constructor won't receive a close event
+				this.close();
+				return;
+			}
+
+			this.#abortSignal = signal;
+			this.#onAbortBound = () => this.close();
+			signal.addEventListener("abort", this.#onAbortBound, { once: true });
 		}
 
 		this.#onOnlineBound = () => this.#handleWindowOnline();
 		this.#onOfflineBound = () => {};
 
-		window.addEventListener("online", this.#onOnlineBound);
-		window.addEventListener("offline", this.#onOfflineBound);
+		if (typeof window !== "undefined" && window instanceof EventTarget) {
+			window.addEventListener("online", this.#onOnlineBound);
+			window.addEventListener("offline", this.#onOfflineBound);
+		}
 
+		// TODO: listeners added after the constructor won't receive close/error events in case of SyntaxError
 		this.#connect();
 	}
 
@@ -152,6 +173,7 @@ export class ReconnectingWebSocket extends EventTarget {
 	 * Sets the binary data type and propagates it to the underlying socket.
 	 *
 	 * @param {BinaryType} value - The binary type (`"blob"` or `"arraybuffer"`).
+	 * NB: The value is passed unmodified into WebSocket. Invalid values are silently ignored.
 	 */
 	set binaryType(value) {
 		this.#binaryType = value;
@@ -245,6 +267,8 @@ export class ReconnectingWebSocket extends EventTarget {
 			throw new DOMException("Cannot reconnect a closed WebSocket.", "InvalidStateError");
 		}
 
+		this.#clearInternalTimers();
+
 		if (this.#socket) {
 			this.#removeSocketListeners(this.#socket);
 			this.#socket.close(1000, "Manual Reconnect");
@@ -273,22 +297,30 @@ export class ReconnectingWebSocket extends EventTarget {
 	 * @fires ReconnectingWebSocket#event:close
 	 */
 	close(code = 1000, reason) {
+		if (this.#forcedClose) return;
+
+		const socket = this.#socket;
+		socket?.close(code, reason);
+
 		this.#forcedClose = true;
 		this.#clearInternalTimers();
 
-		for (const [type, handler] of this.#handlers) {
-			this.removeEventListener(type, handler);
+		// detach potential abort signal listener on forced close
+		if (this.#abortSignal && this.#onAbortBound) {
+			this.#abortSignal.removeEventListener("abort", this.#onAbortBound);
+			this.#abortSignal = null;
+			this.#onAbortBound = null;
 		}
-		this.#handlers.clear();
 
-		if (this.#socket) {
-			this.#removeSocketListeners(this.#socket);
-			this.#socket.close(code, reason);
+		if (socket) {
+			this.#removeSocketListeners(socket);
 			this.#socket = null;
 		}
 
-		window.removeEventListener("online", this.#onOnlineBound);
-		window.removeEventListener("offline", this.#onOfflineBound);
+		if (typeof window !== "undefined" && window instanceof EventTarget) {
+			window.removeEventListener("online", this.#onOnlineBound);
+			window.removeEventListener("offline", this.#onOfflineBound);
+		}
 
 		this.dispatchEvent(new CloseEvent("close", { code, reason, wasClean: true }));
 	}
@@ -302,19 +334,22 @@ export class ReconnectingWebSocket extends EventTarget {
 	#connect() {
 		if (this.#forcedClose) return;
 
-		if (!navigator.onLine) return;
+		if (typeof navigator !== "undefined" && typeof navigator.onLine !== "undefined" && !navigator.onLine) return;
 
-		if (this.#socket && this.#socket.readyState === ReconnectingWebSocket.CONNECTING) return;
+		if (this.#socket) return;
 
 		try {
-			const ws = new WebSocket(this.#url, this.#protocols);
-			this.#socket = ws;
+			const ws = this.#socket = new WebSocket(this.#url, this.#protocols);
 			ws.binaryType = this.#binaryType;
 
 			ws.onopen = (event) => this.#handleOpen(event);
 			ws.onclose = (event) => this.#handleClose(event);
 			ws.onmessage = (event) => this.#handleMessage(event);
 			ws.onerror = (event) => this.#handleError(event);
+
+			if (this.#connectionTimeoutTimer) {
+				clearTimeout(this.#connectionTimeoutTimer);
+			}
 
 			this.#connectionTimeoutTimer = setTimeout(() => {
 				if (this.#socket === ws) {
@@ -344,14 +379,16 @@ export class ReconnectingWebSocket extends EventTarget {
 	 * if one was pending or the socket is closed.
 	 */
 	#handleWindowOnline() {
-		if (this.#reconnectTimer) {
+		if (this.#socket?.readyState === ReconnectingWebSocket.CLOSED) {
+			this.#removeSocketListeners(this.#socket);
+			this.#socket = null;
+		}
+
+		if (this.#reconnectTimer || !this.#socket) {
 			clearTimeout(this.#reconnectTimer);
 			this.#reconnectTimer = null;
 			this.#retryCount = 0;
-			this.#connect();
-		}
-		else if (!this.#socket || this.#socket.readyState === ReconnectingWebSocket.CLOSED) {
-			this.#retryCount = 0;
+
 			this.#connect();
 		}
 	}
@@ -399,6 +436,7 @@ export class ReconnectingWebSocket extends EventTarget {
 	#handleClose(event) {
 		if (event.target !== this.#socket) return;
 		clearTimeout(this.#connectionTimeoutTimer);
+		this.#removeSocketListeners(this.#socket);
 		this.#socket = null;
 		this.dispatchEvent(new CloseEvent("close", {
 			code: event.code,
@@ -429,19 +467,30 @@ export class ReconnectingWebSocket extends EventTarget {
 	 * @fires ReconnectingWebSocket#event:maxreconnects
 	 */
 	#handleConnectionFailure() {
-		if (this.#retryCount >= this.maxReconnectAttempts) {
+		this.#retryCount++;
+
+		if (this.#retryCount > this.maxReconnectAttempts) {
 			this.dispatchEvent(new Event("maxreconnects"));
+			this.close(1006, "Max Reconnect Attempts Exceeded");
 			return;
 		}
-		let delay = this.baseReconnectInterval * Math.pow(this.reconnectDecay, this.#retryCount);
+
+		if (this.#reconnectTimer) {
+			clearTimeout(this.#reconnectTimer);
+			this.#reconnectTimer = null;
+		}
+
+		let delay = this.baseReconnectInterval * Math.pow(this.reconnectDecay, this.#retryCount - 1);
 		delay = Math.min(delay, this.maxReconnectInterval);
+
 		if (this.jitterFactor > 0) {
 			const variance = delay * this.jitterFactor;
 			const jitter = (Math.random() * variance * 2) - variance;
 			delay = Math.max(0, delay + jitter);
 		}
+
 		this.#reconnectTimer = setTimeout(() => {
-			this.#retryCount++;
+			this.#reconnectTimer = null;
 			this.#connect();
 		}, delay);
 	}
@@ -454,6 +503,7 @@ export class ReconnectingWebSocket extends EventTarget {
 			clearTimeout(this.#reconnectTimer);
 			this.#reconnectTimer = null;
 		}
+
 		if (this.#connectionTimeoutTimer) {
 			clearTimeout(this.#connectionTimeoutTimer);
 			this.#connectionTimeoutTimer = null;

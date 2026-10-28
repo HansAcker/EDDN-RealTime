@@ -252,6 +252,11 @@ export class ReconnectingWebSocket extends EventTarget {
 			throw new DOMException("Cannot reconnect a closed WebSocket.", "InvalidStateError");
 		}
 
+		if (this.#reconnectTimer) {
+			clearTimeout(this.#reconnectTimer);
+			this.#reconnectTimer = null;
+		}
+
 		if (this.#socket) {
 			this.#removeSocketListeners(this.#socket);
 			this.#socket.close(1000, "Manual Reconnect");
@@ -313,7 +318,7 @@ export class ReconnectingWebSocket extends EventTarget {
 
 		if (typeof navigator !== "undefined" && typeof navigator.onLine !== "undefined" && !navigator.onLine) return;
 
-		if (this.#socket && this.#socket.readyState === ReconnectingWebSocket.CONNECTING) return;
+		if (this.#socket) return;
 
 		try {
 			const ws = new WebSocket(this.#url, this.#protocols);
@@ -360,6 +365,7 @@ export class ReconnectingWebSocket extends EventTarget {
 			this.#connect();
 		}
 		else if (!this.#socket || this.#socket.readyState === ReconnectingWebSocket.CLOSED) {
+			this.#socket = null;
 			this.#retryCount = 0;
 			this.#connect();
 		}
@@ -442,6 +448,10 @@ export class ReconnectingWebSocket extends EventTarget {
 			this.dispatchEvent(new Event("maxreconnects"));
 			return;
 		}
+		if (this.#reconnectTimer) {
+			clearTimeout(this.#reconnectTimer);
+			this.#reconnectTimer = null;
+		}
 		let delay = this.baseReconnectInterval * Math.pow(this.reconnectDecay, this.#retryCount);
 		delay = Math.min(delay, this.maxReconnectInterval);
 		if (this.jitterFactor > 0) {
@@ -450,6 +460,7 @@ export class ReconnectingWebSocket extends EventTarget {
 			delay = Math.max(0, delay + jitter);
 		}
 		this.#reconnectTimer = setTimeout(() => {
+			this.#reconnectTimer = null;
 			this.#retryCount++;
 			this.#connect();
 		}, delay);

@@ -133,8 +133,10 @@ export class ReconnectingWebSocket extends EventTarget {
 		this.#onOnlineBound = () => this.#handleWindowOnline();
 		this.#onOfflineBound = () => {};
 
-		window.addEventListener("online", this.#onOnlineBound);
-		window.addEventListener("offline", this.#onOfflineBound);
+		if (typeof window !== "undefined" && window instanceof EventTarget) {
+			window.addEventListener("online", this.#onOnlineBound);
+			window.addEventListener("offline", this.#onOfflineBound);
+		}
 
 		this.#connect();
 	}
@@ -287,8 +289,10 @@ export class ReconnectingWebSocket extends EventTarget {
 			this.#socket = null;
 		}
 
-		window.removeEventListener("online", this.#onOnlineBound);
-		window.removeEventListener("offline", this.#onOfflineBound);
+		if (typeof window !== "undefined" && window instanceof EventTarget) {
+			window.removeEventListener("online", this.#onOnlineBound);
+			window.removeEventListener("offline", this.#onOfflineBound);
+		}
 
 		this.dispatchEvent(new CloseEvent("close", { code, reason, wasClean: true }));
 	}

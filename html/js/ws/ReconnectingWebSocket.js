@@ -372,7 +372,7 @@ export class ReconnectingWebSocket extends EventTarget {
 
 		} catch (err) {
 			if (err instanceof SyntaxError) {
-				this.close(1006, "Fatal Syntax Error");
+				this.close(4006, "Fatal Syntax Error");
 				this.dispatchEvent(new Event("error"));
 				return;
 			}
@@ -477,7 +477,7 @@ export class ReconnectingWebSocket extends EventTarget {
 
 		if (this.#retryCount > this.maxReconnectAttempts) {
 			this.dispatchEvent(new Event("maxreconnects"));
-			this.close(1006, "Max Reconnect Attempts Exceeded");
+			this.close(4007, "Max Reconnect Attempts Exceeded");
 			return;
 		}
 

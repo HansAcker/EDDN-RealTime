@@ -163,6 +163,12 @@ export class ReconnectingWebSocket extends EventTarget {
 	/** @type {string} - The sub-protocol selected by the server, or an empty string. */
 	get protocol() { return this.#socket?.protocol || ""; }
 
+	/** @type {number} - The number of bytes queued for transmission, or 0 without an active socket. */
+	get bufferedAmount() { return this.#socket?.bufferedAmount ?? 0; }
+
+	/** @type {string} - The extensions selected by the server, or an empty string. */
+	get extensions() { return this.#socket?.extensions || ""; }
+
 	/** @type {number} - The current connection state, mirroring the WebSocket `readyState` constants. */
 	get readyState() { return this.#socket?.readyState ?? (this.#forcedClose ? ReconnectingWebSocket.CLOSED : ReconnectingWebSocket.CONNECTING); }
 
